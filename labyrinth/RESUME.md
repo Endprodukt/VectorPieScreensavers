@@ -6,7 +6,7 @@
 
 - „Der klassische Windows-Labyrinth-Screensaver“, aber nichts aus dem Original übernehmen: eigene Objekte (Kristalle, ein Kuchen als Ausgang, VECTORPIE-Schilder) und eigene Muster.
 - **Viel Bewegung** (Rückmeldung 2026-11-07, mit Verweis auf ein Video des Originals): nie anhalten, Kurven im Laufen nehmen. Das Stehenbleiben und Drehen auf der Stelle aus dem ersten Entwurf ist deshalb entfernt.
-- **Immer auf dem Boden bleiben:** keine Drehungen über Kopf (Rückmeldung 2026-11-07). Das Umdrehen durch die Kristalle ist deshalb entfernt.
+- **Über Kopf drehen, wie im Original, aber nicht ständig** (Rückmeldung 2026-11-07, nachdem das Drehen zuerst ganz entfernt war): Ein Kristall dreht die Welt langsam um (`ROLL_S`, 3 s). Danach läuft der Wanderer eine Strecke über Kopf (`UPSIDE`, 10 Zellen) und dreht dann von selbst zurück. Kristalle, durch die er über Kopf oder während des Drehens läuft, ändern nichts. Ein neues Labyrinth beginnt immer auf dem Boden.
 - Wie bei allen Screensavern hier: nichts pulsiert oder blinkt (siehe `../neondrive/RESUME.md`).
 
 ## Aufbau (alles in `src/main.c`)
