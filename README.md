@@ -7,6 +7,7 @@ Jeder Screensaver hat einen eigenen Ordner:
 | Ordner | Name | Was |
 |---|---|---|
 | [`neondrive/`](neondrive/) | **Neon Drive** | Eine endlose Fahrt im 80er-Synthwave-Stil in 3D: Grid, Sonne, wechselnde Strecken und Kulissen, Verkehr in beide Richtungen, Vögel und ein Flugzeug mit VECTORPIE-Banner. |
+| [`digitalrain/`](digitalrain/) | **Digital Rain** | Grüner Code-Regen im Matrix-Stil. Ab und zu gleitet, fällt oder rastet darin der Name eines Spiels vom Automaten ein, oder VECTORPIE. |
 
 ## Gemeinsam
 
