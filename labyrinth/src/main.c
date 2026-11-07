@@ -2,11 +2,11 @@
  *
  * Seen from inside, at eye height: walls of lines, a grid on the floor and
  * the ceiling. The walker keeps a hand on the right-hand wall, which in
- * these mazes always leads to the way out: it walks a corridor, stops,
- * turns, walks on. In the mazes:
+ * these mazes always leads to the way out. It never stops: it takes the
+ * corners in a curve and turns round in dead ends as it walks, always on
+ * the floor (the world never turns over). In the mazes:
  *   - VECTORPIE plates on some of the walls;
- *   - spinning crystals: walking through one turns the world slowly upside
- *     down (and the next one back again);
+ *   - spinning crystals on the way, gone as the walker comes;
  *   - the way out, a spinning pie with a slice missing: there the maze fades
  *     away and the next one, in other colors, fades in.
  *
@@ -31,7 +31,7 @@
 #define NMAX     16                     /* the largest maze, cells a side */
 #define S        2.4f                   /* a cell, m */
 #define H        2.2f                   /* the walls' height */
-#define EYE      (H / 2)                /* (the middle: upside down it is the same) */
+#define EYE      (H / 2)
 #define SEEN     9                      /* cells drawn around the walker */
 #define CRYSTALS 3
 #define WALK_MAX (4 * NMAX * NMAX + 4)
@@ -168,7 +168,6 @@ static const rgb PAL[5][5] = {
 static struct {
     float u;                            /* how far along the walk, in cells */
     float heading;                      /* unwrapped */
-    float roll, roll_from, roll_to, roll_t;
     float fade;                         /* 0 dark .. 1 seen */
     int   leaving;                      /* at the way out: fading away */
     float time, loud, tempo;
@@ -247,17 +246,11 @@ static void walker_update(float dt)
     walk_at(G.u, &x, &z, &h, &bend);
     G.heading += remainderf(h - G.heading, 2 * PI);
 
-    /* walking through a crystal turns the world over. It goes from a cell and
-     * a half before it and is gone half a cell before it, whatever the pace:
-     * the eye never comes inside it (its edges would cut across the screen). */
-    for (int i = 0; i < CRYSTALS; i++) {
-        if (!M.crystal_taken[i] && G.u >= M.crystal_at[i] - 1.5f) {
-            M.crystal_taken[i] = 1;
-            G.roll_from = G.roll;
-            G.roll_to = G.roll_to > PI / 2 ? 0 : PI;
-            G.roll_t = 0;
-        }
-    }
+    /* a crystal on the way goes from a cell and a half before it and is gone
+     * half a cell before it, whatever the pace: the eye never comes inside it
+     * (its edges would cut across the screen) */
+    for (int i = 0; i < CRYSTALS; i++)
+        if (!M.crystal_taken[i] && G.u >= M.crystal_at[i] - 1.5f) M.crystal_taken[i] = 1;
 }
 
 static void world_update(float dt)
@@ -266,10 +259,6 @@ static void world_update(float dt)
         if (M.crystal_taken[i])
             M.crystal_gone[i] = fmaxf(fminf(1, M.crystal_gone[i] + dt / 0.3f),
                                       clampf(G.u - (M.crystal_at[i] - 1.5f), 0, 1));
-    if (G.roll_t < 1) {
-        G.roll_t = fminf(1, G.roll_t + dt / 3.0f);
-        G.roll = G.roll_from + (G.roll_to - G.roll_from) * smooth01(G.roll_t);
-    }
 }
 
 /* ---- the models -------------------------------------------------------- */
@@ -563,9 +552,7 @@ static void draw(vp_game *g, vp_dvg *d)
     walker_pos(&x, &z);
     vp_vec3 eye = vp_v3(x, EYE, z);
     vp_vec3 fwd = vp_v3(sinf(G.heading), 0, cosf(G.heading));
-    vp_vec3 right = vp_v3(cosf(G.heading), 0, -sinf(G.heading));
-    vp_vec3 up = vp_v3_add(vp_v3_scale(vp_v3(0, 1, 0), cosf(G.roll)), vp_v3_scale(right, sinf(G.roll)));
-    vp3d_look_at(&view, eye, vp_v3_add(eye, fwd), up);
+    vp3d_look_at(&view, eye, vp_v3_add(eye, fwd), vp_v3(0, 1, 0));
     vp3d_scene_begin(scene, d, &view);
     maze_draw(d, x, z, fwd);
     vp3d_scene_end(scene);

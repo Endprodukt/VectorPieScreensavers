@@ -10,7 +10,7 @@ Stand 2026-11-07, Version 0.1.0: **Labyrinth** (`saver_labyrinth`).
   - Tempo: 2 Zellen pro Sekunde, bei lauter Musik gleitend bis 3,2. In Kurven geht er etwas langsamer, beim Wenden deutlich.
 - **Wände:** Je Labyrinth ein Muster: Ziegel, Kassetten, Kacheln oder Streifen mit Raute. Das Muster wird nur bis etwa 5 Zellen Entfernung gezeichnet, dahinter wäre es im Nebel ohnehin verloren. Dazu ein Gitter auf Boden und Decke und Nebel, der mit der Entfernung abdunkelt.
 - **VECTORPIE-Schilder:** auf etwa jeder elften Wand, auf einer Seite.
-- **Kristalle:** 3 pro Labyrinth, auf dem Weg. Wer hindurchläuft, dreht die Welt in 3 s langsam auf den Kopf; der nächste Kristall dreht sie zurück.
+- **Kristalle:** 3 pro Labyrinth, auf dem Weg. Sie drehen sich und verschwinden, wenn der Wanderer kommt. Die Welt dreht sich nicht mehr auf den Kopf (Rückmeldung 2026-11-07: man bleibt immer auf dem Boden).
   - Ein Kristall steht nur auf dem ersten Besuch einer Zelle und ist eine halbe Zelle vor dem Wanderer verschwunden. So kommt die Kamera nie in ihn hinein.
   - Früher konnte das passieren; seine Kanten zogen dann als schräge Striche durchs Bild (Rückmeldung 2026-11-07).
 - **Ausgang:** ein drehender Kuchen mit fehlendem Stück. Davor blendet das Labyrinth aus und das nächste in anderen Farben wieder ein. Es gibt 5 Farbsätze.

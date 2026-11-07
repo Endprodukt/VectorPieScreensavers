@@ -4,8 +4,9 @@
 
 ## Wünsche des Nutzers
 
-- „Der klassische Windows-Labyrinth-Screensaver“, aber nichts aus dem Original übernehmen: eigene Objekte (Kristalle statt Felsen, ein Kuchen als Ausgang, VECTORPIE-Schilder) und eigene Muster.
+- „Der klassische Windows-Labyrinth-Screensaver“, aber nichts aus dem Original übernehmen: eigene Objekte (Kristalle, ein Kuchen als Ausgang, VECTORPIE-Schilder) und eigene Muster.
 - **Viel Bewegung** (Rückmeldung 2026-11-07, mit Verweis auf ein Video des Originals): nie anhalten, Kurven im Laufen nehmen. Das Stehenbleiben und Drehen auf der Stelle aus dem ersten Entwurf ist deshalb entfernt.
+- **Immer auf dem Boden bleiben:** keine Drehungen über Kopf (Rückmeldung 2026-11-07). Das Umdrehen durch die Kristalle ist deshalb entfernt.
 - Wie bei allen Screensavern hier: nichts pulsiert oder blinkt (siehe `../neondrive/RESUME.md`).
 
 ## Aufbau (alles in `src/main.c`)
