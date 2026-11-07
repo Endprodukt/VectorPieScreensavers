@@ -11,12 +11,16 @@
  * rock shooters) and WEATHER (the weather now and the next days). Under each
  * of the others a line with the date and the weather.
  *
- * ITS MENU (menu.c), opened with START 1 while it runs: the face, whether
- * it changes by itself (off, with each track, every so many minutes), the
- * colors (the faces' own or one for all), which parts show (seconds, date,
- * weather, 24 hours, the track's title), the place (its time and weather:
- * from a list or searched by name) and the language (English, German,
- * French, Spanish). Kept in save/clock.ini (settings.c). For this the clock
+ * ITS MENU (menu.c), opened with START 1 while it runs: the face (or a
+ * random one, at start or at each change), whether it changes by itself
+ * (off, with each track, every so many minutes, after each weather report),
+ * the colors of the clock, the date and the weather (their own or one each),
+ * which parts show (seconds, date, weather line, 24 hours, the track's
+ * title), the weather report (full screen every so many minutes, for so
+ * many seconds), how the weather is shown (overview, simple, today, days,
+ * through the day, or each in turn; in its own colors or one), the place
+ * (its time and weather: from a list or searched by name) and the language
+ * (English, German, French, Spanish). Kept in save/clock.ini (settings.c). For this the clock
  * takes the cabinet's controls over while it runs (input.c): START 2 is
  * still NEXT TRACK, any other control still wakes the cabinet.
  *
@@ -79,6 +83,8 @@ static struct {
     weather_t wx;                       /* the latest weather (for the place set, else not ok) */
     int place_serial;                   /* the place asked for (weather_set_place) */
     settings_t was;                     /* the settings last seen: what the menu changed */
+    float report_t, report_k;           /* the weather report: its timer; how far it is shown, 0..1 */
+    int report_on, report_turn;         /* shown now; how many so far (the styles in turn) */
     int grabbed;                        /* the clock has the cabinet's controls */
     vp_game *game;
     vp_music_feed m;
@@ -98,6 +104,7 @@ static float clampf(float v, float lo, float hi) { return v < lo ? lo : v > hi ?
  * (SX). SQUEEZE 0 for a part laid out as text (the line under the faces). */
 static float ASPECT_X = 0.75f, ASPECT_Y = 1;
 static int SQUEEZE = 1;
+static int PAINT;                       /* the color theme now drawing (lang.h THEME_RGB): 0 the own colors */
 static float SX(float x) { return SQUEEZE ? CX + (x - CX) * ASPECT_X : x; }
 static float SY(float y) { return SQUEEZE ? W / 2.0f + (y - W / 2.0f) * ASPECT_Y : y; }
 static void mv(vp_dvg *d, float x, float y) { vp_moveto(d, (int)SX(x), (int)SY(y)); }
@@ -109,16 +116,16 @@ static float smooth01(float t) { t = clampf(t, 0, 1); return t * t * (3 - 2 * t)
 static void color(vp_dvg *d, float r, float g, float b, float k)
 {
     k = clampf(k, 0, 1);
-    if (SET.theme > 0) {
+    if (PAINT > 0) {
         /* one color for all: as bright as the face's own was */
         float lum = (0.3f * r + 0.59f * g + 0.11f * b) / 255, f = 0.45f + 0.55f * clampf(lum / 0.85f, 0, 1);
-        if (SET.theme == NTHEME - 1) {                  /* the rainbow: the hue wanders, slowly */
+        if (PAINT == NTHEME - 1) {                      /* the rainbow: the hue wanders, slowly */
             float h = fmodf(G.time * 0.01f, 1) * 6, x = 1 - fabsf(fmodf(h, 2) - 1);
             float c[6][3] = { { 1, x, 0 }, { x, 1, 0 }, { 0, 1, x }, { 0, x, 1 }, { x, 0, 1 }, { 1, 0, x } };
             int i = (int)h % 6;
             r = (60 + 195 * c[i][0]) * f; g = (60 + 195 * c[i][1]) * f; b = (60 + 195 * c[i][2]) * f;
         } else {
-            r = THEME_RGB[SET.theme][0] * f; g = THEME_RGB[SET.theme][1] * f; b = THEME_RGB[SET.theme][2] * f;
+            r = THEME_RGB[PAINT][0] * f; g = THEME_RGB[PAINT][1] * f; b = THEME_RGB[PAINT][2] * f;
         }
     }
     vp_color(d, (uint8_t)clampf(r * k, 0, 255), (uint8_t)clampf(g * k, 0, 255), (uint8_t)clampf(b * k, 0, 255));
@@ -293,6 +300,7 @@ static void face_analog(vp_dvg *d, float k)
     color(d, 120, 200, 255, k * 0.8f);
     text(d, "VECTORPIE", cx, cy + R * 0.36f, 85, VP_TEXT_CENTER);
     if (SET.date) {                                     /* the date window at three */
+        PAINT = SET.date_theme;
         char buf[8];
         snprintf(buf, sizeof buf, "%02d", n->mday);
         float wx = cx + R * 0.42f, wy = cy;
@@ -301,6 +309,7 @@ static void face_analog(vp_dvg *d, float k)
         vp_lineto(d, (int)(wx - 110), (int)(wy + 80)); vp_lineto(d, (int)(wx - 110), (int)(wy - 80));
         color(d, 235, 240, 255, k);
         text(d, buf, SX(wx), wy - 45, 90, VP_TEXT_CENTER);
+        PAINT = SET.theme;
     }
     /* the hands, sweeping */
     float sec = n->s + n->frac, min = n->m + sec / 60, hour = (n->h % 12) + min / 60;
@@ -392,9 +401,11 @@ static void face_digital(vp_dvg *d, float k)
     if (SET.date) {
         char buf[64];
         date_text(buf, sizeof buf, n, 1);
+        PAINT = SET.date_theme;
         color(d, 60, 235, 255, k * 0.75f * accent());
         vp_text_font(VP_FONT_ASTEROIDS);
         vp_text_fit(d, buf, CX, 1300, 150, W * 0.8f, VP_TEXT_CENTER);
+        PAINT = SET.theme;
     }
 }
 
@@ -457,8 +468,10 @@ static void face_flip(vp_dvg *d, float k)
     if (SET.date) {
         char buf[64];
         date_text(buf, sizeof buf, &G.now, 0);
+        PAINT = SET.date_theme;
         color(d, 200, 205, 215, k * 0.6f * accent());
         text(d, buf, CX, 1250, 120, VP_TEXT_CENTER);
+        PAINT = SET.theme;
     }
 }
 
@@ -692,8 +705,10 @@ static void face_nixie(vp_dvg *d, float k)
     if (SET.date) {
         char buf[64];
         date_text(buf, sizeof buf, &G.now, 1);
+        PAINT = SET.date_theme;
         color(d, 255, 130, 40, k * 0.45f * accent());
         text(d, buf, CX, 1000, 120, VP_TEXT_CENTER);
+        PAINT = SET.theme;
     }
 }
 
@@ -1023,82 +1038,311 @@ static float temperature(vp_dvg *d, float t, float x, float y, float h, int draw
     return cx + h * 0.2f - x;
 }
 
-static void face_weather(vp_dvg *d, float k)
+/* ---- text with degree signs ------------------------------------------------- */
+
+/* s with '^' where a degree sign goes (the font has none: drawn), at x as
+ * on the screen (already pulled in), returns its width */
+static float text_deg(vp_dvg *d, const char *s, float x, float y, float h, int align, int draw)
+{
+    vp_text_font(VP_FONT_ASTEROIDS);
+    char part[160];
+    float deg = h * 0.42f, total = 0;
+    const char *p = s;
+    for (;;) {                                          /* its width first */
+        const char *e = strchr(p, '^');
+        size_t l = e ? (size_t)(e - p) : strlen(p);
+        if (l >= sizeof part) l = sizeof part - 1;
+        memcpy(part, p, l);
+        part[l] = 0;
+        total += vp_text_width(part, h);
+        if (!e) break;
+        total += deg;
+        p = e + 1;
+    }
+    if (!draw) return total;
+    float cx = align == VP_TEXT_CENTER ? x - total / 2 : align == VP_TEXT_RIGHT ? x - total : x;
+    p = s;
+    for (;;) {
+        const char *e = strchr(p, '^');
+        size_t l = e ? (size_t)(e - p) : strlen(p);
+        if (l >= sizeof part) l = sizeof part - 1;
+        memcpy(part, p, l);
+        part[l] = 0;
+        vp_text(d, part, cx, y, h, VP_TEXT_LEFT);
+        cx += vp_text_width(part, h);
+        if (!e) break;
+        SQUEEZE = 0;                                    /* (beside the text: in its own shape) */
+        arc(d, cx + deg * 0.45f, y + h * 0.86f, h * 0.13f * ASPECT_X, h * 0.13f, 90, 450, 8);
+        SQUEEZE = 1;
+        cx += deg;
+        p = e + 1;
+    }
+    return total;
+}
+
+/* ---- the weather, in its styles ------------------------------------------------ */
+
+/* in its own colors: a temperature from blue (cold) to red (hot) */
+static void temp_color(vp_dvg *d, float t, float k)
+{
+    static const float T[6] = { -15, 0, 10, 18, 26, 34 };
+    static const float C[6][3] = { { 110, 140, 255 }, { 90, 220, 255 }, { 120, 255, 170 }, { 240, 240, 110 },
+                                   { 255, 170, 60 }, { 255, 80, 60 } };
+    int i = 0;
+    while (i < 4 && t > T[i + 1]) i++;
+    float f = clampf((t - T[i]) / (T[i + 1] - T[i]), 0, 1);
+    color(d, C[i][0] + (C[i + 1][0] - C[i][0]) * f, C[i][1] + (C[i + 1][1] - C[i][1]) * f,
+          C[i][2] + (C[i + 1][2] - C[i][2]) * f, k);
+}
+
+static void pale(vp_dvg *d, float k) { color(d, 200, 215, 240, k); }
+
+static const char *wind_dir(int deg) { return L_WIND_DIR[SET.lang][((deg + 22) % 360) / 45]; }
+
+/* the place and the time, on top */
+static void wx_head(vp_dvg *d, float k)
+{
+    char buf[96];
+    snprintf(buf, sizeof buf, "%s   %02d:%02d", SET.place, G.now.hd, G.now.m);
+    pale(d, k * 0.8f);
+    vp_text_font(VP_FONT_ASTEROIDS);
+    vp_text_fit(d, buf, CX, 3600, 120, W * 0.86f, VP_TEXT_CENTER);
+}
+
+/* "NOW  7^C  OVERCAST", one line */
+static void wx_now_line(vp_dvg *d, float y, float k)
+{
+    char buf[128];
+    snprintf(buf, sizeof buf, "%s  %d^C  %s", S(S_NOW), (int)lroundf(G.wx.temp), weather_words(G.wx.code, SET.lang));
+    pale(d, k * 0.85f);
+    text_deg(d, buf, CX, y, 110, VP_TEXT_CENTER, 1);
+}
+
+static void wx_overview(vp_dvg *d, float k)
 {
     const weather_t *w = &G.wx;
     const now_t *n = &G.now;
     char buf[96];
-    if (!w->ok) {
-        color(d, 200, 215, 240, k * 0.7f);
-        text(d, S(S_NO_WEATHER), CX, 2300, 160, VP_TEXT_CENTER);
-        color(d, 200, 215, 240, k * 0.45f);
-        if (!SET.has_place) text(d, S(S_NO_WEATHER_HINT), CX, 2000, 90, VP_TEXT_CENTER);
-        char date[64];
-        date_text(date, sizeof date, n, 1);
-        snprintf(buf, sizeof buf, "%s   %02d:%02d", date, n->hd, n->m);
-        text(d, buf, CX, 1500, 110, VP_TEXT_CENTER);
-        return;
-    }
-    /* the place, the time */
-    color(d, 200, 215, 240, k * 0.8f);
-    snprintf(buf, sizeof buf, "%s   %02d:%02d", SET.place, n->hd, n->m);
-    vp_text_font(VP_FONT_ASTEROIDS);
-    vp_text_fit(d, buf, CX, 3550, 130, W * 0.86f, VP_TEXT_CENTER);
-    /* now: the picture, the temperature, the words */
+    wx_head(d, k);
     weather_icon(d, w->code, w->is_day, CX - 900, 2600, 600, k);
-    color(d, 245, 245, 250, k);
+    temp_color(d, w->temp, k);
     float th = 800, tw = temperature(d, w->temp, 0, 0, th, 0);
     temperature(d, w->temp, CX + 450 - tw / 2, 2250, th, 1);
-    color(d, 200, 215, 240, k * 0.85f);
+    pale(d, k * 0.85f);
     vp_text_fit(d, weather_words(w->code, SET.lang), SX(CX + 450), 2000, 120, W * 0.5f, VP_TEXT_CENTER);
     snprintf(buf, sizeof buf, "%s %d KM/H   %s %d%%", S(S_WIND), (int)lroundf(w->wind), S(S_HUMIDITY),
              (int)lroundf(w->humidity));
-    color(d, 200, 215, 240, k * 0.6f * accent());
+    pale(d, k * 0.6f * accent());
     text(d, buf, CX, 1700, 90, VP_TEXT_CENTER);
-    /* the next days */
-    for (int i = 0; i < w->days && i < 4; i++) {
+    for (int i = 0; i < w->days && i < 4; i++) {        /* the next days */
         float x = CX + (i - 1.5f) * 900, y = 1050;
-        color(d, 200, 215, 240, k * 0.75f);
+        pale(d, k * 0.75f);
         text(d, i == 0 ? S(S_TODAY) : L_WEEKDAY_SHORT[SET.lang][(n->wday + i) % 7], SX(x), y + 330, 90, VP_TEXT_CENTER);
         weather_icon(d, w->day_code[i], 1, x, y + 120, 170, k * 0.9f);
-        snprintf(buf, sizeof buf, "%d / %d", (int)lroundf(w->day_max[i]), (int)lroundf(w->day_min[i]));
-        color(d, 245, 245, 250, k * 0.8f);
-        text(d, buf, SX(x), y - 200, 90, VP_TEXT_CENTER);
+        snprintf(buf, sizeof buf, "%d^ / %d^", (int)lroundf(w->day_max[i]), (int)lroundf(w->day_min[i]));
+        temp_color(d, w->day_max[i], k * 0.85f);
+        text_deg(d, buf, SX(x), y - 200, 90, VP_TEXT_CENTER, 1);
     }
 }
 
-/* under the other faces: the date and the weather, one line, as the menu
- * says (the degree sign drawn: the font has none) */
+static void wx_simple(vp_dvg *d, float k)
+{
+    const weather_t *w = &G.wx;
+    wx_head(d, k);
+    weather_icon(d, w->code, w->is_day, CX - 800, 2250, 780, k);
+    temp_color(d, w->temp, k);
+    float th = 1000, tw = temperature(d, w->temp, 0, 0, th, 0);
+    temperature(d, w->temp, CX + 600 - tw / 2, 1800, th, 1);
+    pale(d, k * 0.9f);
+    vp_text_font(VP_FONT_ASTEROIDS);
+    vp_text_fit(d, weather_words(w->code, SET.lang), CX, 1050, 170, W * 0.8f, VP_TEXT_CENTER);
+}
+
+static void wx_today(vp_dvg *d, float k)
+{
+    const weather_t *w = &G.wx;
+    wx_head(d, k);
+    weather_icon(d, w->code, w->is_day, CX - 1100, 2700, 560, k);
+    temp_color(d, w->temp, k);
+    float th = 680, tw = temperature(d, w->temp, 0, 0, th, 0);
+    temperature(d, w->temp, CX + 350 - tw / 2, 2420, th, 1);
+    pale(d, k * 0.9f);
+    vp_text_fit(d, weather_words(w->code, SET.lang), SX(CX + 350), 2190, 110, W * 0.5f, VP_TEXT_CENTER);
+    /* the details, in two columns: a word, then its value */
+    struct { int label; char value[48]; float t; } row[8];
+    int nr = 0;
+    row[nr].label = S_FEELS; snprintf(row[nr].value, 48, "%d^C", (int)lroundf(w->feels)); row[nr++].t = w->feels;
+    row[nr].label = S_WIND; snprintf(row[nr].value, 48, "%d KM/H %s", (int)lroundf(w->wind), wind_dir(w->wind_dir));
+    row[nr++].t = -99;
+    row[nr].label = S_MINMAX;
+    snprintf(row[nr].value, 48, "%d^ / %d^", w->days ? (int)lroundf(w->day_min[0]) : 0, w->days ? (int)lroundf(w->day_max[0]) : 0);
+    row[nr++].t = w->days ? w->day_max[0] : -99;
+    row[nr].label = S_HUMIDITY; snprintf(row[nr].value, 48, "%d%%", (int)lroundf(w->humidity)); row[nr++].t = -99;
+    row[nr].label = S_RAIN; snprintf(row[nr].value, 48, "%d%%", w->days && w->day_pop[0] >= 0 ? w->day_pop[0] : 0);
+    row[nr++].t = -99;
+    if (w->sunrise >= 0) {
+        row[nr].label = S_SUNRISE; snprintf(row[nr].value, 48, "%02d:%02d", w->sunrise / 60, w->sunrise % 60);
+        row[nr++].t = -99;
+    }
+    if (w->sunset >= 0) {
+        row[nr].label = S_SUNSET; snprintf(row[nr].value, 48, "%02d:%02d", w->sunset / 60, w->sunset % 60);
+        row[nr++].t = -99;
+    }
+    for (int i = 0; i < nr; i++) {
+        float x = i & 1 ? CX + 150 : CX - 2050, y = 1700 - (i / 2) * 290;
+        pale(d, k * 0.55f);
+        vp_text_font(VP_FONT_ASTEROIDS);
+        vp_text_fit(d, S(row[i].label), SX(x), y, 75, 750, VP_TEXT_LEFT);
+        if (row[i].t > -99) temp_color(d, row[i].t, k);
+        else                pale(d, k);
+        text_deg(d, row[i].value, SX(x + 1900), y, 85, VP_TEXT_RIGHT, 1);
+    }
+}
+
+static void wx_days(vp_dvg *d, float k)
+{
+    const weather_t *w = &G.wx;
+    char buf[48];
+    wx_head(d, k);
+    wx_now_line(d, 3250, k);
+    int n = w->days < WX_DAYS ? w->days : WX_DAYS;
+    for (int i = 0; i < n; i++) {
+        float x = CX + (i - (n - 1) / 2.0f) * 560;
+        pale(d, k * 0.75f);
+        text(d, i == 0 ? S(S_TODAY) : L_WEEKDAY_SHORT[SET.lang][(G.now.wday + i) % 7], SX(x), 2600, 75, VP_TEXT_CENTER);
+        weather_icon(d, w->day_code[i], 1, x, 2200, 190, k);
+        snprintf(buf, sizeof buf, "%d^", (int)lroundf(w->day_max[i]));
+        temp_color(d, w->day_max[i], k);
+        text_deg(d, buf, SX(x), 1700, 120, VP_TEXT_CENTER, 1);
+        snprintf(buf, sizeof buf, "%d^", (int)lroundf(w->day_min[i]));
+        temp_color(d, w->day_min[i], k * 0.6f);
+        text_deg(d, buf, SX(x), 1430, 95, VP_TEXT_CENTER, 1);
+        if (w->day_pop[i] >= 0) {
+            snprintf(buf, sizeof buf, "%d%%", w->day_pop[i]);
+            color(d, 110, 170, 255, k * 0.8f);
+            text(d, buf, SX(x), 1130, 75, VP_TEXT_CENTER);
+        }
+    }
+}
+
+/* through the day: the temperature as a curve, the chance of rain as bars */
+static void wx_hours(vp_dvg *d, float k)
+{
+    const weather_t *w = &G.wx;
+    char buf[48];
+    wx_head(d, k);
+    wx_now_line(d, 3250, k);
+    int n = w->hours;
+    if (n < 2) return;
+    float lo = w->hour_temp[0], hi = lo;
+    for (int i = 1; i < n; i++) { lo = fminf(lo, w->hour_temp[i]); hi = fmaxf(hi, w->hour_temp[i]); }
+    if (hi - lo < 4) { float m = (hi + lo) / 2; lo = m - 2; hi = m + 2; }
+    const float x0 = 450, x1 = W - 450, y0 = 1350, y1 = 2350, rb = 750, rh = 300;
+    float X[WX_HOURS], Y[WX_HOURS];
+    for (int i = 0; i < n; i++) {
+        X[i] = x0 + (x1 - x0) * i / (n - 1);
+        Y[i] = y0 + (y1 - y0) * (w->hour_temp[i] - lo) / (hi - lo);
+    }
+    /* the rain: a bar each hour, the chance of it */
+    color(d, 110, 170, 255, k * 0.35f);
+    line(d, x0, rb, x1, rb);
+    for (int i = 0; i < n; i++) {
+        if (w->hour_pop[i] <= 0) continue;
+        color(d, 110, 170, 255, k * 0.85f);
+        line(d, X[i], rb, X[i], rb + rh * w->hour_pop[i] / 100.0f);
+    }
+    /* the curve, each piece as warm or cold as it is */
+    for (int i = 0; i + 1 < n; i++) {
+        temp_color(d, (w->hour_temp[i] + w->hour_temp[i + 1]) / 2, k);
+        line(d, X[i], Y[i], X[i + 1], Y[i + 1]);
+    }
+    /* every third hour: its time, its weather, its temperature */
+    for (int i = 0; i < n; i += 3) {
+        temp_color(d, w->hour_temp[i], k);
+        circle(d, X[i], Y[i], 22, 8);
+        snprintf(buf, sizeof buf, "%d^", (int)lroundf(w->hour_temp[i]));
+        text_deg(d, buf, SX(X[i]), Y[i] + 70, 70, VP_TEXT_CENTER, 1);
+        weather_icon(d, w->hour_code[i], w->hour_of[i] >= 7 && w->hour_of[i] < 19, X[i], 2850, 120, k * 0.9f);
+        pale(d, k * 0.6f);
+        snprintf(buf, sizeof buf, "%02d", w->hour_of[i]);
+        text(d, buf, SX(X[i]), 1080, 65, VP_TEXT_CENTER);
+    }
+    pale(d, k * 0.45f);
+    text(d, S(S_RAIN), SX(x0 - 60), rb + 40, 55, VP_TEXT_RIGHT);
+}
+
+/* the weather, in a style (WS_*), in its own colors or the one the menu sets */
+static void weather_view(vp_dvg *d, float k, int style)
+{
+    int was = PAINT;
+    PAINT = SET.wx_colorful ? 0 : SET.wx_theme ? SET.wx_theme : 7;
+    const now_t *n = &G.now;
+    if (!G.wx.ok) {
+        char buf[96], date[64];
+        pale(d, k * 0.7f);
+        text(d, S(S_NO_WEATHER), CX, 2300, 160, VP_TEXT_CENTER);
+        pale(d, k * 0.45f);
+        if (!SET.has_place) text(d, S(S_NO_WEATHER_HINT), CX, 2000, 90, VP_TEXT_CENTER);
+        date_text(date, sizeof date, n, 1);
+        snprintf(buf, sizeof buf, "%s   %02d:%02d", date, n->hd, n->m);
+        text(d, buf, CX, 1500, 110, VP_TEXT_CENTER);
+    } else {
+        switch (style) {
+        case WS_SIMPLE: wx_simple(d, k); break;
+        case WS_TODAY:  wx_today(d, k); break;
+        case WS_DAYS:   wx_days(d, k); break;
+        case WS_HOURS:  wx_hours(d, k); break;
+        default:        wx_overview(d, k); break;
+        }
+    }
+    PAINT = was;
+}
+
+/* the style the menu says; turning, each in turn */
+static int wx_style_now(int turn)
+{
+    return SET.wx_style == WS_ROTATE ? turn % WS_ROTATE : SET.wx_style;
+}
+
+static void face_weather(vp_dvg *d, float k)
+{
+    weather_view(d, k, wx_style_now((int)(G.time / 15)));
+}
+
+/* under the other faces: the date and the weather, one line, each in its
+ * color, as the menu says */
 static void info_line(vp_dvg *d, float k)
 {
     const now_t *n = &G.now;
-    char left[160] = "", right[64] = "";
-    int wx = SET.weather && G.wx.ok;
-    if (SET.date) date_text(left, sizeof left, n, !wx);
-    if (wx) {
-        size_t l = strlen(left);
-        snprintf(left + l, sizeof left - l, "%s%s  %d", l ? "   " : "", SET.place, (int)lroundf(G.wx.temp));
-        snprintf(right, sizeof right, "C  %s", weather_words(G.wx.code, SET.lang));
-    }
-    if (!left[0]) return;
+    char date[96] = "", wx[128] = "";
+    int has_wx = SET.weather && G.wx.ok;
+    if (SET.date) date_text(date, sizeof date, n, !has_wx);
+    if (has_wx) snprintf(wx, sizeof wx, "%s  %d^C  %s", SET.place, (int)lroundf(G.wx.temp), weather_words(G.wx.code, SET.lang));
+    if (!date[0] && !wx[0]) return;
     vp_text_font(VP_FONT_ASTEROIDS);
-    float h = 90, deg = wx ? h * 0.45f : 0;
-    float wl = vp_text_width(left, h), wr = wx ? vp_text_width(right, h) : 0, total = wl + deg + wr;
-    if (total > W * 0.86f) { float f = W * 0.86f / total; h *= f; wl *= f; wr *= f; deg *= f; total *= f; }
+    float h = 90, gap = date[0] && wx[0] ? 300 : 0;
+    float wd = date[0] ? vp_text_width(date, h) : 0, ww = wx[0] ? text_deg(d, wx, 0, 0, h, VP_TEXT_LEFT, 0) : 0;
+    float total = wd + gap + ww;
+    if (total > W * 0.86f) { float f = W * 0.86f / total; h *= f; wd *= f; gap *= f; ww *= f; total *= f; }
     float x = CX - total / 2, y = 360;
-    color(d, 200, 215, 240, k * 0.55f);
-    vp_text(d, left, x, y, h, VP_TEXT_LEFT);
-    if (wx) {
-        SQUEEZE = 0;                                    /* (beside the text: as wide as it) */
-        arc(d, x + wl + deg * 0.45f, y + h * 0.88f, h * 0.13f * ASPECT_X, h * 0.13f, 90, 450, 8);
-        SQUEEZE = 1;
-        vp_text(d, right, x + wl + deg, y, h, VP_TEXT_LEFT);
+    int was = PAINT;
+    if (date[0]) {
+        PAINT = SET.date_theme;
+        color(d, 200, 215, 240, k * 0.55f);
+        vp_text(d, date, x, y, h, VP_TEXT_LEFT);
     }
+    if (wx[0]) {
+        PAINT = SET.wx_theme;
+        color(d, 200, 215, 240, k * 0.55f);
+        text_deg(d, wx, x + wd + gap, y, h, VP_TEXT_LEFT, 1);
+    }
+    PAINT = was;
 }
 
 static void face_draw(vp_dvg *d, int f, float k)
 {
     if (k <= 0.01f) return;
+    PAINT = SET.theme;
     switch (f) {
     case 0: face_analog(d, k); break;
     case 1: face_digital(d, k); break;
@@ -1126,6 +1370,44 @@ static void face_switch(int f)
     G.name_time = 3.5f;
     SET.face = f;
     G.was.face = f;
+}
+
+/* the next face: the one after, or one at random as the menu says */
+static int next_face(void)
+{
+    /* with weather reports the weather face is left out (it would only show
+     * them again, and after it no report would come to change it) */
+    int skip_wx = SET.report > 0;
+    if (SET.random != 2) {
+        int f = (G.face + 1) % NFACE;
+        return skip_wx && f == FACE_WEATHER ? 0 : f;
+    }
+    for (;;) {
+        int f = rand() % NFACE;
+        if (f != G.face && !(skip_wx && f == FACE_WEATHER)) return f;   /* never the same again */
+    }
+}
+
+/* now and then the weather, full screen, as the menu says; after it maybe
+ * the next face */
+static void report_update(float dt)
+{
+    if (G.report_on) {
+        if ((G.report_t += dt) >= REPORT_LEN_S[SET.report_len] || SET.report == 0 || !G.wx.ok) {
+            G.report_on = 0;
+            G.report_t = 0;
+            if (SET.change == CHANGE_AFTER_REPORT) face_switch(next_face());
+        }
+    } else if (SET.report > 0 && G.wx.ok && !menu_is_open() && G.face != FACE_WEATHER) {
+        static float every = -1;                        /* SAVER_REPORT_EVERY=<s>: sooner (for development) */
+        if (every < 0) every = getenv("SAVER_REPORT_EVERY") ? (float)atof(getenv("SAVER_REPORT_EVERY")) : 0;
+        if ((G.report_t += dt) >= (every > 0 ? every : REPORT_MIN[SET.report] * 60.0f)) {
+            G.report_on = 1;
+            G.report_t = 0;
+            G.report_turn++;
+        }
+    }
+    G.report_k += ((G.report_on ? 1.0f : 0.0f) - G.report_k) * fminf(1, dt / 0.6f);
 }
 
 /* the word clock's words straight to the time, in the language now */
@@ -1177,6 +1459,8 @@ static int init(vp_game *g)
     if (getenv("VP_VERTICAL") && atoi(getenv("VP_VERTICAL"))) { ASPECT_X = 1; ASPECT_Y = 0.75f; }
     glyphs_make();
     const char *f = getenv("SAVER_FACE"), *c = getenv("SAVER_CYCLE");
+    srand((unsigned)time(NULL));
+    if (SET.random >= 1) SET.face = rand() % (SET.report > 0 ? NFACE - 1 : NFACE);   /* a random one at start */
     if (f) SET.face = ((atoi(f) % NFACE) + NFACE) % NFACE;
     G.face = G.from = SET.face;
     G.was = SET;
@@ -1204,7 +1488,7 @@ static void update(vp_game *g, float dt)
     G.now = read_now();
     G.have = vp_saver_music(&G.m);
     if (G.have && G.m.track != G.last_track) {
-        if (G.started && SET.change == 1) face_switch(G.face + 1);   /* the menu says: with each track */
+        if (G.started && SET.change == 1) face_switch(next_face());  /* the menu says: with each track */
         G.started = 1;
         G.last_track = G.m.track;
         snprintf(G.title, sizeof G.title, "%s", G.m.title);
@@ -1244,9 +1528,10 @@ static void update(vp_game *g, float dt)
     if (menu_update(dt)) settings_save();
     follow_settings();
     if (G.cycle > 0 && (G.cycle_t += dt) >= G.cycle) { G.cycle_t = 0; face_switch(G.face + 1); }
-    else if (G.cycle <= 0 && SET.change >= 2 && !menu_is_open()) {          /* every so many minutes */
-        if ((G.cycle_t += dt) >= CHANGE_MIN[SET.change] * 60.0f) { G.cycle_t = 0; face_switch(G.face + 1); }
+    else if (G.cycle <= 0 && SET.change >= 2 && SET.change < CHANGE_AFTER_REPORT && !menu_is_open()) {   /* every so many minutes */
+        if ((G.cycle_t += dt) >= CHANGE_MIN[SET.change] * 60.0f) { G.cycle_t = 0; face_switch(next_face()); }
     } else if (G.cycle <= 0) G.cycle_t = 0;
+    report_update(dt);
 
     G.title_time = fmaxf(0, G.title_time - dt);
     G.name_time = fmaxf(0, G.name_time - dt);
@@ -1307,6 +1592,9 @@ static void draw(vp_game *g, vp_dvg *d)
 {
     (void)g;
     float t = smooth01(G.blend), dim = menu_is_open() ? 0.22f : 1;   /* behind the menu: faint */
+    float rk = smooth01(G.report_k);                    /* the weather report over it all */
+    dim *= 1 - rk;
+    if (rk > 0.01f) weather_view(d, rk * (menu_is_open() ? 0.22f : 1), wx_style_now(G.report_turn));
     if (G.from != G.face) face_draw(d, G.from, (1 - t) * dim);
     face_draw(d, G.face, t * dim);
     if (G.name_time > 0 && !menu_is_open()) {        /* the face's name, a while */

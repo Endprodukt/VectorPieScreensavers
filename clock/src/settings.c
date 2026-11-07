@@ -12,7 +12,9 @@
 #define make_dir(p) mkdir(p, 0755)
 #endif
 
-settings_t SET = { 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, "", 0, 0 };
+settings_t SET = { .lang = 0, .face = 0, .change = 0, .theme = 0, .date_theme = 0, .wx_theme = 0, .random = 0,
+                   .report = 0, .report_len = 1, .wx_style = 0, .wx_colorful = 1,
+                   .seconds = 1, .date = 1, .weather = 1, .h24 = 1, .title = 1, .has_place = 0 };
 
 static char dir[512];                   /* the program's folder, with its slash */
 
@@ -45,6 +47,13 @@ static int read_file(const char *path)
         else if (!strcmp(k, "face")) SET.face = i;
         else if (!strcmp(k, "change")) SET.change = i;
         else if (!strcmp(k, "color")) SET.theme = i;
+        else if (!strcmp(k, "date_color")) SET.date_theme = i;
+        else if (!strcmp(k, "weather_color")) SET.wx_theme = i;
+        else if (!strcmp(k, "random")) SET.random = i;
+        else if (!strcmp(k, "report")) SET.report = i;
+        else if (!strcmp(k, "report_length")) SET.report_len = i;
+        else if (!strcmp(k, "weather_style")) SET.wx_style = i;
+        else if (!strcmp(k, "weather_colorful")) SET.wx_colorful = i;
         else if (!strcmp(k, "seconds")) SET.seconds = i;
         else if (!strcmp(k, "date")) SET.date = i;
         else if (!strcmp(k, "weather")) SET.weather = i;
@@ -76,8 +85,15 @@ void settings_load(const char *exe_path)
     read_file(path);
     SET.lang = clampi(SET.lang, 0, 3);
     SET.face = clampi(SET.face, 0, 9);
-    SET.change = clampi(SET.change, 0, 5);
+    SET.change = clampi(SET.change, 0, 6);
     SET.theme = clampi(SET.theme, 0, 8);
+    SET.date_theme = clampi(SET.date_theme, 0, 8);
+    SET.wx_theme = clampi(SET.wx_theme, 0, 8);
+    SET.random = clampi(SET.random, 0, 2);
+    SET.report = clampi(SET.report, 0, 5);
+    SET.report_len = clampi(SET.report_len, 0, 3);
+    SET.wx_style = clampi(SET.wx_style, 0, 5);
+    SET.wx_colorful = clampi(SET.wx_colorful, 0, 1);
 }
 
 void settings_save(void)
@@ -90,6 +106,9 @@ void settings_save(void)
     if (!f) return;
     fprintf(f, "; Clock: set in its menu (START 1 while it runs)\n");
     fprintf(f, "language = %d\nface = %d\nchange = %d\ncolor = %d\n", SET.lang, SET.face, SET.change, SET.theme);
+    fprintf(f, "date_color = %d\nweather_color = %d\nrandom = %d\n", SET.date_theme, SET.wx_theme, SET.random);
+    fprintf(f, "report = %d\nreport_length = %d\nweather_style = %d\nweather_colorful = %d\n", SET.report,
+            SET.report_len, SET.wx_style, SET.wx_colorful);
     fprintf(f, "seconds = %d\ndate = %d\nweather = %d\nhours24 = %d\ntitle = %d\n", SET.seconds, SET.date,
             SET.weather, SET.h24, SET.title);
     fprintf(f, "place = %s\n", SET.has_place ? SET.place : "");

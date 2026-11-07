@@ -12,7 +12,7 @@ Jeder Screensaver hat einen eigenen Ordner:
 | [`neonpeaks/`](neonpeaks/) | **Neon Peaks** | Retrowave: ein Flug durch ein Neon-Gittertal auf eine gestreifte Sonne zu. Die Berge am Horizont formt die Musik (ihr Spektrum), Tempo und Farben folgen ihr gleitend. |
 | [`neonridge/`](neonridge/) | **Neon Ridge** | Wie die Retrowave-Mountains-Videos: Sternenhimmel, cyan leuchtender Horizont, ein Bergmassiv aus Höhenlinien, davor eine Ebene aus Linien und eine pinke Lichtspur. Die Kamera steht still. |
 | [`constellations/`](constellations/) | **Constellations** | Ein Rundflug über den echten Nachthimmel: 26 Sternbilder zeichnen sich nacheinander ein, mit deutschen und lateinischen Namen und benannten hellen Sternen. Die Sterne funkeln, die Milchstraße zieht durch, ab und zu fällt eine Sternschnuppe. |
-| [`clock/`](clock/) | **Clock** | Die Uhrzeit auf zehn Zifferblättern (analog, digital, Klappzahlen, binär, Wortuhr, Nixie, Orbit, Tunnel, Rocks, Wetter), mit Datum und Wetter aus dem Netz. Ein eigenes Menü (START 1) stellt Zifferblatt, Farben, Anzeigen, Ort und Sprache ein. |
+| [`clock/`](clock/) | **Clock** | Die Uhrzeit auf zehn Zifferblättern (analog, digital, Klappzahlen, binär, Wortuhr, Nixie, Orbit, Tunnel, Rocks, Wetter), mit Datum und Wetter aus dem Netz und einem Wetterbericht in fünf Ansichten. Ein eigenes Menü (START 1) stellt Zifferblatt, Zufall, Wechsel, Farben, Anzeigen, Wetterbericht, Ort und Sprache ein. |
 
 ## Gemeinsam
 

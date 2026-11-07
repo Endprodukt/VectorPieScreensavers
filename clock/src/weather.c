@@ -88,6 +88,25 @@ static int array_after(const char *from, const char *key, double *out, int max)
     return n;
 }
 
+/* "key":["2026-11-07T07:21", ...]: the times as minutes after midnight */
+static int times_after(const char *from, const char *key, int *out, int max)
+{
+    char pat[64];
+    snprintf(pat, sizeof pat, "\"%s\":[", key);
+    const char *p = strstr(from, pat);
+    if (!p) return 0;
+    p += strlen(pat);
+    int n = 0;
+    while (n < max && *p == '"') {
+        const char *t = strchr(p + 1, 'T'), *e = strchr(p + 1, '"');
+        if (!e) break;
+        out[n++] = t && t < e ? atoi(t + 1) * 60 + atoi(t + 4) : -1;
+        p = e + 1;
+        while (*p == ',' || *p == ' ') p++;
+    }
+    return n;
+}
+
 static void url_name(char *out, size_t size, const char *s)
 {
     size_t n = 0;
@@ -129,15 +148,18 @@ static int fetch_weather(int serial, double lat, double lon)
     char url[512];
     snprintf(url, sizeof url,
              "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f"
-             "&current=temperature_2m,weather_code,is_day,wind_speed_10m,relative_humidity_2m"
-             "&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=4",
+             "&current=temperature_2m,apparent_temperature,weather_code,is_day,wind_speed_10m,"
+             "wind_direction_10m,relative_humidity_2m"
+             "&hourly=temperature_2m,weather_code,precipitation_probability&forecast_hours=24"
+             "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,"
+             "sunrise,sunset&timezone=auto&forecast_days=7",
              lat, lon);
     char *js = fetch(url);
     if (!js) return 0;
     weather_t w;
     memset(&w, 0, sizeof w);
-    const char *cur = strstr(js, "\"current\":{"), *day = strstr(js, "\"daily\":{");
-    double t, c, dayf = 1, wind = 0, hum = 0, off = 0;
+    const char *cur = strstr(js, "\"current\":{"), *day = strstr(js, "\"daily\":{"), *hour = strstr(js, "\"hourly\":{");
+    double t, c, dayf = 1, wind = 0, hum = 0, off = 0, feels, wdir = 0;
     int ok = cur && num_after(cur, "temperature_2m", &t) && num_after(cur, "weather_code", &c);
     if (ok) {
         num_after(cur, "is_day", &dayf);
@@ -152,18 +174,43 @@ static int fetch_weather(int serial, double lat, double lon)
         w.wind = (float)wind;
         w.humidity = (float)hum;
         w.utc_offset = (int)off;
+        w.feels = num_after(cur, "apparent_temperature", &feels) ? (float)feels : w.temp;
+        num_after(cur, "wind_direction_10m", &wdir);
+        w.wind_dir = (int)wdir;
+        w.sunrise = w.sunset = -1;
         if (day) {
-            double a[4], b[4], e[4];
-            int n1 = array_after(day, "weather_code", a, 4), n2 = array_after(day, "temperature_2m_max", b, 4),
-                n3 = array_after(day, "temperature_2m_min", e, 4);
+            double a[WX_DAYS], b[WX_DAYS], e[WX_DAYS], pp[WX_DAYS];
+            int n1 = array_after(day, "weather_code", a, WX_DAYS), n2 = array_after(day, "temperature_2m_max", b, WX_DAYS),
+                n3 = array_after(day, "temperature_2m_min", e, WX_DAYS);
+            int np = array_after(day, "precipitation_probability_max", pp, WX_DAYS);
             int n = n1 < n2 ? n1 : n2;
             n = n < n3 ? n : n3;
             for (int i = 0; i < n; i++) {
                 w.day_code[i] = (int)a[i];
                 w.day_max[i] = (float)b[i];
                 w.day_min[i] = (float)e[i];
+                w.day_pop[i] = i < np ? (int)pp[i] : -1;
             }
             w.days = n;
+            int sr[1], ss[1];
+            if (times_after(day, "sunrise", sr, 1) == 1) w.sunrise = sr[0];
+            if (times_after(day, "sunset", ss, 1) == 1) w.sunset = ss[0];
+        }
+        if (hour) {
+            double a[WX_HOURS], b[WX_HOURS], pp[WX_HOURS];
+            int tm[WX_HOURS];
+            int n1 = times_after(hour, "time", tm, WX_HOURS), n2 = array_after(hour, "temperature_2m", a, WX_HOURS),
+                n3 = array_after(hour, "weather_code", b, WX_HOURS);
+            int np = array_after(hour, "precipitation_probability", pp, WX_HOURS);
+            int n = n1 < n2 ? n1 : n2;
+            n = n < n3 ? n : n3;
+            for (int i = 0; i < n; i++) {
+                w.hour_of[i] = tm[i] / 60;
+                w.hour_temp[i] = (float)a[i];
+                w.hour_code[i] = (int)b[i];
+                w.hour_pop[i] = i < np ? (int)pp[i] : 0;
+            }
+            w.hours = n;
         }
         pthread_mutex_lock(&lock);
         if (serial == want_serial) latest = w;          /* (not if the place changed meanwhile) */

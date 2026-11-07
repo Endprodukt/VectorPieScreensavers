@@ -14,6 +14,10 @@
   - der Ort für Zeit und Wetter
   - das Zifferblatt selbst zusammenstellen: mit oder ohne Datum, Wetter usw.
 - **Wechsel mit dem Track ist nur eine Option, nicht der Standard.** Standard ist: kein Wechsel.
+- Unterschiedliche Farben für Uhr, Datum und Wetter (2026-11-07).
+- Der Wetterbericht als Vollbild in einem einstellbaren Takt.
+- Das Zifferblatt kann zufällig sein: beim Start, nach einem Song, nach einer Zeit oder nach dem Wetterbericht.
+- Den Wetterbericht gibt es in mehreren Ansichten: einfach, nur heute, mehrere Tage, über den Tag, einfarbig oder bunt.
 - Nichts darf blinken oder pulsieren. Musik ändert Dinge nur gleitend.
 
 ## Wie die Uhr die Steuerung übernimmt (`src/input.c`)
@@ -37,7 +41,9 @@ Noch am Automaten zu prüfen, siehe STATUS „Offen“. Hilfen dabei:
   - die Zifferblätter (`face_*`), das Überblenden, `info_line`, die Wortuhr (`WC_*`, `words_target` je Sprache)
   - die Steuerung: `control` reicht an das Menü weiter oder öffnet es, `wake` beendet die Uhr
   - `follow_settings`: Was das Menü in `SET` ändert, wird übernommen, etwa ein neuer Ort für das Wetter oder neue Wörter für die Wortuhr.
-  - Die Farbe kommt aus `color()`: Bei einem Farbthema wird jede Farbe durch die des Themas ersetzt, mit der Helligkeit der ursprünglichen.
+  - Die Farbe kommt aus `color()`: Bei einem Farbthema (`PAINT`) wird jede Farbe durch die des Themas ersetzt, mit der Helligkeit der ursprünglichen. `PAINT` steht beim Zeichnen auf der Uhrfarbe, für Datum und Wetter auf deren Farbe.
+  - Das Wetter: `weather_view(style)` mit `wx_overview`, `wx_simple`, `wx_today`, `wx_days`, `wx_hours`. Dazu `text_deg`: Text mit `^` an der Stelle eines Gradzeichens, das gezeichnet wird.
+  - Der Wetterbericht: `report_update`. Den nächsten Wechsel bestimmt `next_face`, dort steckt auch der Zufall.
 - `src/menu.c`: Menü, Ortsliste, Bildschirmtastatur und Suchtreffer. Es ändert `SET` sofort.
 - `src/settings.c`: `SET`. Die Vorgaben stehen in `clock.ini` neben dem Programm, gespeichert wird in `save/clock.ini`.
 - `src/weather.c`: ein Thread, der über `curl` oder `wget` holt:
@@ -47,6 +53,7 @@ Noch am Automaten zu prüfen, siehe STATUS „Offen“. Hilfen dabei:
 - Zum Testen am PC:
   - `SAVER_FACE=<0..9>` und `SAVER_CYCLE=<s>`
   - `SAVER_SCRIPT="<s>:<Taste>,..."`: drückt zu diesen Zeiten Tasten (U D L R OK BACK S1 S2)
+  - `SAVER_REPORT_EVERY=<s>`: der Wetterbericht so oft statt im eingestellten Takt
   - `SAVER_SHOTS=<Ordner>`
 
 ## Rund auf der Röhre

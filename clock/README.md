@@ -21,9 +21,27 @@ Unter jedem Zifferblatt steht eine Zeile mit Datum und Wetter.
 
 Einstellbar ist:
 - **FACE:** das Zifferblatt
-- **CHANGE FACE:** ob das Zifferblatt von selbst wechselt: aus (Standard), mit jedem Track, oder alle 1, 5, 15 oder 60 Minuten
-- **COLOR:** die eigenen Farben der Zifferblätter oder eine Farbe für alles (Cyan, Grün, Bernstein, Rot, Magenta, Blau, Weiß, Regenbogen)
-- **Was angezeigt wird:** SECONDS, DATE, WEATHER, 24 HOURS (sonst 12) und TRACK TITLE, jeweils an oder aus
+- **RANDOM FACE:**
+  - aus (Standard)
+  - beim Start ein zufälliges Zifferblatt
+  - immer, also auch bei jedem Wechsel
+- **CHANGE FACE:** ob das Zifferblatt von selbst wechselt:
+  - aus (Standard)
+  - mit jedem Track
+  - alle 1, 5, 15 oder 60 Minuten
+  - nach jedem Wetterbericht
+- **CLOCK COLOR, DATE COLOR, WEATHER COLOR:** Farben für Uhr, Datum und Wetter, jede für sich. Zur Wahl stehen die eigenen Farben oder eine von Cyan, Grün, Bernstein, Rot, Magenta, Blau, Weiß und Regenbogen.
+- **Was angezeigt wird:** SECONDS, DATE, WEATHER LINE (die Wetterzeile unter der Uhr), 24 HOURS (sonst 12) und TRACK TITLE, jeweils an oder aus
+- **WEATHER REPORT:** der Wetterbericht als Vollbild, aus oder alle 5, 10, 15, 30 oder 60 Minuten. Er blendet über die Uhr und danach wieder zurück.
+- **REPORT LENGTH:** wie lange er bleibt, 10, 20, 30 oder 60 s
+- **WEATHER STYLE:** wie das Wetter gezeigt wird, im Wetterbericht und auf dem Zifferblatt WEATHER:
+  - OVERVIEW: jetzt und die nächsten 4 Tage
+  - SIMPLE: groß Symbol, Temperatur und Wetter
+  - TODAY: dazu gefühlte Temperatur, Min/Max, Regen, Wind mit Richtung, Luftfeuchte, Sonnenauf- und -untergang
+  - DAYS: 7 Tage mit Min, Max und Regenwahrscheinlichkeit
+  - HOURS: die nächsten 24 Stunden als Temperaturkurve, mit Symbolen und Regenbalken
+  - ROTATING: jedes Mal die nächste Ansicht
+- **WEATHER COLORS:** bunt (Temperaturen von Blau bis Rot, Sonne gelb, Regen blau) oder einfarbig in der Wetterfarbe
 - **PLACE:** Ortszeit des Automaten, eine Stadt aus der Liste, oder eine beliebige Stadt per Suche über eine Bildschirmtastatur. Der Ort bestimmt Uhrzeit (mit Sommerzeit) und Wetter.
 - **LANGUAGE:** Englisch (Standard), Deutsch, Französisch, Spanisch
 

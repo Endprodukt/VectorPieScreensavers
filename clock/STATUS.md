@@ -1,11 +1,18 @@
 # Stand
 
-Stand 2026-11-07, Version 0.2.1: **Clock** (`saver_clock`).
+Stand 2026-11-07, Version 0.3.0: **Clock** (`saver_clock`).
 
 ## Was er kann
 
 - **Zehn Zifferblätter** (siehe README). Eines blendet in 1,4 s ins nächste über, der Name des neuen steht kurz unten.
-- **Das eigene Menü** (START 1): Zifferblatt, Wechsel (aus, mit jedem Track, alle 1, 5, 15 oder 60 Minuten), Farbe (die eigenen oder eine aus acht), Sekunden, Datum, Wetter, 24 Stunden, Tracktitel, Ort und Sprache.
+- **Das eigene Menü** (START 1) hat 18 Zeilen und blättert. Einstellbar sind:
+  - Zifferblatt und Zufall (aus, beim Start, immer)
+  - Wechsel (aus, mit jedem Track, alle 1, 5, 15 oder 60 Minuten, nach jedem Wetterbericht)
+  - die Farben von Uhr, Datum und Wetter, jede für sich
+  - Sekunden, Datum, Wetterzeile, 24 Stunden, Tracktitel
+  - Wetterbericht (alle 5 bis 60 Minuten) und seine Dauer (10 bis 60 s)
+  - Wetter-Ansicht und Wetterfarben (bunt oder einfarbig)
+  - Ort und Sprache
   - Eine Änderung wirkt sofort.
   - Beim Schließen wird sie in `save/clock.ini` gespeichert.
   - Ohne Eingabe schließt sich das Menü nach 60 s.
@@ -14,10 +21,19 @@ Stand 2026-11-07, Version 0.2.1: **Clock** (`saver_clock`).
   - Uhrzeit und Wetter folgen dem Ort. Den Abstand zu UTC samt Sommerzeit liefert Open-Meteo mit dem Wetter.
   - Ohne Ort gilt die Ortszeit des Automaten, und es gibt kein Wetter.
 - **Sprachen:** Englisch (Standard), Deutsch, Französisch und Spanisch. Das gilt für Wochentage, Monate, Wetterwörter, Menü, die Namen der Zifferblätter und die Wortuhr. Die Wortuhr hat für jede Sprache ein eigenes Raster und eigene Grammatik, etwa „ES IST FUENF VOR HALB DREI“, „IL EST DEUX HEURES MOINS LE QUART“ oder „SON LAS DOS Y MEDIA“.
-- **Datum und Wetter** stehen in einer Zeile unter jedem Zifferblatt außer WEATHER. Sie sind je nach Menü an oder aus, das Gradzeichen ist gezeichnet.
+- **Wetterbericht:** Er blendet als Vollbild über die Uhr und wieder zurück. Ist „nach jedem Wetterbericht“ eingestellt, kommt danach das nächste Zifferblatt. Bei eingeschaltetem Wetterbericht wählt der Zufall das Zifferblatt WEATHER nicht, sonst bliebe die Uhr darauf stehen.
+- **Wetter-Ansichten:** OVERVIEW, SIMPLE, TODAY, DAYS (7 Tage), HOURS (24 Stunden als Kurve) oder ROTATING. Jede gibt es bunt oder einfarbig. Die Daten kommen von Open-Meteo: jetzt, stündlich für 24 Stunden, täglich für 7 Tage, mit Sonnenauf- und -untergang.
+- **Datum und Wetter** stehen in einer Zeile unter jedem Zifferblatt außer WEATHER, jedes in seiner Farbe. Sie sind je nach Menü an oder aus, das Gradzeichen ist gezeichnet.
 - **Musik, alles gleitend:** Bei lauter Musik leuchten Ringe und Marken etwas heller. Nichts blinkt.
 
 ## Geprüft (am PC)
+
+- 0.3.0:
+  - Alle Wetter-Ansichten mit echten Daten für Berlin angesehen, bunt und einfarbig.
+  - Den Wetterbericht im schnellen Takt (`SAVER_REPORT_EVERY`) über 60 s geprüft: zufällige Zifferblätter, nach jedem Bericht ein neues, die Ansichten im Wechsel.
+  - Getrennte Farben für Uhr, Datum und Wetter.
+  - Das blätternde Menü.
+  - Dabei behoben: Mit „nach Wetterbericht“ wechselte das Zifferblatt ständig, und der Zufall konnte auf WEATHER stehen bleiben.
 
 - 0.2.1: Kreise sind auf dem 4:3-Monitor rund. Die Linien werden quer um 0,75 zusammengezogen, Text behält seine Form. Alle Zifferblätter wurden danach angesehen.
 

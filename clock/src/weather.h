@@ -9,15 +9,23 @@
 #ifndef WEATHER_H
 #define WEATHER_H
 
+#define WX_DAYS  7
+#define WX_HOURS 24
+
 typedef struct {
     int ok;                     /* 1: the fields below hold something */
     int serial;                 /* the place it is for (weather_set_place's count) */
-    float temp, wind, humidity; /* now: degrees C, km/h, % */
+    float temp, feels, wind, humidity;  /* now: degrees C, felt, km/h, % */
+    int wind_dir;               /* where the wind comes from, degrees */
     int code, is_day;           /* WMO weather code; 1 by day */
     int utc_offset;             /* seconds the place is ahead of UTC, summer time included */
+    int sunrise, sunset;        /* today, minutes after midnight there; -1 not known */
     int days;                   /* the forecast: today and the next days */
-    int day_code[4];
-    float day_max[4], day_min[4];
+    int day_code[WX_DAYS], day_pop[WX_DAYS];        /* pop: the chance of rain, % */
+    float day_max[WX_DAYS], day_min[WX_DAYS];
+    int hours;                  /* the next hours, from this one */
+    int hour_of[WX_HOURS], hour_code[WX_HOURS], hour_pop[WX_HOURS];
+    float hour_temp[WX_HOURS];
 } weather_t;
 
 typedef struct { char name[48]; double lat, lon; } place_t;

@@ -16,7 +16,8 @@
 #define CX    (W / 2.0f)
 #define IDLE_S 60.0f                    /* left alone this long, it closes */
 
-enum { M_FACE, M_CHANGE, M_COLOR, M_SECONDS, M_DATE, M_WEATHER, M_H24, M_TITLE, M_PLACE, M_LANG, M_CLOSE, NROW };
+enum { M_FACE, M_RANDOM, M_CHANGE, M_COLOR, M_DATE_COLOR, M_WX_COLOR, M_SECONDS, M_DATE, M_WEATHER, M_H24,
+       M_TITLE, M_REPORT, M_REPORT_LEN, M_WX_STYLE, M_WX_COLORS, M_PLACE, M_LANG, M_CLOSE, NROW };
 enum { SCR_MAIN, SCR_PLACE, SCR_KEYS, SCR_FOUND };
 
 static struct {
@@ -65,6 +66,13 @@ static void change(int dir)
     case M_FACE:    SET.face = wrap(SET.face + dir, 10); break;
     case M_CHANGE:  SET.change = wrap(SET.change + dir, NCHANGE); break;
     case M_COLOR:   SET.theme = wrap(SET.theme + dir, NTHEME); break;
+    case M_RANDOM:  SET.random = wrap(SET.random + dir, 3); break;
+    case M_DATE_COLOR: SET.date_theme = wrap(SET.date_theme + dir, NTHEME); break;
+    case M_WX_COLOR: SET.wx_theme = wrap(SET.wx_theme + dir, NTHEME); break;
+    case M_REPORT:  SET.report = wrap(SET.report + dir, NREPORT); break;
+    case M_REPORT_LEN: SET.report_len = wrap(SET.report_len + dir, NREPORT_LEN); break;
+    case M_WX_STYLE: SET.wx_style = wrap(SET.wx_style + dir, NWSTYLE); break;
+    case M_WX_COLORS: SET.wx_colorful ^= 1; break;
     case M_SECONDS: SET.seconds ^= 1; break;
     case M_DATE:    SET.date ^= 1; break;
     case M_WEATHER: SET.weather ^= 1; break;
@@ -185,9 +193,20 @@ static void value_of(int row, char *buf, size_t size)
     case M_CHANGE:
         if (SET.change == 0) snprintf(buf, size, "%s", off);
         else if (SET.change == 1) snprintf(buf, size, "%s", S(S_WITH_TRACK));
+        else if (SET.change == CHANGE_AFTER_REPORT) snprintf(buf, size, "%s", S(S_AFTER_REPORT));
         else snprintf(buf, size, S(S_EVERY_MIN), CHANGE_MIN[SET.change]);
         break;
     case M_COLOR:   snprintf(buf, size, "%s", L_THEME[SET.lang][SET.theme]); break;
+    case M_RANDOM:  snprintf(buf, size, "%s", SET.random == 0 ? off : SET.random == 1 ? S(S_AT_START) : S(S_ALWAYS)); break;
+    case M_DATE_COLOR: snprintf(buf, size, "%s", L_THEME[SET.lang][SET.date_theme]); break;
+    case M_WX_COLOR: snprintf(buf, size, "%s", L_THEME[SET.lang][SET.wx_theme]); break;
+    case M_REPORT:
+        if (SET.report == 0) snprintf(buf, size, "%s", off);
+        else snprintf(buf, size, S(S_EVERY_MIN), REPORT_MIN[SET.report]);
+        break;
+    case M_REPORT_LEN: snprintf(buf, size, S(S_SEC), REPORT_LEN_S[SET.report_len]); break;
+    case M_WX_STYLE: snprintf(buf, size, "%s", L_WSTYLE[SET.lang][SET.wx_style]); break;
+    case M_WX_COLORS: snprintf(buf, size, "%s", SET.wx_colorful ? S(S_COLORFUL) : S(S_ONE_COLOR)); break;
     case M_SECONDS: snprintf(buf, size, "%s", SET.seconds ? on : off); break;
     case M_DATE:    snprintf(buf, size, "%s", SET.date ? on : off); break;
     case M_WEATHER: snprintf(buf, size, "%s", SET.weather ? on : off); break;
@@ -207,12 +226,21 @@ static void title(vp_dvg *d, const char *s)
 
 static void draw_main(vp_dvg *d)
 {
-    static const int LABEL[NROW] = { S_FACE, S_CHANGE, S_COLOR, S_SECONDS, S_DATE, S_WEATHER, S_H24, S_TITLE,
-                                     S_PLACE, S_LANGUAGE, S_CLOSE };
+    static const int LABEL[NROW] = { S_FACE, S_RANDOM, S_CHANGE, S_CLOCK_COLOR, S_DATE_COLOR, S_WX_COLOR, S_SECONDS,
+                                     S_DATE, S_WX_LINE, S_H24, S_TITLE, S_REPORT, S_REPORT_LEN, S_WX_STYLE,
+                                     S_WX_COLORS, S_PLACE, S_LANGUAGE, S_CLOSE };
     title(d, S(S_SETTINGS));
+    /* more rows than fit: a window of them round the chosen one */
+    const int SHOW = 11;
+    int first = M.row - SHOW / 2;
+    if (first > NROW - SHOW) first = NROW - SHOW;
+    if (first < 0) first = 0;
     const float top = 3150, step = 240, h = 95;
-    for (int r = 0; r < NROW; r++) {
-        float y = top - r * step;
+    col(d, 150, 160, 190);
+    if (first > 0) vp_text(d, "...", CX, top + 170, 60, VP_TEXT_CENTER);
+    if (first + SHOW < NROW) vp_text(d, "...", CX, top - SHOW * step + 150, 60, VP_TEXT_CENTER);
+    for (int r = first; r < first + SHOW && r < NROW; r++) {
+        float y = top - (r - first) * step;
         if (r == M.row) { col(d, 255, 220, 60); box(d, 330, y - 75, W - 330, y + h + 75); }
         if (r == M_CLOSE) {
             col(d, 230, 235, 255);
