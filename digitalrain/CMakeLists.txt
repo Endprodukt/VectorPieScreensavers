@@ -1,7 +1,7 @@
 # Digital Rain: green code raining down, with the cabinet's game names in it
 # now and then (README.md). Built from the top folder's CMakeLists.txt,
 # which brings the SDK.
-project(digitalrain VERSION 0.1.0 LANGUAGES C)
+project(digitalrain VERSION 0.2.0 LANGUAGES C)
 
 # The executable's name is the one package/game.ini names (executable = ...).
 add_executable(saver_digitalrain src/main.c)

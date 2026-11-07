@@ -6,13 +6,12 @@
  * strokes each, in the manner of half-width katakana and digits, some
  * mirrored.
  *
- * Every 20 to 40 s one name shows, from the cabinet's game list (its
- * classics in advance's gamelist.ini, its own games' game.ini) or VECTORPIE,
- * one of three ways:
- *   SLIDE   it glides across the screen, big; the rain makes way for it
- *   FALL    it falls down a column as a drop of its letters
- *   DECODE  a row of glyphs locks into its letters one by one, holds, and
- *           comes apart again
+ * Names fall with the rain: every few seconds a drop in a column is a name
+ * from the cabinet's game list (its classics in advance's gamelist.ini, its
+ * own games' game.ini) or VECTORPIE, its letters top to bottom, its last
+ * letter the bright head, a trail of glyphs above; it falls like any drop,
+ * row by row at the rain's pace. Up to NAME_DROPS at once, in different
+ * columns.
  *
  * To the music, smoothly: the rain falls faster when it is louder. Nothing
  * pulses or blinks.
@@ -43,6 +42,8 @@
 #define DROPS      2                    /* at most, per column */
 #define NAMES      160
 #define NAME_LEN   40
+#define NAME_FIT   18                   /* names longer than this are left out (they would not fit) */
+#define NAME_DROPS 4                    /* at most, at once */
 #define GAMELIST   "/usr/local/share/advance/gamelist.ini"
 #define GAMES_DIR  "/persistent/games"
 
@@ -82,20 +83,14 @@ static struct {
 
 /* ---- the names ------------------------------------------------------------ */
 
-enum { SLIDE, FALL, DECODE, MODES };
-
 static char names[NAMES][NAME_LEN];
 static int  nnames;
 
-static struct {
-    int   mode, active;
-    char  text[NAME_LEN];
-    float t, next;                      /* s into it; s to the next one */
-    float x, y, height;                 /* SLIDE */
-    int   col, row0;                    /* FALL: its column, its first row; DECODE: its row, first column */
-    float head, speed;                  /* FALL */
-    float lock[NAME_LEN];               /* DECODE: when each letter locks */
-} N;
+/* a name falling: its letters end at the head, a trail of glyphs above them */
+typedef struct { int active, col, len, trail; float head, speed; char text[NAME_LEN]; } name_drop;
+
+static name_drop ND[NAME_DROPS];
+static float next_name;                 /* s to the next one */
 
 static struct {
     vp_music_feed m;
@@ -108,12 +103,6 @@ static float rnd(void)
 {
     G.rng ^= G.rng << 13; G.rng ^= G.rng >> 17; G.rng ^= G.rng << 5;
     return (float)(G.rng & 0xffffff) / 16777216.0f;
-}
-
-static float smooth01(float t)
-{
-    t = t < 0 ? 0 : t > 1 ? 1 : t;
-    return t * t * (3 - 2 * t);
 }
 
 static void color_k(vp_dvg *d, float r, float g, float b, float k)
@@ -134,7 +123,7 @@ static void add_name(const char *s)
         buf[n++] = (char)toupper((unsigned char)*s);
     while (n > 0 && buf[n - 1] == ' ') n--;
     buf[n] = 0;
-    if (n < 2 || nnames >= NAMES) return;
+    if (n < 2 || n > NAME_FIT || nnames >= NAMES) return;
     for (int i = 0; i < nnames; i++) if (!strcmp(names[i], buf)) return;
     memcpy(names[nnames++], buf, (size_t)n + 1);
 }
@@ -203,7 +192,11 @@ static void new_drop(int c)
     }
 }
 
-static int fall_column_busy(int c) { return N.active && N.mode == FALL && N.col == c; }
+static int name_in_column(int c)
+{
+    for (int i = 0; i < NAME_DROPS; i++) if (ND[i].active && ND[i].col == c) return 1;
+    return 0;
+}
 
 static void rain(float dt)
 {
@@ -217,7 +210,7 @@ static void rain(float dt)
         }
         if ((C[c].next -= dt * pace) <= 0) {
             C[c].next = 0.8f + rnd() * 3.5f;
-            if (!fall_column_busy(c)) new_drop(c);
+            if (!name_in_column(c)) new_drop(c);
         }
     }
     /* now and then a glyph changes, quietly */
@@ -228,64 +221,47 @@ static void rain(float dt)
     }
 }
 
-/* ---- the names, moving ------------------------------------------------------ */
+/* ---- the names, falling ---------------------------------------------------- */
 
 static void start_name(void)
 {
-    const char *s = pick_name();
-    memset(&N, 0, sizeof N);
-    snprintf(N.text, sizeof N.text, "%s", s);
-    int len = (int)strlen(N.text);
-    N.active = 1;
-    N.mode = (int)(rnd() * MODES) % MODES;
-    if (len > ROWS - 2 && N.mode == FALL) N.mode = SLIDE;     /* too long to fall, to lock in a row */
-    if (len > COLS - 2 && N.mode == DECODE) N.mode = SLIDE;
-    switch (N.mode) {
-    case SLIDE:
-        vp_text_font(VP_FONT_ASTEROIDS);
-        N.height = CELL_H * 1.5f;
-        N.x = W + 50;
-        N.y = W * (0.3f + rnd() * 0.4f);
-        break;
-    case FALL:
-        N.col = (int)(rnd() * COLS) % COLS;
-        N.row0 = (int)(rnd() * (ROWS - len));
-        N.head = -1;
-        N.speed = 4.5f;
-        break;
-    default:                                            /* DECODE */
-        N.row0 = 3 + (int)(rnd() * (ROWS - 6));
-        N.col = (COLS - len) / 2;
-        for (int i = 0; i < len; i++) N.lock[i] = 0.2f + rnd() * 1.6f;
-        break;
+    name_drop *n = 0;
+    for (int i = 0; i < NAME_DROPS; i++) if (!ND[i].active) { n = &ND[i]; break; }
+    if (!n) return;
+    const char *s = 0;
+    for (int tries = 0; tries < 6 && !s; tries++) {     /* not one already falling */
+        s = pick_name();
+        for (int i = 0; i < NAME_DROPS; i++) if (ND[i].active && !strcmp(ND[i].text, s)) s = 0;
     }
+    if (!s) return;
+    int col = -1;
+    for (int tries = 0; tries < 12 && col < 0; tries++) {   /* a column of its own, its neighbours free too */
+        int c = (int)(rnd() * COLS) % COLS;
+        if (!name_in_column(c) && !name_in_column(c > 0 ? c - 1 : c) && !name_in_column(c < COLS - 1 ? c + 1 : c)) col = c;
+    }
+    if (col < 0) return;
+    memset(n, 0, sizeof *n);
+    snprintf(n->text, sizeof n->text, "%s", s);
+    n->active = 1;
+    n->col = col;
+    n->len = (int)strlen(n->text);
+    n->trail = 4 + (int)(rnd() * 7);
+    n->head = -1;
+    n->speed = 5 + rnd() * 3;                           /* the rain's slower drops: to be read */
 }
 
 static void names_update(float dt)
 {
-    if (!N.active) {
-        if ((N.next -= dt) <= 0) start_name();
-        return;
+    float pace = 1 + 0.6f * G.loud;                     /* as the rain */
+    for (int i = 0; i < NAME_DROPS; i++) {
+        name_drop *n = &ND[i];
+        if (!n->active) continue;
+        n->head += n->speed * pace * dt;
+        if (n->head - n->len - n->trail > ROWS) n->active = 0;
     }
-    N.t += dt;
-    int len = (int)strlen(N.text), done = 0;
-    switch (N.mode) {
-    case SLIDE:
-        vp_text_font(VP_FONT_ASTEROIDS);
-        N.x -= 700 * dt;
-        done = N.x + vp_text_width(N.text, N.height) < -50;
-        break;
-    case FALL:
-        N.head += N.speed * dt;
-        done = N.head - (N.row0 + len) > 8;             /* well past its last letter, then gone */
-        break;
-    default:
-        done = N.t > 8.5f;                              /* lock in, hold, come apart */
-        break;
-    }
-    if (done) {
-        N.active = 0;
-        N.next = 20 + rnd() * 20;
+    if ((next_name -= dt) <= 0) {
+        start_name();
+        next_name = 3 + rnd() * 5;
     }
 }
 
@@ -312,27 +288,21 @@ static void draw_letter(vp_dvg *d, char ch, float cx, float cy)
     vp_text(d, s, cx, cy - GLYPH_H / 2, GLYPH_H, VP_TEXT_CENTER);
 }
 
-/* Is this cell under the gliding name (the rain makes way for it)? */
-static int under_slide(float x, float y)
+/* Is this cell taken by a falling name (its letters or its trail)? */
+static int name_cell(int c, int r)
 {
-    if (!N.active || N.mode != SLIDE) return 0;
-    vp_text_font(VP_FONT_ASTEROIDS);
-    float w = vp_text_width(N.text, N.height);
-    return x > N.x - CELL_W && x < N.x + w + CELL_W && y > N.y - CELL_H && y < N.y + N.height + CELL_H;
-}
-
-/* DECODE: how locked a letter is now, 0 .. 1 */
-static float locked(int i)
-{
-    float in = smooth01((N.t - N.lock[i]) / 0.25f);
-    float out = 1 - smooth01((N.t - 6.0f - N.lock[i] * 0.6f) / 0.25f);
-    return in * out;
+    for (int i = 0; i < NAME_DROPS; i++) {
+        const name_drop *n = &ND[i];
+        if (!n->active || n->col != c) continue;
+        int head = (int)floorf(n->head);
+        if (r <= head && r > head - n->len - n->trail) return 1;
+    }
+    return 0;
 }
 
 static void draw(vp_game *g, vp_dvg *d)
 {
     (void)g;
-    int len = (int)strlen(N.text);
     for (int c = 0; c < COLS; c++) {
         float x = cell_x(c);
         for (int i = 0; i < DROPS; i++) {
@@ -341,48 +311,34 @@ static void draw(vp_game *g, vp_dvg *d)
             int head = (int)floorf(p->head);
             for (int k = 0; k < p->len; k++) {
                 int r = head - k;
-                if (r < 0 || r >= ROWS) continue;
-                float y = cell_y(r);
-                if (under_slide(x, y)) continue;
-                if (N.active && N.mode == DECODE && r == N.row0 && c >= N.col && c < N.col + len && locked(c - N.col) > 0.5f)
-                    continue;                           /* a letter is there now */
+                if (r < 0 || r >= ROWS || name_cell(c, r)) continue;
                 float f = 1 - (float)k / p->len;
                 if (k == 0) color_k(d, 200, 255, 210, 1);
                 else color_k(d, 0, 255, 80, 0.15f + 0.75f * f * f);
-                draw_glyph(d, C[c].glyph[r], x, y);
+                draw_glyph(d, C[c].glyph[r], x, cell_y(r));
             }
         }
     }
-    if (!N.active) return;
-    switch (N.mode) {
-    case SLIDE:
-        vp_text_font(VP_FONT_ASTEROIDS);
-        color_k(d, 0, 140, 50, 1);                      /* a faint echo behind it */
-        vp_text(d, N.text, N.x + N.height * 0.6f, N.y, N.height, VP_TEXT_LEFT);
-        color_k(d, 180, 255, 190, 1);
-        vp_text(d, N.text, N.x, N.y, N.height, VP_TEXT_LEFT);
-        break;
-    case FALL: {
-        int head = (int)floorf(N.head);
-        for (int i = 0; i < len; i++) {
-            int r = N.row0 + i;
-            if (r > head) break;                        /* not reached yet */
-            float age = N.head - r;                     /* rows since the head passed */
-            if (N.text[i] == ' ') continue;
+    /* the names: letters down to the head, bright, a trail of glyphs above */
+    for (int i = 0; i < NAME_DROPS; i++) {
+        const name_drop *n = &ND[i];
+        if (!n->active) continue;
+        int head = (int)floorf(n->head);
+        float x = cell_x(n->col);
+        for (int k = 0; k < n->len; k++) {
+            int r = head - (n->len - 1 - k);
+            if (r < 0 || r >= ROWS || n->text[k] == ' ') continue;
             if (r == head) color_k(d, 220, 255, 230, 1);
-            else color_k(d, 60, 255, 120, 1 - smooth01((age - len - 2) / 6));
-            draw_letter(d, N.text[i], cell_x(N.col), cell_y(r));
+            else color_k(d, 90, 255, 140, 0.95f);
+            draw_letter(d, n->text[k], x, cell_y(r));
         }
-        break;
-    }
-    default:
-        for (int i = 0; i < len; i++) {
-            float k = locked(i);
-            if (k <= 0.01f || N.text[i] == ' ') continue;
-            color_k(d, 160, 255, 180, k);
-            draw_letter(d, N.text[i], cell_x(N.col + i), cell_y(N.row0));
+        for (int k = 0; k < n->trail; k++) {
+            int r = head - n->len - k;
+            if (r < 0 || r >= ROWS) continue;
+            float f = 1 - (float)(k + 1) / (n->trail + 1);
+            color_k(d, 0, 255, 80, 0.15f + 0.6f * f * f);
+            draw_glyph(d, C[n->col].glyph[r], x, cell_y(r));
         }
-        break;
     }
 }
 
@@ -431,7 +387,7 @@ static int init(vp_game *g)
         for (int r = 0; r < ROWS; r++) C[c].glyph[r] = (uint8_t)((int)(rnd() * NGLYPHS) % NGLYPHS | (rnd() < 0.3f ? 0x80 : 0));
         C[c].next = rnd() * 3;
     }
-    N.next = 8;                                         /* the first name soon */
+    next_name = 4;                                      /* the first name soon */
     fprintf(stderr, "Digital Rain: %d names\n", nnames);
     return VP_OK;
 }

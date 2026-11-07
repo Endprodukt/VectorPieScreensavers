@@ -1,15 +1,16 @@
 # Status
 
-Stand 2026-11-07, Version 0.1.0: **Digital Rain** (`saver_digitalrain`), ein Matrix-artiger Code-Regen.
+Stand 2026-11-07, Version 0.2.0: **Digital Rain** (`saver_digitalrain`), ein Matrix-artiger Code-Regen.
 
 ## Was da ist (`src/main.c`)
 
 - **Regen:** 22 Spalten mit 20 Zeilen. Pro Spalte fallen bis zu 2 Tropfen, jeder mit heller Spitze und einem Schweif, der nach hinten dunkler wird (6 bis 17 Zeichen lang).
 - **Zeichen:** 16 eigene Linienzeichen im Stil von Halbbreiten-Katakana und Ziffern, etwa 30 % davon gespiegelt. Gelegentlich wechselt ein Zeichen still, ohne Aufblitzen.
-- **Namen:** alle 20 bis 40 s einer, der erste nach 8 s. Etwa 30 % der Auftritte sind **VECTORPIE**, der Rest sind Spielnamen in Großbuchstaben, ohne Zusätze in Klammern. Drei Arten, zufällig gewählt:
-  - **Gleiten:** Der Name fährt groß von rechts nach links durchs Bild, der Regen macht ihm Platz.
-  - **Fallen:** Er fällt als Spalte seiner Buchstaben herunter.
-  - **Einrasten:** In einer Zeile rasten die Buchstaben nacheinander ein, bleiben etwa 5 s stehen und zerfallen wieder.
+- **Namen fallen mit dem Regen:** alle 3 bis 8 s ein neuer, bis zu 4 gleichzeitig in verschiedenen Spalten (nie direkt nebeneinander), der erste nach 4 s.
+  - Ein Name ist ein Tropfen: Seine Buchstaben stehen von oben nach unten, der letzte ist die helle Spitze, darüber folgt ein Schweif aus 4 bis 10 auslaufenden Zeichen.
+  - Er fällt Zeile für Zeile wie der Regen, im Tempo der langsameren Tropfen (5 bis 8 Zeilen pro Sekunde, gleitend schneller bei lauter Musik), damit man ihn lesen kann.
+  - Etwa 30 % sind **VECTORPIE**, der Rest sind Spielnamen in Großbuchstaben, ohne Zusätze in Klammern. Namen mit mehr als 18 Zeichen werden ausgelassen, weil sie nicht ins Bild passen würden.
+  - Derselbe Name fällt nie zweimal gleichzeitig.
 - **Spieleliste**, beim Start auf dem Automaten gelesen:
   - `/usr/local/share/advance/gamelist.ini` und `gamelist.additions` (Zeilen `Hersteller|Name|...`, auskommentierte mit `#` ausgenommen)
   - die `name =` aller `/persistent/games/*/game.ini`
@@ -20,13 +21,12 @@ Stand 2026-11-07, Version 0.1.0: **Digital Rain** (`saver_digitalrain`), ein Mat
 
 ## Geprüft (2026-11-07)
 
-- PC- und Pi-Build ohne Warnungen im eigenen Code. `build/saver_digitalrain-0.1.0.vps` wird erzeugt.
-- Am PC mit einer Kopie der Spieleliste des Automaten (44 Namen): Bilder angesehen, Regen, Einrasten (VECTORPIE) und Fallen (OMEGA RACE) gesehen. Etwa 550 Linien pro Bild.
-- **Auf dem Automaten installiert** (`sh tools/deploy.sh digitalrain`) und 25 s auf dem Board getestet: 65 Namen gefunden, gleichmäßig 40 Bilder pro Sekunde, etwa 440 bis 630 Linien, keine verlorenen Linien.
+- PC- und Pi-Build ohne Warnungen im eigenen Code. `build/saver_digitalrain-0.2.0.vps` wird erzeugt.
+- 0.2.0 am PC mit einer Kopie der Spieleliste des Automaten (43 Namen bis 18 Zeichen): mehrere Namen gleichzeitig im Regen gesehen (VECTORPIE, GEOMETRY WARS …). Etwa 400 bis 640 Linien pro Bild, 40 fps.
+- 0.2.0 auf dem Automaten installiert (`sh tools/deploy.sh digitalrain`). Das Board habe ich mit 0.1.0 getestet: 65 Namen, gleichmäßig 40 Bilder pro Sekunde, etwa 440 bis 630 Linien, keine verlorenen Linien. 0.2.0 hat eine ähnliche Linienzahl.
 
 ## Bekannte Probleme und Grenzen
 
-- Das Gleiten habe ich in den Testbildern nicht erwischt, es ist nur im Code geprüft.
 - Helligkeit und Lesbarkeit der Namen am echten Monitor sind noch nicht beurteilt.
 - Unbekannte Zeichen in Namen zeichnet die Asteroids-Schrift als Leerzeichen.
 
