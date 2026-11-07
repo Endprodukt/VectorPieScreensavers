@@ -9,6 +9,7 @@ Jeder Screensaver hat einen eigenen Ordner:
 | [`neondrive/`](neondrive/) | **Neon Drive** | Eine endlose Fahrt im 80er-Synthwave-Stil in 3D: Grid, Sonne, wechselnde Strecken und Kulissen, Verkehr in beide Richtungen, Vögel und ein Flugzeug mit VECTORPIE-Banner. |
 | [`digitalrain/`](digitalrain/) | **Digital Rain** | Grüner Code-Regen im Matrix-Stil. Mit dem Regen fallen immer wieder Namen von Spielen des Automaten herunter, mehrere gleichzeitig, und VECTORPIE. |
 | [`labyrinth/`](labyrinth/) | **Labyrinth** | Ein Gang durch ein Labyrinth nach dem anderen, aus Sicht des Wanderers: Wände mit Mustern und VECTORPIE-Schildern, drehende Kristalle und als Ausgang ein Kuchen. |
+| [`neonpeaks/`](neonpeaks/) | **Neon Peaks** | Retrowave: ein Flug durch ein Neon-Gittertal auf eine gestreifte Sonne zu. Die Berge am Horizont formt die Musik (ihr Spektrum), Tempo und Farben folgen ihr gleitend. |
 
 ## Gemeinsam
 
