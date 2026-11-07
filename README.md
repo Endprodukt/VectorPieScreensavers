@@ -10,6 +10,7 @@ Jeder Screensaver hat einen eigenen Ordner:
 | [`digitalrain/`](digitalrain/) | **Digital Rain** | Grüner Code-Regen im Matrix-Stil. Mit dem Regen fallen immer wieder Namen von Spielen des Automaten herunter, mehrere gleichzeitig, und VECTORPIE. |
 | [`labyrinth/`](labyrinth/) | **Labyrinth** | Ein Gang durch ein Labyrinth nach dem anderen, aus Sicht des Wanderers: Wände mit Mustern und VECTORPIE-Schildern, drehende Kristalle und als Ausgang ein Kuchen. |
 | [`neonpeaks/`](neonpeaks/) | **Neon Peaks** | Retrowave: ein Flug durch ein Neon-Gittertal auf eine gestreifte Sonne zu. Die Berge am Horizont formt die Musik (ihr Spektrum), Tempo und Farben folgen ihr gleitend. |
+| [`neonridge/`](neonridge/) | **Neon Ridge** | Wie die Retrowave-Mountains-Videos: Sternenhimmel, cyan leuchtender Horizont, ein Bergmassiv aus Höhenlinien, davor eine Ebene aus Linien und eine pinke Lichtspur. Die Kamera steht still. |
 
 ## Gemeinsam
 
