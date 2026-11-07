@@ -56,3 +56,7 @@ Seit 0.7.1 (2026-11-07) gilt deshalb:
 - Die Linien der Sonne laufen ebenfalls hin und her.
 
 Neue Teile sollten auch so gezeichnet werden.
+
+## Zeichenrichtung muss fest bleiben
+
+Eine Linie, die andersherum gezeichnet wird, liegt auf dem Monitor ein wenig versetzt. Wenn Linien hin und her gezeichnet werden, muss die Richtung deshalb an der Linie selbst hängen (an ihrer eigenen Nummer), nicht an ihrem Platz in der Schleife. Sonst kippt die Richtung jedes Mal, wenn eine Linie nachrückt, und alle Linien zucken links und rechts (Rückmeldung des Nutzers zu Neon Peaks, 2026-11-07; seit Neon Peaks 0.1.2, Neon Ridge 0.1.2, Neon Drive 0.7.2 behoben).

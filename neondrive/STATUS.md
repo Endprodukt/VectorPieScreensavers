@@ -1,6 +1,6 @@
 # Status
 
-Stand 2026-11-07, Version 0.7.1: **Neon Drive** in 3D (`saver_neondrive`), gebaut mit der 3D-Schnittstelle des SDK (`vp_3d.h`) und verdeckten Linien.
+Stand 2026-11-07, Version 0.7.2: **Neon Drive** in 3D (`saver_neondrive`), gebaut mit der 3D-Schnittstelle des SDK (`vp_3d.h`) und verdeckten Linien.
 
 ## Was da ist
 
@@ -42,12 +42,13 @@ Stand 2026-11-07, Version 0.7.1: **Neon Drive** in 3D (`saver_neondrive`), gebau
 
 ## Geprüft (2026-11-05, am PC)
 
-- PC- und Pi-Build ohne Warnungen im eigenen Code. `build/saver_neondrive-0.7.1.vps` wird erzeugt (`sh tools/make_vps.sh neondrive`). Auf dem Automaten installiert per `sh tools/deploy.sh neondrive`.
+- PC- und Pi-Build ohne Warnungen im eigenen Code. `build/saver_neondrive-0.7.2.vps` wird erzeugt (`sh tools/make_vps.sh neondrive`). Auf dem Automaten installiert per `sh tools/deploy.sh neondrive`.
 - 0.7.0 lief auf dem Board ohne verlorene Linien, aber nur mit 28 bis 30 statt 40 Bildern pro Sekunde. Das Board brauchte etwa 30 ms pro Bild bei 1500 bis 1900 Linien.
 - 0.7.1 (2026-11-07), 40 s auf dem Board:
   - Meist 40 Bilder pro Sekunde, Senden etwa 1 ms. In dichten Abschnitten mit 1700 bis 1850 Linien sind es noch 35 bis 38.
   - Der Leerweg des Strahls ist von etwa 260k auf 100k bis 140k gesunken.
   - Rechenzeit am Pi 3 bis 6 ms.
+- 0.7.2 (2026-11-07): Die Querlinien des Gitters behalten ihre Zeichenrichtung, während sie näherkommen (vorher kippte sie bei jeder neuen Linie, das zuckt am Monitor). Auf dem Board 40 Bilder pro Sekunde, Senden etwa 1,2 ms.
 - Dauertest (`saver_soak`): 5 Strecken je 5 simulierte Stunden mit einer vorübergehenden Kollisionsprüfung. **0 Überschneidungen, kein Hänger.**
 - Bilder angesehen: alle Abschnittsarten, Kamera-Schwenk, runde Räder mit Speichen, Flugzeug mit Banner, VECTORPIE auf Schildern, Tafeln und Schilderbrücke, Vogelschwarm. Übersichten liegen in `screenshots/`.
 - Linien pro Bild: üblich 1100 bis 1900. Seltene Spitzen bis etwa 2300 (Stadt, Wüste).

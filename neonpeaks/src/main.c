@@ -187,11 +187,14 @@ static void ground_draw(vp_dvg *d)
             vp3d_scene_polygon(scene, t, 3, 0);
         }
     /* its lines, in long strokes back and forth (each piece starting where
-     * the last ended: few jumps of the beam) */
+     * the last ended: few jumps of the beam). A row keeps its way, by its own
+     * number: one drawn the other way round lies a little apart on the
+     * monitor, and rows flipping as they come would twitch */
     for (int r = 0; r <= ROWS; r++)
         for (int i = 0; i + 1 < COLS; i++) {
-            int j = r & 1 ? COLS - 2 - i : i;
-            int a = r & 1 ? j + 1 : j, b = r & 1 ? j : j + 1;
+            int odd = (int)((first + r) & 1);
+            int j = odd ? COLS - 2 - i : i;
+            int a = odd ? j + 1 : j, b = odd ? j : j + 1;
             ground_color(d, fmaxf(hh[r][a], hh[r][b]), kk[r]);
             vp3d_scene_line(scene, vp_v3(XS[a], hh[r][a], zz[r]), vp_v3(XS[b], hh[r][b], zz[r]));
         }

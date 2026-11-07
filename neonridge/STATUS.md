@@ -1,6 +1,6 @@
 # Status
 
-Stand 2026-11-07, Version 0.1.1: **Neon Ridge** (`saver_neonridge`).
+Stand 2026-11-07, Version 0.1.2: **Neon Ridge** (`saver_neonridge`).
 
 ## Was da ist (`src/main.c`)
 
@@ -22,7 +22,7 @@ Stand 2026-11-07, Version 0.1.1: **Neon Ridge** (`saver_neonridge`).
 
 ## Geprüft (2026-11-07)
 
-- PC- und Pi-Build ohne Warnungen. `build/saver_neonridge-0.1.1.vps` wird erzeugt. 0.1.1 auf dem Board: 40 Bilder pro Sekunde, etwa 515 Linien, Senden 0,6 ms, keine verlorenen Linien.
+- PC- und Pi-Build ohne Warnungen. `build/saver_neonridge-0.1.2.vps` wird erzeugt. 0.1.2 (2026-11-07): Die Linien der Ebene behalten ihre Zeichenrichtung, während sie näherkommen (vorher kippte sie bei jeder neuen Linie, das zuckt am Monitor). Auf dem Board: 40 Bilder pro Sekunde, etwa 515 Linien, Senden 0,6 ms, keine verlorenen Linien.
 - Am PC Bilder angesehen und mit einem Standbild des Videos verglichen.
 - **Auf dem Automaten installiert** (`sh tools/deploy.sh neonridge`) und 15 s auf dem Board getestet:
   - gleichmäßig 40 Bilder pro Sekunde

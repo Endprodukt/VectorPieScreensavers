@@ -22,3 +22,7 @@
 - `plain_draw`: die Linien mit Abstand `P_RATIO`; `G.flow` ist die Phase in Linien.
 - `trail_at(s)`: der Weg der Spur, in Bildschirmbreiten `u` (−1 links, 1 rechts) und Entfernung `z`. `trail_draw` zeichnet drei Linien: Schein, Kern zurück, Schein.
 - Reihenfolge der Linien beachten: siehe `../neondrive/RESUME.md` („Tempo auf dem Board“).
+
+## Zeichenrichtung muss fest bleiben
+
+Eine Linie, die andersherum gezeichnet wird, liegt auf dem Monitor ein wenig versetzt. Wenn Linien hin und her gezeichnet werden, muss die Richtung deshalb an der Linie selbst hängen (an ihrer eigenen Nummer), nicht an ihrem Platz in der Schleife. Sonst kippt die Richtung jedes Mal, wenn eine Linie nachrückt, und alle Linien zucken links und rechts (Rückmeldung des Nutzers zu Neon Peaks, 2026-11-07; seit Neon Peaks 0.1.2, Neon Ridge 0.1.2, Neon Drive 0.7.2 behoben).

@@ -1,6 +1,6 @@
 # Status
 
-Stand 2026-11-07, Version 0.1.1: **Neon Peaks** (`saver_neonpeaks`).
+Stand 2026-11-07, Version 0.1.2: **Neon Peaks** (`saver_neonpeaks`).
 
 ## Was da ist (`src/main.c`)
 
@@ -20,7 +20,8 @@ Stand 2026-11-07, Version 0.1.1: **Neon Peaks** (`saver_neonpeaks`).
 
 ## Geprüft (2026-11-07)
 
-- PC- und Pi-Build ohne Warnungen. `build/saver_neonpeaks-0.1.1.vps` wird erzeugt.
+- PC- und Pi-Build ohne Warnungen. `build/saver_neonpeaks-0.1.2.vps` wird erzeugt.
+- 0.1.2 (2026-11-07): Die Reihen zuckten links und rechts, weil ihre Zeichenrichtung bei jeder nachrückenden Reihe kippte. Jetzt hängt sie an der Nummer der Reihe. Auf dem Board 40 Bilder pro Sekunde, Senden 0,6 ms. Am Monitor noch nicht bestätigt.
 - Am PC Bilder angesehen, mit Farbwechsel beim Track-Wechsel.
 - **Auf dem Automaten installiert** (`sh tools/deploy.sh neonpeaks`) und 25 s auf dem Board getestet:
   - gleichmäßig 40 Bilder pro Sekunde

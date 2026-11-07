@@ -216,9 +216,11 @@ void road_draw(vp3d_scene *sc, vp_dvg *d)
             float sh = side == 0 ? ON_SHIFT * road_oncoming(dz) : 0, sign = side == 0 ? -1.0f : 1.0f;
             vp_vec3 a = road_point(dz, sign * in - sh, 0), b = road_point(dz, sign * out - sh, 0);
             color_f(d, 255, 40, 210, fade(dz) * 0.85f);
-            if (back) vp3d_scene_line(sc, b, a);
-            else      vp3d_scene_line(sc, a, b);
-            back ^= 1;
+            /* each its own way, by its number, as it comes: one drawn the other
+             * way round lies a little apart on the monitor, and lines
+             * flipping as they come would twitch */
+            if (n & 1) vp3d_scene_line(sc, b, a);
+            else       vp3d_scene_line(sc, a, b);
         }
 
     /* our road: its edges, doubled, and the dashes between its lanes, from

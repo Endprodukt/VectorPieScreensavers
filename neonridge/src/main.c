@@ -201,12 +201,15 @@ static void plain_draw(vp_dvg *d)
      * distance) */
     float ph = fmodf(G.flow, 1);
     int i = 0;
+    long id = (long)floorf(G.flow);         /* + i: each line's own number, for its way (back and forth) */
     for (float z = P_FAR * powf(P_RATIO, -ph); z > P_NEAR; z /= P_RATIO, i++) {
         float k = smooth01((z - P_NEAR) / 6) * (1 - 0.75f * smooth01(z / P_FAR));
         float half = z * 0.85f + 10;
         color(d, 120, 90, 255, k * 0.7f);
-        if (i & 1) vp3d_scene_line(scene, vp_v3(half, 0, z), vp_v3(-half, 0, z));
-        else       vp3d_scene_line(scene, vp_v3(-half, 0, z), vp_v3(half, 0, z));
+        /* a line keeps its way as it comes: one drawn the other way round lies
+         * a little apart on the monitor, and lines flipping would twitch */
+        if ((id + i) & 1) vp3d_scene_line(scene, vp_v3(half, 0, z), vp_v3(-half, 0, z));
+        else              vp3d_scene_line(scene, vp_v3(-half, 0, z), vp_v3(half, 0, z));
     }
     /* the far edge: a long line, pink on the left to cyan on the right */
     const int SEG = 12;
