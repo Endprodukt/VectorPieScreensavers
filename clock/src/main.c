@@ -1,22 +1,28 @@
 /* Clock — a VectorPie screensaver: the time, on one face after another.
  *
  * Ten faces: ANALOG (a watch dial with a sweeping second hand), DIGITAL
- * (seven segments, the date under it), KLAPPZAHLEN (a flip clock, its cards
- * folding over), BINAER (the digits in bits), WORTUHR (the time in German
- * words), NIXIE (glowing tubes), ORBIT (hours, minutes and seconds circling
+ * (seven segments, the date under it), FLIP (a flip clock, its cards
+ * folding over), BINARY (the digits in bits), WORDS (the time in words, in
+ * the clock's language), NIXIE (glowing tubes), ORBIT (hours, minutes and
+ * seconds circling
  * like planets), TUNNEL (a web of lanes down a tube, a claw running round its
  * rim: in the manner of the old vector tube shooters), ROCKS (the time among
  * drifting rocks, a little ship circling it: in the manner of the old vector
- * rock shooters) and WETTER (the weather now and the next days). Under each
+ * rock shooters) and WEATHER (the weather now and the next days). Under each
  * of the others a line with the date and the weather.
  *
- * The weather comes from Open-Meteo over the cabinet's network, for the
- * place in clock.ini (weather.h); without one the clock shows none.
+ * ITS MENU (menu.c), opened with START 1 while it runs: the face, whether
+ * it changes by itself (off, with each track, every so many minutes), the
+ * colors (the faces' own or one for all), which parts show (seconds, date,
+ * weather, 24 hours, the track's title), the place (its time and weather:
+ * from a list or searched by name) and the language (English, German,
+ * French, Spanish). Kept in save/clock.ini (settings.c). For this the clock
+ * takes the cabinet's controls over while it runs (input.c): START 2 is
+ * still NEXT TRACK, any other control still wakes the cabinet.
  *
- * Switching: each new track brings the next face, so the cabinet's NEXT
- * TRACK control (which keeps the screensaver running, unlike every other
- * control) switches it. On a PC the arrow keys do too. One face blends into
- * the next.
+ * The weather and the place's time come from Open-Meteo over the cabinet's
+ * network (weather.c); with no place the clock shows the cabinet's own time
+ * and no weather.
  *
  * To the music, smoothly: the faces' rings and marks glow a little brighter
  * when it is louder. Nothing flashes or blinks (the colons stand still). A
@@ -24,7 +30,9 @@
  *
  * On the cabinet: installed in SETTINGS -> SCREENSAVERS (tools/deploy.sh or
  * the .vps). On a PC: saver_clock <a .ogg/.wav or a folder of them>. Esc
- * quits. SAVER_FACE=<0..9> starts on that face, SAVER_CYCLE=<s> switches
+ * quits; Enter or M opens the menu, the arrow keys move in it (and change
+ * the face outside it), Backspace goes back, N plays the next track.
+ * SAVER_FACE=<0..9> starts on that face, SAVER_CYCLE=<s> switches
  * every s seconds, SAVER_SHOTS=<folder> saves a picture every 2 s (all for
  * development).
  */
@@ -37,6 +45,10 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include "input.h"
+#include "lang.h"
+#include "menu.h"
+#include "settings.h"
 #include "weather.h"
 
 #define W      VP_DVG_COORD_MAX
@@ -46,9 +58,8 @@
 #define FACE_WEATHER 9
 #define BLEND  1.4f                     /* s from one face to the next */
 
-static const char *FACE_NAME[NFACE] = { "ANALOG", "DIGITAL", "KLAPPZAHLEN", "BINAER", "WORTUHR", "NIXIE", "ORBIT", "TUNNEL", "ROCKS", "WETTER" };
-
-typedef struct { int h, m, s, wday, mday, mon, year; float frac; } now_t;
+/* h: 0..23; hd: the hour as shown (1..12 when the menu says 12 hours) */
+typedef struct { int h, m, s, wday, mday, mon, year; float frac; int hd; } now_t;
 
 static struct {
     float time, loud, cycle, cycle_t;
@@ -64,7 +75,12 @@ static struct {
     float nix_t[6];
     float bits[6][4];                   /* the binary face's lamps, 0..1 */
     float words[32];                    /* the word clock's words, 0..1 */
-    weather_t wx;                       /* the latest weather */
+    int words_lang;                     /* the language they are in */
+    weather_t wx;                       /* the latest weather (for the place set, else not ok) */
+    int place_serial;                   /* the place asked for (weather_set_place) */
+    settings_t was;                     /* the settings last seen: what the menu changed */
+    int grabbed;                        /* the clock has the cabinet's controls */
+    vp_game *game;
     vp_music_feed m;
     int have, started;
     unsigned last_track;
@@ -78,6 +94,18 @@ static float smooth01(float t) { t = clampf(t, 0, 1); return t * t * (3 - 2 * t)
 static void color(vp_dvg *d, float r, float g, float b, float k)
 {
     k = clampf(k, 0, 1);
+    if (SET.theme > 0) {
+        /* one color for all: as bright as the face's own was */
+        float lum = (0.3f * r + 0.59f * g + 0.11f * b) / 255, f = 0.45f + 0.55f * clampf(lum / 0.85f, 0, 1);
+        if (SET.theme == NTHEME - 1) {                  /* the rainbow: the hue wanders, slowly */
+            float h = fmodf(G.time * 0.01f, 1) * 6, x = 1 - fabsf(fmodf(h, 2) - 1);
+            float c[6][3] = { { 1, x, 0 }, { x, 1, 0 }, { 0, 1, x }, { 0, x, 1 }, { x, 0, 1 }, { 1, 0, x } };
+            int i = (int)h % 6;
+            r = (60 + 195 * c[i][0]) * f; g = (60 + 195 * c[i][1]) * f; b = (60 + 195 * c[i][2]) * f;
+        } else {
+            r = THEME_RGB[SET.theme][0] * f; g = THEME_RGB[SET.theme][1] * f; b = THEME_RGB[SET.theme][2] * f;
+        }
+    }
     vp_color(d, (uint8_t)clampf(r * k, 0, 255), (uint8_t)clampf(g * k, 0, 255), (uint8_t)clampf(b * k, 0, 255));
 }
 
@@ -108,25 +136,47 @@ static void text(vp_dvg *d, const char *s, float x, float y, float h, int align)
 
 /* ---- the time --------------------------------------------------------------- */
 
+/* the time here, or at the place the menu set (its offset from UTC comes
+ * with its weather: until then, here) */
 static now_t read_now(void)
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     time_t t = (time_t)tv.tv_sec;
-    struct tm *lt = localtime(&t);
+    struct tm *lt;
+    if (SET.has_place && G.wx.ok && G.wx.serial == G.place_serial) {
+        t += G.wx.utc_offset;
+        lt = gmtime(&t);
+    } else {
+        lt = localtime(&t);
+    }
     now_t n = { lt->tm_hour, lt->tm_min, lt->tm_sec, lt->tm_wday, lt->tm_mday, lt->tm_mon + 1,
-                lt->tm_year + 1900, (float)tv.tv_usec / 1e6f };
+                lt->tm_year + 1900, (float)tv.tv_usec / 1e6f, lt->tm_hour };
+    if (!SET.h24) n.hd = n.h % 12 == 0 ? 12 : n.h % 12;
     return n;
 }
 
 static void digits6(const now_t *n, int out[6])
 {
-    out[0] = n->h / 10; out[1] = n->h % 10;
+    out[0] = n->hd / 10; out[1] = n->hd % 10;
     out[2] = n->m / 10; out[3] = n->m % 10;
     out[4] = n->s / 10; out[5] = n->s % 10;
 }
 
-static const char *WEEKDAY[7] = { "SONNTAG", "MONTAG", "DIENSTAG", "MITTWOCH", "DONNERSTAG", "FREITAG", "SAMSTAG" };
+/* the date in the language: long ("SATURDAY 7 NOV 2026") or short ("SAT 7 NOV") */
+static void date_text(char *buf, size_t size, const now_t *n, int longer)
+{
+    int l = SET.lang;
+    if (l == LANG_DE) {
+        if (longer) snprintf(buf, size, "%s  %02d.%02d.%04d", L_WEEKDAY[l][n->wday], n->mday, n->mon, n->year);
+        else        snprintf(buf, size, "%s %02d.%02d.", L_WEEKDAY_SHORT[l][n->wday], n->mday, n->mon);
+    } else {
+        if (longer) snprintf(buf, size, "%s  %d %s %04d", L_WEEKDAY[l][n->wday], n->mday, L_MONTH[l][n->mon - 1], n->year);
+        else        snprintf(buf, size, "%s %d %s", L_WEEKDAY_SHORT[l][n->wday], n->mday, L_MONTH[l][n->mon - 1]);
+    }
+}
+
+static const char *S(int i) { return L_STR[SET.lang][i]; }
 
 /* ---- digits of our own (they fold and squash: the fonts cannot) ------------- */
 
@@ -227,15 +277,16 @@ static void face_analog(vp_dvg *d, float k)
     }
     color(d, 120, 200, 255, k * 0.8f);
     text(d, "VECTORPIE", cx, cy + R * 0.36f, 85, VP_TEXT_CENTER);
-    /* the date window at three */
-    char buf[8];
-    snprintf(buf, sizeof buf, "%02d", n->mday);
-    float wx = cx + R * 0.42f, wy = cy;
-    color(d, 120, 200, 255, k * 0.7f);
-    line(d, wx - 110, wy - 80, wx + 110, wy - 80); vp_lineto(d, (int)(wx + 110), (int)(wy + 80));
-    vp_lineto(d, (int)(wx - 110), (int)(wy + 80)); vp_lineto(d, (int)(wx - 110), (int)(wy - 80));
-    color(d, 235, 240, 255, k);
-    text(d, buf, wx, wy - 45, 90, VP_TEXT_CENTER);
+    if (SET.date) {                                     /* the date window at three */
+        char buf[8];
+        snprintf(buf, sizeof buf, "%02d", n->mday);
+        float wx = cx + R * 0.42f, wy = cy;
+        color(d, 120, 200, 255, k * 0.7f);
+        line(d, wx - 110, wy - 80, wx + 110, wy - 80); vp_lineto(d, (int)(wx + 110), (int)(wy + 80));
+        vp_lineto(d, (int)(wx - 110), (int)(wy + 80)); vp_lineto(d, (int)(wx - 110), (int)(wy - 80));
+        color(d, 235, 240, 255, k);
+        text(d, buf, wx, wy - 45, 90, VP_TEXT_CENTER);
+    }
     /* the hands, sweeping */
     float sec = n->s + n->frac, min = n->m + sec / 60, hour = (n->h % 12) + min / 60;
     struct { float a, len, wid, r, g, b; } hand[2] = {
@@ -253,9 +304,11 @@ static void face_analog(vp_dvg *d, float k)
     }
     float a = PI / 2 - sec / 60 * 2 * PI, c = cosf(a), s = sinf(a);
     color(d, 255, 90, 150, k);
-    line(d, cx - c * R * 0.18f, cy - s * R * 0.18f, cx + c * R * 0.92f, cy + s * R * 0.92f);
+    if (SET.seconds) {
+        line(d, cx - c * R * 0.18f, cy - s * R * 0.18f, cx + c * R * 0.92f, cy + s * R * 0.92f);
+        circle(d, cx - c * R * 0.12f, cy - s * R * 0.12f, 40, 12);
+    }
     circle(d, cx, cy, 34, 12);
-    circle(d, cx - c * R * 0.12f, cy - s * R * 0.12f, 40, 12);
 }
 
 /* seven segments: a, b, c, d, e, f, g; on: lit, else faintly there */
@@ -302,7 +355,7 @@ static void face_digital(vp_dvg *d, float k)
     int dg[6];
     digits6(n, dg);
     const float h = 1200, w = 500, y = 1900, sp = 200;
-    float x = CX - (4 * w + 3 * sp + 260 + 60 + 2 * w * 0.38f + 90) / 2;
+    float x = CX - (4 * w + 3 * sp + 260 + (SET.seconds ? 60 + 2 * w * 0.38f + 90 : -sp)) / 2;
     const float R = 60, G2 = 235, B = 255;
     for (int i = 0; i < 4; i++) {
         seg7(d, dg[i], x, y, w, h, k, R, G2, B);
@@ -317,13 +370,17 @@ static void face_digital(vp_dvg *d, float k)
             x += 260;
         }
     }
-    seg7(d, dg[4], x - 40, y, w * 0.38f, h * 0.38f, k * 0.85f, R, G2, B);
-    seg7(d, dg[5], x - 40 + w * 0.38f + 90, y, w * 0.38f, h * 0.38f, k * 0.85f, R, G2, B);
-    char buf[48];
-    snprintf(buf, sizeof buf, "%s  %02d.%02d.%04d", WEEKDAY[n->wday], n->mday, n->mon, n->year);
-    color(d, 60, 235, 255, k * 0.75f * accent());
-    vp_text_font(VP_FONT_ASTEROIDS);
-    vp_text_fit(d, buf, CX, 1300, 150, W * 0.8f, VP_TEXT_CENTER);
+    if (SET.seconds) {
+        seg7(d, dg[4], x - 40, y, w * 0.38f, h * 0.38f, k * 0.85f, R, G2, B);
+        seg7(d, dg[5], x - 40 + w * 0.38f + 90, y, w * 0.38f, h * 0.38f, k * 0.85f, R, G2, B);
+    }
+    if (SET.date) {
+        char buf[64];
+        date_text(buf, sizeof buf, n, 1);
+        color(d, 60, 235, 255, k * 0.75f * accent());
+        vp_text_font(VP_FONT_ASTEROIDS);
+        vp_text_fit(d, buf, CX, 1300, 150, W * 0.8f, VP_TEXT_CENTER);
+    }
 }
 
 /* a card of the flip clock: its digit, folding from the old one */
@@ -374,16 +431,20 @@ static void flip_card(vp_dvg *d, int i, float x, float y, float cw, float ch, fl
 static void face_flip(vp_dvg *d, float k)
 {
     const float cw = 520, ch = 900, gap = 40, pair = 200;
-    float total = 6 * cw + 3 * gap + 2 * pair, x = CX - total / 2, y = 1750;
-    for (int i = 0; i < 6; i++) {
+    int cards = SET.seconds ? 6 : 4;
+    float total = SET.seconds ? 4 * cw + 2 * 0.62f * cw + 3 * gap + 2 * pair : 4 * cw + 2 * gap + pair;
+    float x = CX - total / 2, y = 1750;
+    for (int i = 0; i < cards; i++) {
         float sc = i >= 4 ? 0.62f : 1;              /* the seconds smaller */
         flip_card(d, i, x, y, cw * sc, ch * sc, k);
         x += cw * sc + (i & 1 ? pair : gap);
     }
-    char buf[48];
-    snprintf(buf, sizeof buf, "%s %02d.%02d.", WEEKDAY[G.now.wday], G.now.mday, G.now.mon);
-    color(d, 200, 205, 215, k * 0.6f * accent());
-    text(d, buf, CX, 1250, 120, VP_TEXT_CENTER);
+    if (SET.date) {
+        char buf[64];
+        date_text(buf, sizeof buf, &G.now, 0);
+        color(d, 200, 205, 215, k * 0.6f * accent());
+        text(d, buf, CX, 1250, 120, VP_TEXT_CENTER);
+    }
 }
 
 /* bits: each digit a column, from the top 8 4 2 1 */
@@ -391,12 +452,13 @@ static void face_binary(vp_dvg *d, float k)
 {
     const int NB[6] = { 2, 4, 3, 4, 3, 4 };
     const float step = 420, r = 140, pair = 260;
-    float total = 5 * step + 2 * pair, x0 = CX - total / 2 + 120, y0 = 1350;
+    int cols = SET.seconds ? 6 : 4;
+    float total = (cols - 1) * step + (cols / 2 - 1) * pair, x0 = CX - total / 2 + 120, y0 = 1350;
     color(d, 80, 255, 140, k * 0.4f * accent());
     const char *VAL[4] = { "1", "2", "4", "8" };
     for (int b = 0; b < 4; b++) text(d, VAL[b], x0 - 380, y0 + b * step - 45, 90, VP_TEXT_CENTER);
     float x = x0;
-    for (int c = 0; c < 6; c++) {
+    for (int c = 0; c < cols; c++) {
         for (int b = 0; b < NB[c]; b++) {
             float y = y0 + b * step, on = G.bits[c][b];
             color(d, 80, 255, 140, k * (0.25f + 0.2f * accent()));
@@ -412,15 +474,27 @@ static void face_binary(vp_dvg *d, float k)
     }
     /* the time in figures, small, under it */
     char buf[16];
-    snprintf(buf, sizeof buf, "%02d:%02d:%02d", G.now.h, G.now.m, G.now.s);
+    if (SET.seconds) snprintf(buf, sizeof buf, "%02d:%02d:%02d", G.now.hd, G.now.m, G.now.s);
+    else             snprintf(buf, sizeof buf, "%02d:%02d", G.now.hd, G.now.m);
     color(d, 80, 255, 140, k * 0.55f);
     text(d, buf, CX, 760, 130, VP_TEXT_CENTER);
 }
 
-/* the word clock: German, to five minutes, the minutes between as dots */
-enum { ES, IST, M_FUENF, M_ZEHN, ZWANZIG, VIERTEL, VOR, NACH, HALB,
-       H_EIN, H_S, ZWEI, DREI, VIER, H_FUENF, SECHS, SIEBEN, ACHT, NEUN, H_ZEHN, ELF, ZWOELF, UHR, NWORD };
-static const struct { const char *s; int row, glue; } WORD[NWORD] = {
+/* the word clock, in the clock's language, to five minutes; the minutes
+ * between as dots. Each language its own rows of words (glue: no space
+ * before it); words_target lights the ones that say the time. */
+typedef struct { const char *s; int row, glue; } wc_word;
+static const wc_word WC_EN[] = {
+    { "IT", 0, 0 }, { "IS", 0, 0 }, { "HALF", 0, 0 }, { "TEN", 0, 0 },
+    { "QUARTER", 1, 0 }, { "TWENTY", 1, 0 },
+    { "FIVE", 2, 0 }, { "TO", 2, 0 }, { "PAST", 2, 0 },
+    { "ONE", 3, 0 }, { "TWO", 3, 0 }, { "THREE", 3, 0 },
+    { "FOUR", 4, 0 }, { "FIVE", 4, 0 }, { "SIX", 4, 0 },
+    { "SEVEN", 5, 0 }, { "EIGHT", 5, 0 }, { "NINE", 5, 0 },
+    { "TEN", 6, 0 }, { "ELEVEN", 6, 0 }, { "TWELVE", 6, 0 },
+    { "OCLOCK", 7, 0 },
+};
+static const wc_word WC_DE[] = {
     { "ES", 0, 0 }, { "IST", 0, 0 }, { "FUENF", 0, 0 }, { "ZEHN", 0, 0 },
     { "ZWANZIG", 1, 0 }, { "VIERTEL", 1, 0 },
     { "VOR", 2, 0 }, { "NACH", 2, 0 }, { "HALB", 2, 0 },
@@ -430,50 +504,125 @@ static const struct { const char *s; int row, glue; } WORD[NWORD] = {
     { "ZEHN", 6, 0 }, { "ELF", 6, 0 }, { "ZWOELF", 6, 0 },
     { "UHR", 7, 0 },
 };
+static const wc_word WC_FR[] = {
+    { "IL", 0, 0 }, { "EST", 0, 0 }, { "DEUX", 0, 0 }, { "QUATRE", 0, 0 },
+    { "TROIS", 1, 0 }, { "NEUF", 1, 0 }, { "UNE", 1, 0 }, { "SEPT", 1, 0 },
+    { "HUIT", 2, 0 }, { "SIX", 2, 0 }, { "CINQ", 2, 0 },
+    { "MIDI", 3, 0 }, { "DIX", 3, 0 }, { "MINUIT", 3, 0 }, { "ONZE", 3, 0 },
+    { "HEURE", 4, 0 }, { "S", 4, 1 },
+    { "MOINS", 5, 0 }, { "LE", 5, 0 }, { "DIX", 5, 0 },
+    { "ET", 6, 0 }, { "QUART", 6, 0 }, { "VINGT", 6, 0 }, { "-", 6, 1 }, { "CINQ", 6, 1 },
+    { "ET", 7, 0 }, { "DEMIE", 7, 0 },
+};
+static const wc_word WC_ES[] = {
+    { "ES", 0, 0 }, { "SON", 0, 0 }, { "LA", 0, 0 }, { "LAS", 0, 0 },
+    { "UNA", 1, 0 }, { "DOS", 1, 0 }, { "TRES", 1, 0 },
+    { "CUATRO", 2, 0 }, { "CINCO", 2, 0 }, { "SEIS", 2, 0 },
+    { "SIETE", 3, 0 }, { "OCHO", 3, 0 }, { "NUEVE", 3, 0 },
+    { "DIEZ", 4, 0 }, { "ONCE", 4, 0 }, { "DOCE", 4, 0 },
+    { "Y", 5, 0 }, { "MENOS", 5, 0 },
+    { "CINCO", 6, 0 }, { "DIEZ", 6, 0 }, { "CUARTO", 6, 0 },
+    { "VEINTE", 7, 0 }, { "VEINTICINCO", 7, 0 }, { "MEDIA", 7, 0 },
+};
+#define NWORD 32
+static const struct { const wc_word *w; int n; } WC[NLANG] = {
+    { WC_EN, (int)(sizeof WC_EN / sizeof WC_EN[0]) }, { WC_DE, (int)(sizeof WC_DE / sizeof WC_DE[0]) },
+    { WC_FR, (int)(sizeof WC_FR / sizeof WC_FR[0]) }, { WC_ES, (int)(sizeof WC_ES / sizeof WC_ES[0]) },
+};
 
-static void words_target(const now_t *n, float on[NWORD])
+/* light the nth (from 0) word written so */
+static void lit(float on[NWORD], int lang, const char *word, int nth)
+{
+    for (int i = 0; i < WC[lang].n; i++)
+        if (!strcmp(WC[lang].w[i].s, word) && nth-- == 0) { on[i] = 1; return; }
+}
+
+static void words_target(int lang, const now_t *n, float on[NWORD])
 {
     for (int i = 0; i < NWORD; i++) on[i] = 0;
-    on[ES] = on[IST] = 1;
-    int five = n->m / 5, h = n->h % 12;
-    if (five >= 5) h = (h + 1) % 12;                /* from 25 past: towards the next hour */
-    switch (five) {
-    case 0: on[UHR] = 1; break;
-    case 1: on[M_FUENF] = on[NACH] = 1; break;
-    case 2: on[M_ZEHN] = on[NACH] = 1; break;
-    case 3: on[VIERTEL] = on[NACH] = 1; break;
-    case 4: on[ZWANZIG] = on[NACH] = 1; break;
-    case 5: on[M_FUENF] = on[VOR] = on[HALB] = 1; break;
-    case 6: on[HALB] = 1; break;
-    case 7: on[M_FUENF] = on[NACH] = on[HALB] = 1; break;
-    case 8: on[ZWANZIG] = on[VOR] = 1; break;
-    case 9: on[VIERTEL] = on[VOR] = 1; break;
-    case 10: on[M_ZEHN] = on[VOR] = 1; break;
-    case 11: on[M_FUENF] = on[VOR] = 1; break;
+    int five = n->m / 5;
+    if (lang == LANG_EN) {
+        static const char *HOUR[12] = { "TWELVE", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT",
+                                        "NINE", "TEN", "ELEVEN" };
+        int h = (n->h + (five >= 7)) % 12;
+        lit(on, lang, "IT", 0); lit(on, lang, "IS", 0);
+        static const char *MIN[12][3] = { { "OCLOCK" }, { "FIVE", "PAST" }, { "TEN", "PAST" }, { "QUARTER", "PAST" },
+            { "TWENTY", "PAST" }, { "TWENTY", "FIVE", "PAST" }, { "HALF", "PAST" }, { "TWENTY", "FIVE", "TO" },
+            { "TWENTY", "TO" }, { "QUARTER", "TO" }, { "TEN", "TO" }, { "FIVE", "TO" } };
+        for (int i = 0; i < 3 && MIN[five][i]; i++) lit(on, lang, MIN[five][i], 0);
+        lit(on, lang, HOUR[h], !strcmp(HOUR[h], "FIVE") || !strcmp(HOUR[h], "TEN"));
+    } else if (lang == LANG_DE) {
+        static const char *HOUR[12] = { "ZWOELF", "EIN", "ZWEI", "DREI", "VIER", "FUENF", "SECHS", "SIEBEN", "ACHT",
+                                        "NEUN", "ZEHN", "ELF" };
+        int h = (n->h + (five >= 5)) % 12;              /* from 25 past: towards the next hour */
+        lit(on, lang, "ES", 0); lit(on, lang, "IST", 0);
+        static const char *MIN[12][3] = { { "UHR" }, { "FUENF", "NACH" }, { "ZEHN", "NACH" }, { "VIERTEL", "NACH" },
+            { "ZWANZIG", "NACH" }, { "FUENF", "VOR", "HALB" }, { "HALB" }, { "FUENF", "NACH", "HALB" },
+            { "ZWANZIG", "VOR" }, { "VIERTEL", "VOR" }, { "ZEHN", "VOR" }, { "FUENF", "VOR" } };
+        for (int i = 0; i < 3 && MIN[five][i]; i++) lit(on, lang, MIN[five][i], 0);
+        lit(on, lang, HOUR[h], !strcmp(HOUR[h], "FUENF") || !strcmp(HOUR[h], "ZEHN"));
+        if (h == 1 && five != 0) lit(on, lang, "S", 0);   /* EIN UHR, but FUENF NACH EINS */
+    } else if (lang == LANG_FR) {
+        static const char *HOUR[12] = { "", "UNE", "DEUX", "TROIS", "QUATRE", "CINQ", "SIX", "SEPT", "HUIT", "NEUF",
+                                        "DIX", "ONZE" };
+        int H = (n->h + (five >= 7)) % 24;
+        lit(on, lang, "IL", 0); lit(on, lang, "EST", 0);
+        if (H == 0) lit(on, lang, "MINUIT", 0);
+        else if (H == 12) lit(on, lang, "MIDI", 0);
+        else {
+            lit(on, lang, HOUR[H % 12], 0);
+            lit(on, lang, "HEURE", 0);
+            if (H % 12 > 1) lit(on, lang, "S", 0);
+        }
+        switch (five) {
+        case 1: lit(on, lang, "CINQ", 1); break;
+        case 2: lit(on, lang, "DIX", 1); break;
+        case 3: lit(on, lang, "ET", 0); lit(on, lang, "QUART", 0); break;
+        case 4: lit(on, lang, "VINGT", 0); break;
+        case 5: lit(on, lang, "VINGT", 0); lit(on, lang, "-", 0); lit(on, lang, "CINQ", 1); break;
+        case 6: lit(on, lang, "ET", 1); lit(on, lang, "DEMIE", 0); break;
+        case 7: lit(on, lang, "MOINS", 0); lit(on, lang, "VINGT", 0); lit(on, lang, "-", 0); lit(on, lang, "CINQ", 1); break;
+        case 8: lit(on, lang, "MOINS", 0); lit(on, lang, "VINGT", 0); break;
+        case 9: lit(on, lang, "MOINS", 0); lit(on, lang, "LE", 0); lit(on, lang, "QUART", 0); break;
+        case 10: lit(on, lang, "MOINS", 0); lit(on, lang, "DIX", 1); break;
+        case 11: lit(on, lang, "MOINS", 0); lit(on, lang, "CINQ", 1); break;
+        }
+    } else {
+        static const char *HOUR[12] = { "DOCE", "UNA", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO",
+                                        "NUEVE", "DIEZ", "ONCE" };
+        int h = (n->h + (five >= 7)) % 12;
+        if (h == 1) { lit(on, lang, "ES", 0); lit(on, lang, "LA", 0); }
+        else        { lit(on, lang, "SON", 0); lit(on, lang, "LAS", 0); }
+        lit(on, lang, HOUR[h], 0);
+        static const char *MIN[12][2] = { { 0 }, { "Y", "CINCO" }, { "Y", "DIEZ" }, { "Y", "CUARTO" }, { "Y", "VEINTE" },
+            { "Y", "VEINTICINCO" }, { "Y", "MEDIA" }, { "MENOS", "VEINTICINCO" }, { "MENOS", "VEINTE" },
+            { "MENOS", "CUARTO" }, { "MENOS", "DIEZ" }, { "MENOS", "CINCO" } };
+        for (int i = 0; i < 2 && MIN[five][i]; i++)
+            lit(on, lang, MIN[five][i], !strcmp(MIN[five][i], "CINCO") || !strcmp(MIN[five][i], "DIEZ"));
     }
-    const int HOUR[12] = { ZWOELF, H_EIN, ZWEI, DREI, VIER, H_FUENF, SECHS, SIEBEN, ACHT, NEUN, H_ZEHN, ELF };
-    on[HOUR[h]] = 1;
-    if (HOUR[h] == H_EIN && five != 0) on[H_S] = 1;  /* EIN UHR, but FUENF NACH EINS */
 }
 
 static void face_words(vp_dvg *d, float k)
 {
-    const float h = 230, row_h = 400, top = 3500, space = 130;
+    const float row_h = 400, top = 3500, space = 130;
+    const wc_word *WD = WC[G.words_lang].w;
+    int nw = WC[G.words_lang].n;
     vp_text_font(VP_FONT_ASTEROIDS);
     for (int row = 0; row < 8; row++) {
-        float width = 0;
-        for (int i = 0; i < NWORD; i++)
-            if (WORD[i].row == row) width += vp_text_width(WORD[i].s, h) + (WORD[i].glue || width == 0 ? 0 : space);
-        float x = CX - width / 2, y = top - row * row_h;
+        float h = 230, width = 0;
+        for (int i = 0; i < nw; i++)
+            if (WD[i].row == row) width += vp_text_width(WD[i].s, h) + (WD[i].glue || width == 0 ? 0 : space);
+        if (width > W * 0.92f) { h *= W * 0.92f / width; width = W * 0.92f; }   /* a long row: smaller */
+        float x = CX - width / 2, y = top - row * row_h, sp = space * h / 230;
         int first = 1;
-        for (int i = 0; i < NWORD; i++) {
-            if (WORD[i].row != row) continue;
-            if (!first && !WORD[i].glue) x += space;
+        for (int i = 0; i < nw; i++) {
+            if (WD[i].row != row) continue;
+            if (!first && !WD[i].glue) x += sp;
             first = 0;
             float on = G.words[i];
             color(d, 255, 190, 90, k * (0.1f + 0.9f * on));
-            vp_text(d, WORD[i].s, x, y, h, VP_TEXT_LEFT);
-            x += vp_text_width(WORD[i].s, h);
+            vp_text(d, WD[i].s, x, y, h, VP_TEXT_LEFT);
+            x += vp_text_width(WD[i].s, h);
         }
     }
     /* the minutes past the five: dots */
@@ -490,8 +639,9 @@ static void face_words(vp_dvg *d, float k)
 static void face_nixie(vp_dvg *d, float k)
 {
     const float tw = 470, th = 1150, gap = 70, pair = 230;
-    float total = 6 * tw + 3 * gap + 2 * pair, x = CX - total / 2, y = 1500;
-    for (int i = 0; i < 6; i++) {
+    int tubes = SET.seconds ? 6 : 4;
+    float total = tubes * tw + (tubes / 2) * gap + (tubes / 2 - 1) * pair, x = CX - total / 2, y = 1500;
+    for (int i = 0; i < tubes; i++) {
         /* the glass: round at the top, the sockets' pins under it */
         float r = tw / 2;
         color(d, 180, 120, 80, k * 0.4f * accent());
@@ -516,7 +666,7 @@ static void face_nixie(vp_dvg *d, float k)
         color(d, 255, 200, 140, k * t * 0.5f);                      /* a hot core */
         glyph(d, G.nix_cur[i], gx + 6, gy + 6, gw, gh);
         x += tw;
-        if (i == 1 || i == 3) {                                       /* the separators */
+        if ((i == 1 || i == 3) && i < tubes - 1) {                    /* the separators */
             float sx = x + pair / 2;
             color(d, 255, 130, 40, k * 0.8f);
             circle(d, sx, y + th * 0.33f, 30, 10);
@@ -524,10 +674,12 @@ static void face_nixie(vp_dvg *d, float k)
             x += pair;
         } else if (i < 5) x += gap;
     }
-    char buf[48];
-    snprintf(buf, sizeof buf, "%02d.%02d.%04d", G.now.mday, G.now.mon, G.now.year);
-    color(d, 255, 130, 40, k * 0.45f * accent());
-    text(d, buf, CX, 1000, 120, VP_TEXT_CENTER);
+    if (SET.date) {
+        char buf[64];
+        date_text(buf, sizeof buf, &G.now, 1);
+        color(d, 255, 130, 40, k * 0.45f * accent());
+        text(d, buf, CX, 1000, 120, VP_TEXT_CENTER);
+    }
 }
 
 /* hours, minutes, seconds as planets on their rings */
@@ -541,7 +693,7 @@ static void face_orbit(vp_dvg *d, float k)
         { 1080, min / 60, 70, 120, 160, 255, 12 },
         { 1480, sec / 60, 45, 120, 230, 255, 60 },
     };
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < (SET.seconds ? 3 : 2); i++) {
         float r = ring[i].r, a = PI / 2 - ring[i].a * 2 * PI;
         color(d, ring[i].cr, ring[i].cg, ring[i].cb, k * 0.35f * accent());
         circle(d, cx, cy, r, 96);
@@ -559,7 +711,7 @@ static void face_orbit(vp_dvg *d, float k)
     }
     /* the sun: the time */
     char buf[8];
-    snprintf(buf, sizeof buf, "%02d:%02d", n->h, n->m);
+    snprintf(buf, sizeof buf, "%02d:%02d", n->hd, n->m);
     color(d, 255, 215, 140, k);
     circle(d, cx, cy, 300, 32);
     text(d, buf, cx, cy - 55, 110, VP_TEXT_CENTER);
@@ -614,14 +766,14 @@ static void face_tunnel(vp_dvg *d, float k)
     const float CL[7][2] = { { -1, 0.15f }, { -0.55f, -0.35f }, { -0.2f, 0.25f }, { 0, -0.1f },
                              { 0.2f, 0.25f }, { 0.55f, -0.35f }, { 1, 0.15f } };
     color(d, 255, 230, 60, k);
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 7 && SET.seconds; i++) {
         float px = sx + (tx * CL[i][0] + nx * CL[i][1]) * 120, py = sy + (ty * CL[i][0] + ny * CL[i][1]) * 120;
         if (i == 0) vp_moveto(d, (int)px, (int)py);
         else        vp_lineto(d, (int)px, (int)py);
     }
     /* the time, far down the tube */
     char buf[8];
-    snprintf(buf, sizeof buf, "%02d:%02d", n->h, n->m);
+    snprintf(buf, sizeof buf, "%02d:%02d", n->hd, n->m);
     color(d, 255, 230, 60, k * 0.9f);
     text(d, buf, cx, cy - 40, 80, VP_TEXT_CENTER);
 }
@@ -723,8 +875,8 @@ static void face_rocks(vp_dvg *d, float k)
     /* the time */
     const float h = 900, w = h * 0.6f, y = 1600;
     color(d, 240, 240, 250, k);
-    glyph(d, n->h / 10, CX - 140 - 2 * w - 170, y, w, h);
-    glyph(d, n->h % 10, CX - 140 - w, y, w, h);
+    glyph(d, n->hd / 10, CX - 140 - 2 * w - 170, y, w, h);
+    glyph(d, n->hd % 10, CX - 140 - w, y, w, h);
     circle(d, CX, y + h * 0.3f, 22, 8);
     circle(d, CX, y + h * 0.7f, 22, 8);
     glyph(d, n->m / 10, CX + 140, y, w, h);
@@ -747,11 +899,12 @@ static void face_rocks(vp_dvg *d, float k)
     vp_lineto(d, (int)(sx - hx * s * 0.4f), (int)(sy - hy * s * 0.4f));
     vp_lineto(d, (int)(sx - hx * s - px * s), (int)(sy - hy * s - py * s));
     vp_lineto(d, (int)(sx + hx * s * 1.6f), (int)(sy + hy * s * 1.6f));
-    /* the seconds, small, under it all */
-    char buf[8];
-    snprintf(buf, sizeof buf, "%02d", n->s);
-    color(d, 240, 240, 250, k * 0.6f);
-    text(d, buf, CX, 1150, 110, VP_TEXT_CENTER);
+    if (SET.seconds) {                                  /* the seconds, small, under it all */
+        char buf[8];
+        snprintf(buf, sizeof buf, "%02d", n->s);
+        color(d, 240, 240, 250, k * 0.6f);
+        text(d, buf, CX, 1150, 110, VP_TEXT_CENTER);
+    }
 }
 
 /* ---- the weather ------------------------------------------------------------ */
@@ -854,8 +1007,6 @@ static float temperature(vp_dvg *d, float t, float x, float y, float h, int draw
     return cx + h * 0.2f - x;
 }
 
-static const char *WEEKDAY_SHORT[7] = { "SO", "MO", "DI", "MI", "DO", "FR", "SA" };
-
 static void face_weather(vp_dvg *d, float k)
 {
     const weather_t *w = &G.wx;
@@ -863,16 +1014,18 @@ static void face_weather(vp_dvg *d, float k)
     char buf[96];
     if (!w->ok) {
         color(d, 200, 215, 240, k * 0.7f);
-        text(d, "KEIN WETTER", CX, 2300, 160, VP_TEXT_CENTER);
+        text(d, S(S_NO_WEATHER), CX, 2300, 160, VP_TEXT_CENTER);
         color(d, 200, 215, 240, k * 0.45f);
-        text(d, "ORT IN CLOCK.INI, NETZ NOETIG", CX, 2000, 90, VP_TEXT_CENTER);
-        snprintf(buf, sizeof buf, "%s %02d.%02d.%04d   %02d:%02d", WEEKDAY[n->wday], n->mday, n->mon, n->year, n->h, n->m);
+        if (!SET.has_place) text(d, S(S_NO_WEATHER_HINT), CX, 2000, 90, VP_TEXT_CENTER);
+        char date[64];
+        date_text(date, sizeof date, n, 1);
+        snprintf(buf, sizeof buf, "%s   %02d:%02d", date, n->hd, n->m);
         text(d, buf, CX, 1500, 110, VP_TEXT_CENTER);
         return;
     }
     /* the place, the time */
     color(d, 200, 215, 240, k * 0.8f);
-    snprintf(buf, sizeof buf, "%s   %02d:%02d", w->place, n->h, n->m);
+    snprintf(buf, sizeof buf, "%s   %02d:%02d", SET.place, n->hd, n->m);
     vp_text_font(VP_FONT_ASTEROIDS);
     vp_text_fit(d, buf, CX, 3550, 130, W * 0.86f, VP_TEXT_CENTER);
     /* now: the picture, the temperature, the words */
@@ -881,15 +1034,16 @@ static void face_weather(vp_dvg *d, float k)
     float th = 800, tw = temperature(d, w->temp, 0, 0, th, 0);
     temperature(d, w->temp, CX + 450 - tw / 2, 2250, th, 1);
     color(d, 200, 215, 240, k * 0.85f);
-    text(d, weather_words(w->code), CX + 450, 2000, 120, VP_TEXT_CENTER);
-    snprintf(buf, sizeof buf, "WIND %d KM/H   FEUCHTE %d%%", (int)lroundf(w->wind), (int)lroundf(w->humidity));
+    vp_text_fit(d, weather_words(w->code, SET.lang), CX + 450, 2000, 120, W * 0.5f, VP_TEXT_CENTER);
+    snprintf(buf, sizeof buf, "%s %d KM/H   %s %d%%", S(S_WIND), (int)lroundf(w->wind), S(S_HUMIDITY),
+             (int)lroundf(w->humidity));
     color(d, 200, 215, 240, k * 0.6f * accent());
     text(d, buf, CX, 1700, 90, VP_TEXT_CENTER);
     /* the next days */
     for (int i = 0; i < w->days && i < 4; i++) {
         float x = CX + (i - 1.5f) * 900, y = 1050;
         color(d, 200, 215, 240, k * 0.75f);
-        text(d, i == 0 ? "HEUTE" : WEEKDAY_SHORT[(n->wday + i) % 7], x, y + 330, 90, VP_TEXT_CENTER);
+        text(d, i == 0 ? S(S_TODAY) : L_WEEKDAY_SHORT[SET.lang][(n->wday + i) % 7], x, y + 330, 90, VP_TEXT_CENTER);
         weather_icon(d, w->day_code[i], 1, x, y + 120, 170, k * 0.9f);
         snprintf(buf, sizeof buf, "%d / %d", (int)lroundf(w->day_max[i]), (int)lroundf(w->day_min[i]));
         color(d, 245, 245, 250, k * 0.8f);
@@ -897,19 +1051,31 @@ static void face_weather(vp_dvg *d, float k)
     }
 }
 
-/* under the other faces: the date and the weather, one line */
+/* under the other faces: the date and the weather, one line, as the menu
+ * says (the degree sign drawn: the font has none) */
 static void info_line(vp_dvg *d, float k)
 {
     const now_t *n = &G.now;
-    char buf[160];
-    if (G.wx.ok)
-        snprintf(buf, sizeof buf, "%s %02d.%02d.   %s  %d GRAD  %s", WEEKDAY_SHORT[n->wday], n->mday, n->mon,
-                 G.wx.place, (int)lroundf(G.wx.temp), weather_words(G.wx.code));
-    else
-        snprintf(buf, sizeof buf, "%s %02d.%02d.%04d", WEEKDAY[n->wday], n->mday, n->mon, n->year);
-    color(d, 200, 215, 240, k * 0.55f);
+    char left[160] = "", right[64] = "";
+    int wx = SET.weather && G.wx.ok;
+    if (SET.date) date_text(left, sizeof left, n, !wx);
+    if (wx) {
+        size_t l = strlen(left);
+        snprintf(left + l, sizeof left - l, "%s%s  %d", l ? "   " : "", SET.place, (int)lroundf(G.wx.temp));
+        snprintf(right, sizeof right, "C  %s", weather_words(G.wx.code, SET.lang));
+    }
+    if (!left[0]) return;
     vp_text_font(VP_FONT_ASTEROIDS);
-    vp_text_fit(d, buf, CX, 360, 90, W * 0.86f, VP_TEXT_CENTER);
+    float h = 90, deg = wx ? h * 0.45f : 0;
+    float wl = vp_text_width(left, h), wr = wx ? vp_text_width(right, h) : 0, total = wl + deg + wr;
+    if (total > W * 0.86f) { float f = W * 0.86f / total; h *= f; wl *= f; wr *= f; deg *= f; total *= f; }
+    float x = CX - total / 2, y = 360;
+    color(d, 200, 215, 240, k * 0.55f);
+    vp_text(d, left, x, y, h, VP_TEXT_LEFT);
+    if (wx) {
+        circle(d, x + wl + deg * 0.45f, y + h * 0.88f, h * 0.13f, 8);
+        vp_text(d, right, x + wl + deg, y, h, VP_TEXT_LEFT);
+    }
 }
 
 static void face_draw(vp_dvg *d, int f, float k)
@@ -934,18 +1100,70 @@ static void face_draw(vp_dvg *d, int f, float k)
 
 static void face_switch(int f)
 {
+    f = (f % NFACE + NFACE) % NFACE;
+    if (f == G.face) return;
     G.from = G.face;
-    G.face = (f % NFACE + NFACE) % NFACE;
+    G.face = f;
     G.blend = 0;
     G.name_time = 3.5f;
+    SET.face = f;
+    G.was.face = f;
+}
+
+/* the word clock's words straight to the time, in the language now */
+static void words_reset(void)
+{
+    float on[NWORD];
+    G.words_lang = SET.lang;
+    words_target(G.words_lang, &G.now, on);
+    for (int i = 0; i < NWORD; i++) G.words[i] = on[i];
+}
+
+/* what the menu changed: follow it */
+static void follow_settings(void)
+{
+    if (SET.face != G.was.face) face_switch(SET.face);
+    if (SET.has_place != G.was.has_place || SET.lat != G.was.lat || SET.lon != G.was.lon)
+        G.place_serial = weather_set_place(SET.has_place, SET.lat, SET.lon);
+    if (SET.lang != G.was.lang) words_reset();
+    G.was = SET;
+}
+
+static void wake(void)
+{
+    input_release();                    /* so the cabinet's menu sees the control let go */
+    vp_game_quit(G.game);
+}
+
+/* a control: to the menu when it is open, else open it, next track, or wake */
+static void control(int in)
+{
+    if (in == IN_NONE) return;
+    if (menu_is_open()) {
+        if (menu_input(in)) settings_save();
+        return;
+    }
+    switch (in) {
+    case IN_START1: case IN_OK: menu_open(); break;
+    case IN_START2: vp_saver_skip(); break;
+    case IN_LEFT:  face_switch(G.face - 1); break;      /* (a PC: the arrow keys) */
+    case IN_RIGHT: face_switch(G.face + 1); break;
+    case IN_BACK: break;
+    default: wake();
+    }
 }
 
 static int init(vp_game *g)
 {
-    (void)g;
+    G.game = g;
     glyphs_make();
     const char *f = getenv("SAVER_FACE"), *c = getenv("SAVER_CYCLE");
-    G.face = G.from = f ? ((atoi(f) % NFACE) + NFACE) % NFACE : 0;
+    if (f) SET.face = ((atoi(f) % NFACE) + NFACE) % NFACE;
+    G.face = G.from = SET.face;
+    G.was = SET;
+    G.place_serial = weather_set_place(SET.has_place, SET.lat, SET.lon);
+    weather_start();
+    G.grabbed = input_start();
     G.blend = 1;
     G.name_time = 3.5f;
     G.cycle = c ? (float)atof(c) : 0;
@@ -956,29 +1174,60 @@ static int init(vp_game *g)
         G.flip_cur[i] = G.flip_old[i] = G.nix_cur[i] = G.nix_old[i] = dg[i];
         G.flip_t[i] = G.nix_t[i] = 1;
     }
-    float on[NWORD];
-    words_target(&G.now, on);
-    for (int i = 0; i < NWORD; i++) G.words[i] = on[i];
+    words_reset();
     return VP_OK;
 }
 
 static void update(vp_game *g, float dt)
 {
     G.time += dt;
-    G.now = read_now();
     weather_get(&G.wx);
+    G.now = read_now();
     G.have = vp_saver_music(&G.m);
     if (G.have && G.m.track != G.last_track) {
-        if (G.started) face_switch(G.face + 1);      /* a new track: the next face */
+        if (G.started && SET.change == 1) face_switch(G.face + 1);   /* the menu says: with each track */
         G.started = 1;
         G.last_track = G.m.track;
         snprintf(G.title, sizeof G.title, "%s", G.m.title);
         G.title_time = G.title[0] ? 7 : 0;
     }
-    vp_input *in = vp_game_input(g);                 /* on a PC: the arrow keys */
-    if (in && vp_input_pressed(in, "key_Right")) face_switch(G.face + 1);
-    if (in && vp_input_pressed(in, "key_Left"))  face_switch(G.face - 1);
+    /* the controls: the cabinet's, taken over; on a PC the keyboard */
+    int ev;
+    while ((ev = input_next(menu_is_open())) != IN_NONE) control(ev);
+    vp_input *in = vp_game_input(g);
+    if (in && !G.grabbed) {
+        static const struct { const char *key; int in; } KEY[] = {
+            { "key_Up", IN_UP }, { "key_Down", IN_DOWN }, { "key_Left", IN_LEFT }, { "key_Right", IN_RIGHT },
+            { "key_Return", IN_OK }, { "key_M", IN_START1 }, { "key_Backspace", IN_BACK }, { "key_N", IN_START2 },
+        };
+        for (size_t i = 0; i < sizeof KEY / sizeof KEY[0]; i++)
+            if (vp_input_pressed(in, KEY[i].key)) control(KEY[i].in);
+    }
+    {   /* SAVER_SCRIPT="<s>:<control>,..." presses controls at those times (for development);
+         * controls: U D L R OK BACK S1 S2 */
+        static const char *script;
+        static int checked;
+        if (!checked) { script = getenv("SAVER_SCRIPT"); checked = 1; }
+        while (script && *script) {
+            float at = (float)atof(script);
+            if (G.time < at) break;
+            const char *c = strchr(script, ':');
+            if (!c) { script = NULL; break; }
+            c++;
+            int v = !strncmp(c, "OK", 2) ? IN_OK : !strncmp(c, "BACK", 4) ? IN_BACK : !strncmp(c, "S1", 2) ? IN_START1
+                  : !strncmp(c, "S2", 2) ? IN_START2 : *c == 'U' ? IN_UP : *c == 'D' ? IN_DOWN : *c == 'L' ? IN_LEFT
+                  : *c == 'R' ? IN_RIGHT : IN_NONE;
+            control(v);
+            script = strchr(c, ',');
+            if (script) script++;
+        }
+    }
+    if (menu_update(dt)) settings_save();
+    follow_settings();
     if (G.cycle > 0 && (G.cycle_t += dt) >= G.cycle) { G.cycle_t = 0; face_switch(G.face + 1); }
+    else if (G.cycle <= 0 && SET.change >= 2 && !menu_is_open()) {          /* every so many minutes */
+        if ((G.cycle_t += dt) >= CHANGE_MIN[SET.change] * 60.0f) { G.cycle_t = 0; face_switch(G.face + 1); }
+    } else if (G.cycle <= 0) G.cycle_t = 0;
 
     G.title_time = fmaxf(0, G.title_time - dt);
     G.name_time = fmaxf(0, G.name_time - dt);
@@ -1006,7 +1255,7 @@ static void update(vp_game *g, float dt)
         }
     }
     float on[NWORD];
-    words_target(&G.now, on);
+    words_target(G.words_lang, &G.now, on);
     for (int i = 0; i < NWORD; i++) G.words[i] += (on[i] - G.words[i]) * fminf(1, dt * 2.5f);
     rocks_update(dt);
 }
@@ -1014,7 +1263,7 @@ static void update(vp_game *g, float dt)
 /* The track's title over the clock, then gone. */
 static void title(vp_dvg *d)
 {
-    if (G.title_time <= 0) return;
+    if (G.title_time <= 0 || !SET.title) return;
     float k = smooth01(G.title_time / 1.5f) * smooth01((7 - G.title_time) / 0.5f);
     vp_text_font(VP_FONT_ASTEROIDS);
     color(d, 200, 215, 255, k * 0.7f);
@@ -1038,25 +1287,28 @@ static void shots(vp_dvg *d)
 static void draw(vp_game *g, vp_dvg *d)
 {
     (void)g;
-    float t = smooth01(G.blend);
-    if (G.from != G.face) face_draw(d, G.from, 1 - t);
-    face_draw(d, G.face, t);
-    if (G.name_time > 0) {                           /* the face's name, a while */
+    float t = smooth01(G.blend), dim = menu_is_open() ? 0.22f : 1;   /* behind the menu: faint */
+    if (G.from != G.face) face_draw(d, G.from, (1 - t) * dim);
+    face_draw(d, G.face, t * dim);
+    if (G.name_time > 0 && !menu_is_open()) {        /* the face's name, a while */
         float k = smooth01(G.name_time / 1) * smooth01((3.5f - G.name_time) / 0.6f);
         color(d, 200, 210, 230, k * 0.6f);
-        text(d, FACE_NAME[G.face], CX, 170, 70, VP_TEXT_CENTER);
+        text(d, L_FACE[SET.lang][G.face], CX, 170, 70, VP_TEXT_CENTER);
     }
-    title(d);
+    if (!menu_is_open()) title(d);
+    menu_draw(d);
     shots(d);
 }
 
 int main(int argc, char **argv)
 {
-    weather_start(argc > 0 ? argv[0] : NULL);
+    settings_load(argc > 0 ? argv[0] : NULL);
     vp_game_desc desc = {0};
     desc.title = "Clock";
     desc.init = init;
     desc.update = update;
     desc.draw = draw;
-    return vp_run(&desc, argc, argv);
+    int rc = vp_run(&desc, argc, argv);
+    input_release();
+    return rc;
 }

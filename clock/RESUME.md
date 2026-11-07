@@ -7,26 +7,43 @@
 - Eine Uhr mit den verschiedensten Zifferblättern: digital, analog, Klappzahlen, binär und was sonst einfällt.
 - Je ein Zifferblatt im Stil von Tempest und von Asteroids. Umgesetzt als TUNNEL und ROCKS, mit eigenen Formen und ohne Namen oder Grafiken der Spiele.
 - Datum, Wetter „und solche Geschichten“, weil der Automat online ist.
-- **Ein Menü im Screensaver**, um zum Beispiel die Zifferblätter umzuschalten, ohne ihn zu beenden. Das ist noch offen, siehe unten.
+- **Ein Menü im laufenden Screensaver.** Der Nutzer hat Weg 1 gewählt: Die Uhr übernimmt die Steuerung selbst.
+- Im Menü einstellbar:
+  - Stadt und Sprache: Englisch, Deutsch, Französisch, Spanisch. **Standard ist Englisch.**
+  - Farben
+  - der Ort für Zeit und Wetter
+  - das Zifferblatt selbst zusammenstellen: mit oder ohne Datum, Wetter usw.
+- **Wechsel mit dem Track ist nur eine Option, nicht der Standard.** Standard ist: kein Wechsel.
 - Nichts darf blinken oder pulsieren. Musik ändert Dinge nur gleitend.
 
-## Das Menü-Problem
+## Wie die Uhr die Steuerung übernimmt (`src/input.c`)
 
-Laut SDK (`vendor/VectorPie/sdk/docs/09-screensavers.md`) liest das Menü des Automaten die Steuerung selbst:
-- Bei jeder Taste beendet es den Screensaver (SIGTERM).
-- Nur NEXT TRACK lässt ihn laufen und spielt den nächsten Track.
-- Der Screensaver bekommt keine eigenen Eingaben.
+Laut SDK (`vendor/VectorPie/sdk/docs/09-screensavers.md`) liest das Menü des Automaten die Steuerung selbst. Bei jeder Taste außer NEXT TRACK beendet es den Screensaver.
 
-Deshalb schaltet jetzt jeder neue Track das Zifferblatt weiter. Wege zu einem echten Menü, beim Nutzer angefragt:
-1. **Der Screensaver übernimmt die Steuerung selbst:** Er öffnet `/dev/input/event*` mit `EVIOCGRAB`, dann sieht das Menü des Automaten nichts mehr. Er macht dann selbst, was das Menü sonst tut: Eine Menütaste öffnet sein Menü, jede andere Taste beendet ihn, NEXT TRACK ruft `vp_saver_skip()` auf. Vorher am Automaten zu prüfen: welche Eingabegeräte es gibt und mit welchen Rechten der Screensaver läuft.
-2. **Eine eigene Einstellungs-App** in der Spieleliste, die `clock.ini` schreibt.
-3. **Eine Erweiterung des Automaten-Menüs** durch VectorPie: Tasten an Screensaver durchreichen.
+Die Uhr öffnet deshalb, wenn sie als Screensaver läuft (`vp_saver_active()`), alle `/dev/input/event*` mit Tasten oder Achsen und greift sie mit `EVIOCGRAB`. Dann sieht das Menü des Automaten nichts mehr, und die Uhr macht selbst, was das Menü sonst tut:
+- **START 1** öffnet das Uhr-Menü.
+- **START 2** ruft `vp_saver_skip()` auf (NEXT TRACK).
+- **Jede andere Taste** gibt die Geräte frei (`input_release`), damit das Menü des Automaten wenigstens das Loslassen sieht, und beendet die Uhr (`vp_game_quit`).
+- **Im Uhr-Menü** gehören alle Tasten dem Menü. Analoge Sticks zählen erst ab drei Vierteln Ausschlag, außerhalb des Menüs gar nicht (Joystick-Drift).
+
+Noch am Automaten zu prüfen, siehe STATUS „Offen“. Hilfen dabei:
+- `CLOCK_INPUT_LOG=1` schreibt Geräte und Ereignisse nach stderr.
+- `CLOCK_NO_GRAB=1` schaltet das Greifen ab.
 
 ## Aufbau
 
-- `src/main.c`: die Zifferblätter (`face_*`), Überblenden (`G.from`, `G.face`, `G.blend`), `info_line`.
-  - Eigene Ziffern (`GLYPH`, `glyph_part`), weil sie sich stauchen und schneiden lassen müssen: die Klappkarten und die Temperatur.
-  - Die Klappkarten (`flip_card`): Erst klappt die obere Hälfte der alten Ziffer nach unten, dann die untere Hälfte der neuen. Was hinter einer Klappe liegt, wird nur außerhalb von ihr gezeichnet.
-- `src/weather.c`: Abruf in einem Thread, Ort aus `clock.ini`, ein einfacher JSON-Leser für die Antworten von Open-Meteo.
-- `package/clock.ini`: der Ort. `tools/make_vps.sh` und `tools/deploy.sh` nehmen seit dieser Uhr alle Dateien aus `package/` mit.
-- Zum Testen: `SAVER_FACE=<0..9>` (Start-Zifferblatt), `SAVER_CYCLE=<s>` (automatisch umschalten), `SAVER_SHOTS=<Ordner>`.
+- `src/main.c`:
+  - die Zifferblätter (`face_*`), das Überblenden, `info_line`, die Wortuhr (`WC_*`, `words_target` je Sprache)
+  - die Steuerung: `control` reicht an das Menü weiter oder öffnet es, `wake` beendet die Uhr
+  - `follow_settings`: Was das Menü in `SET` ändert, wird übernommen, etwa ein neuer Ort für das Wetter oder neue Wörter für die Wortuhr.
+  - Die Farbe kommt aus `color()`: Bei einem Farbthema wird jede Farbe durch die des Themas ersetzt, mit der Helligkeit der ursprünglichen.
+- `src/menu.c`: Menü, Ortsliste, Bildschirmtastatur und Suchtreffer. Es ändert `SET` sofort.
+- `src/settings.c`: `SET`. Die Vorgaben stehen in `clock.ini` neben dem Programm, gespeichert wird in `save/clock.ini`.
+- `src/weather.c`: ein Thread, der über `curl` oder `wget` holt:
+  - das Wetter und den UTC-Abstand des Orts (`weather_set_place`)
+  - die Ortssuche (`weather_search`)
+- `src/lang.h`: alle Wörter in den vier Sprachen. `src/cities.h`: die Städteliste.
+- Zum Testen am PC:
+  - `SAVER_FACE=<0..9>` und `SAVER_CYCLE=<s>`
+  - `SAVER_SCRIPT="<s>:<Taste>,..."`: drückt zu diesen Zeiten Tasten (U D L R OK BACK S1 S2)
+  - `SAVER_SHOTS=<Ordner>`

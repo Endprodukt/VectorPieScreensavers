@@ -1,14 +1,8 @@
 /* weather.h — the weather, fetched now and then in the background from
- * Open-Meteo (open-meteo.com: free, no key), by curl (or wget).
- *
- * The place comes from clock.ini (beside the program, or in the folder it
- * runs in):
- *
- *   place = Berlin              (looked up by Open-Meteo's geocoding)
- *   ; or exactly:
- *   lat = 52.52
- *   lon = 13.41
- *   name = Berlin
+ * Open-Meteo (open-meteo.com: free, no key), by curl (or wget), for the
+ * place the menu sets (settings.h). With it comes the place's offset from
+ * UTC, so the clock can show the time there. Places can be searched for by
+ * name (Open-Meteo's geocoding).
  *
  * No place, no network: weather_get says so, and the clock shows none.
  */
@@ -17,22 +11,32 @@
 
 typedef struct {
     int ok;                     /* 1: the fields below hold something */
-    char place[48];
+    int serial;                 /* the place it is for (weather_set_place's count) */
     float temp, wind, humidity; /* now: degrees C, km/h, % */
     int code, is_day;           /* WMO weather code; 1 by day */
+    int utc_offset;             /* seconds the place is ahead of UTC, summer time included */
     int days;                   /* the forecast: today and the next days */
     int day_code[4];
     float day_max[4], day_min[4];
-    double fetched;             /* when (seconds since start) */
 } weather_t;
 
-/* Start fetching (once, at start), with the folder of the program. */
-void weather_start(const char *exe_path);
+typedef struct { char name[48]; double lat, lon; } place_t;
+
+/* Start the fetching thread (once). */
+void weather_start(void);
+
+/* A new place (has 0: none); fetched at once. Returns its serial. */
+int  weather_set_place(int has, double lat, double lon);
 
 /* The latest weather (a copy). */
 void weather_get(weather_t *out);
 
-/* WMO weather code as German words, in capitals without umlauts. */
-const char *weather_words(int code);
+/* Search places by name, in the background; then weather_search_state: 0
+ * nothing asked, 1 searching, 2 done (n results in out), 3 failed. */
+void weather_search(const char *query, int lang);
+int  weather_search_state(place_t *out, int max, int *n);
+
+/* WMO weather code as words in the language (lang.h). */
+const char *weather_words(int code, int lang);
 
 #endif
