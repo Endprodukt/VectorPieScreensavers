@@ -8,7 +8,8 @@
  *
  * To the music, smoothly: the plain comes faster when it is louder, the
  * trail sways with it, the horizon glows a little brighter. Nothing flashes,
- * blinks or pulses; the stars stand still. A new track shows its title.
+ * blinks or pulses; the stars twinkle, softly and each in its own time. A new
+ * track shows its title.
  *
  * On the cabinet: installed in SETTINGS -> SCREENSAVERS (tools/deploy.sh or
  * the .vps). Any control wakes the cabinet, START 2 skips to the next track.
@@ -51,7 +52,7 @@ static struct {
 } G;
 
 static float MH[M_ROWS][M_COLS];        /* the range's heights */
-static float STAR[STARS][3];            /* direction across, up, brightness */
+static float STAR[STARS][5];            /* direction across, up, brightness, twinkle rate, phase */
 
 static vp3d_scene *scene;
 static vp3d_view view;
@@ -156,10 +157,13 @@ static void sky_draw(vp_dvg *d)
         if (i & 1) vp3d_scene_line(scene, vp_v3(half, y, z), vp_v3(-half, y, z));
         else       vp3d_scene_line(scene, vp_v3(-half, y, z), vp_v3(half, y, z));
     }
-    /* the stars: still, of different brightness, in bands back and forth */
+    /* the stars: of different brightness, in bands back and forth; each
+     * twinkles, smoothly, two waves of its own making it uneven */
     const float sz = 5000;
     for (int i = 0; i < STARS; i++) {
-        float x = STAR[i][0] * sz, y = STAR[i][1] * sz, k = STAR[i][2];
+        float x = STAR[i][0] * sz, y = STAR[i][1] * sz, w = STAR[i][3] * G.time + STAR[i][4];
+        float tw = 0.5f + 0.3f * sinf(w) + 0.2f * sinf(w * 1.73f + 2.1f);    /* 0..1 */
+        float k = STAR[i][2] * (0.25f + 0.75f * tw * tw);
         color(d, 170, 190, 255, k);
         vp3d_scene_line(scene, vp_v3(x, y, sz), vp_v3(x + 4, y, sz));
     }
@@ -178,10 +182,12 @@ static void stars_make(void)
             STAR[n][0] = (hash01((uint32_t)n * 3) - 0.5f) * 1.9f;
             STAR[n][1] = up;
             STAR[n][2] = 0.3f + 0.7f * hash01((uint32_t)n * 3 + 2) * hash01((uint32_t)n * 3 + 2);
+            STAR[n][3] = 1.2f + 2.4f * hash01((uint32_t)n * 7 + 5);   /* a wave every 1.7 to 5 s */
+            STAR[n][4] = 2 * PI * hash01((uint32_t)n * 7 + 6);
         }
         for (int i = start + 1; i < n; i++)                    /* by x, alternate bands reversed */
             for (int j = i; j > start && ((STAR[j][0] < STAR[j - 1][0]) ^ (b & 1)); j--) {
-                for (int k = 0; k < 3; k++) { float t = STAR[j][k]; STAR[j][k] = STAR[j - 1][k]; STAR[j - 1][k] = t; }
+                for (int k = 0; k < 5; k++) { float t = STAR[j][k]; STAR[j][k] = STAR[j - 1][k]; STAR[j - 1][k] = t; }
             }
     }
 }

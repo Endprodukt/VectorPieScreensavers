@@ -1,6 +1,6 @@
 # Neon Ridge: a still night by a neon plain under starlit mountains
 # (README.md). Built from the top folder's CMakeLists.txt, which brings the SDK.
-project(neonridge VERSION 0.1.0 LANGUAGES C)
+project(neonridge VERSION 0.1.1 LANGUAGES C)
 
 # The executable's name is the one package/game.ini names (executable = ...).
 add_executable(saver_neonridge src/main.c)

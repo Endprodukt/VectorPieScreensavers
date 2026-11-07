@@ -17,7 +17,8 @@
 ## Aufbau (alles in `src/main.c`)
 
 - `range_make`: Höhen `MH` aus Gipfeln (`peak`) plus Rauschen. `range_draw` zeichnet unsichtbare Dreiecke zur Verdeckung und darauf die Reihen in Schlangenlinie.
-- `sky_draw`: das Leuchten als Linien in 4000 m Entfernung (hinter den Bergen) und die Sterne in 5000 m. `stars_make` sortiert die Sterne in Bändern hin und her, damit der Strahl kurze Wege hat.
+- `sky_draw`: das Leuchten als Linien in 4000 m Entfernung (hinter den Bergen) und die Sterne in 5000 m. `stars_make` sortiert die Sterne in Bändern hin und her, damit der Strahl kurze Wege hat. `STAR[i][3]` und `[4]` sind Takt und Phase des Funkelns.
+- **Sterne müssen funkeln** (Wunsch des Nutzers, 2026-11-07), sanft und gleitend, jeder in seinem eigenen Takt.
 - `plain_draw`: die Linien mit Abstand `P_RATIO`; `G.flow` ist die Phase in Linien.
 - `trail_at(s)`: der Weg der Spur, in Bildschirmbreiten `u` (−1 links, 1 rechts) und Entfernung `z`. `trail_draw` zeichnet drei Linien: Schein, Kern zurück, Schein.
 - Reihenfolge der Linien beachten: siehe `../neondrive/RESUME.md` („Tempo auf dem Board“).
