@@ -18,11 +18,20 @@ prog="build/pi/$saver/$exe"
 K="-i $HOME/.ssh/id_ed25519_vectorpie -o ConnectTimeout=8 -o BatchMode=yes"
 H=pi@192.168.0.122
 D=/persistent/screensavers/$id
+# the other files in package/ (a clock.ini, say) go along
+extra=$(cd "$saver/package" && ls | grep -v '^game.ini$' || true)
+mkdir -p build/deploy-extra && rm -rf build/deploy-extra/*
+for f in $extra; do cp "$saver/package/$f" build/deploy-extra/; done
 scp -q $K "$prog" "$ini" $H:/tmp/
+if [ -n "$extra" ]; then
+    ssh $K $H "rm -rf /tmp/$id.extra && mkdir -p /tmp/$id.extra"
+    scp -q $K build/deploy-extra/* $H:/tmp/$id.extra/
+fi
 ssh $K $H "set -e
 sudo -n mkdir -p $D/save
 sudo -n cp /tmp/$exe $D/$exe.new
 sudo -n cp /tmp/game.ini $D/
+if [ -d /tmp/$id.extra ]; then sudo -n cp /tmp/$id.extra/* $D/; rm -rf /tmp/$id.extra; fi
 sudo -n chown -R pi:pi $D
 chmod 755 $D/$exe.new
 mv -f $D/$exe.new $D/$exe   # also while it runs (a new file; the running one lives on)

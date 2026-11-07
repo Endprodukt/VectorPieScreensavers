@@ -3,7 +3,8 @@
 # build/<id>-<version>.vps, e.g.  sh tools/make_vps.sh neondrive
 #
 # Run from the repository's folder after the Pi build (BUILD.md). The
-# package holds the Pi program and game.ini (kind = screensaver, so vp-pack
+# package holds the Pi program, game.ini and any other file in the saver's
+# package/ folder (a clock.ini, say) (kind = screensaver, so vp-pack
 # writes a .vps); the cabinet installs it in SETTINGS -> SCREENSAVERS ->
 # INSTALL. Made like Vector Racer's tools/make_vpk.sh.
 set -eu
@@ -19,7 +20,7 @@ stage="$root/build/pkg/$id"
 [ -f "$prog" ] || { echo "make_vps: no Pi build $prog" >&2; exit 1; }
 rm -rf "$root/build/pkg"
 mkdir -p "$stage"
-cp "$prog" "$ini" "$stage/"
+cp "$prog" "$root/$saver/package/"* "$stage/"
 sh "$root/vendor/VectorPie/sdk/tools/vp-pack/vp-pack.sh" "$stage" "$root/build"
 
 # Built on Windows the program in the archive is not marked as one: the file
