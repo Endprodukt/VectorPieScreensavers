@@ -9,8 +9,8 @@
  * horizon, takes its shape from the spectrum heard as it is made (the bass
  * the mountains by the valley, the treble the far ones), then comes towards
  * the camera. So the mountains are the music, a little while ago. Also,
- * smoothly: the flight is faster when it is louder, and each new track
- * brings new colors, blending over a few seconds. Nothing flashes or
+ * smoothly: the flight is faster when it is louder. The neon colors fade
+ * slowly into one another, a new track starting the next fade. Nothing flashes or
  * blinks; new rows rise out of the flat at the horizon, never pop.
  *
  * On the cabinet: installed in SETTINGS -> SCREENSAVERS (tools/deploy.sh or
@@ -56,6 +56,7 @@ static struct {
     char     title[VP_MUSIC_TEXT];
     int      pal_from, pal_to;
     float    pal_t;                     /* 0..1 of the blend */
+    float    pal_hold;                  /* s the current one has been held */
     float    range[RANGE_N];            /* the far range's peaks, m */
     uint32_t seed;
 } G;
@@ -89,13 +90,19 @@ static float noise2(float x, float y)
 
 /* ---- the colors: floor, low slopes, peaks, sun top, sun bottom, far range ---- */
 
+/* All neon (2026-11-07: the user liked the first, magenta and cyan, best;
+ * green and orange sets are out). They fade into one another all the time:
+ * held a while, then blended slowly; a new track starts the next blend. */
 typedef struct { float r, g, b; } rgb;
-#define NPAL 4
+#define NPAL      5
+#define PAL_HOLD  18.0f                 /* s each is held */
+#define PAL_BLEND 8.0f                  /* s from one to the next */
 static const rgb PAL[NPAL][6] = {
-    { { 255, 0, 200 }, { 200, 0, 255 },  { 0, 230, 255 },  { 255, 230, 0 }, { 255, 0, 120 }, { 120, 0, 200 } },
-    { { 0, 200, 255 }, { 60, 90, 255 },  { 255, 0, 200 },  { 255, 160, 0 }, { 255, 0, 80 },  { 0, 90, 200 } },
-    { { 255, 60, 0 },  { 255, 0, 140 },  { 255, 220, 120 }, { 255, 255, 80 }, { 255, 40, 0 }, { 160, 0, 120 } },
-    { { 0, 255, 140 }, { 0, 180, 255 },  { 220, 80, 255 }, { 255, 240, 140 }, { 255, 60, 200 }, { 0, 120, 140 } },
+    { { 255, 0, 200 }, { 200, 0, 255 },  { 0, 230, 255 },  { 255, 230, 0 },  { 255, 0, 120 }, { 120, 0, 200 } },
+    { { 0, 200, 255 }, { 60, 90, 255 },  { 255, 0, 200 },  { 255, 200, 0 },  { 255, 0, 150 }, { 0, 90, 200 } },
+    { { 255, 40, 140 }, { 180, 0, 255 }, { 40, 140, 255 },  { 255, 210, 40 }, { 220, 0, 255 }, { 110, 0, 170 } },
+    { { 150, 0, 255 }, { 255, 0, 160 },  { 0, 255, 240 },  { 255, 240, 60 }, { 255, 0, 180 }, { 90, 0, 160 } },
+    { { 0, 120, 255 }, { 0, 230, 255 },  { 255, 60, 220 },  { 255, 220, 30 }, { 255, 40, 160 }, { 60, 0, 200 } },
 };
 
 static rgb pal(int i)
@@ -250,14 +257,16 @@ static void music(float dt)
         G.last_track = G.m.track;
         snprintf(G.title, sizeof G.title, "%s", G.m.title);
         G.title_time = G.title[0] ? 7 : 0;
-        if (G.time > 1) {
-            G.pal_from = G.pal_to;
-            G.pal_to = (G.pal_to + 1 + (int)(hash01(G.last_track * 7u + 3u) * (NPAL - 1))) % NPAL;
-            G.pal_t = 0;
-        }
+        if (G.time > 1 && G.pal_t >= 1) G.pal_hold = PAL_HOLD;   /* the next colors now */
     }
     G.title_time = fmaxf(0, G.title_time - dt);
-    G.pal_t = fminf(1, G.pal_t + dt / 4);
+    if (G.pal_t < 1) G.pal_t = fminf(1, G.pal_t + dt / PAL_BLEND);
+    else if ((G.pal_hold += dt) >= PAL_HOLD) {
+        G.pal_from = G.pal_to;
+        G.pal_to = (G.pal_to + 1 + (int)(hash01((uint32_t)(G.time * 10) + 3u) * (NPAL - 1))) % NPAL;
+        G.pal_t = 0;
+        G.pal_hold = 0;
+    }
     G.loud += ((G.have ? G.m.level : 0) - G.loud) * fminf(1, dt * 0.4f);
     for (int i = 0; i < VP_MUSIC_BANDS; i++) {     /* the spectrum, smoothed: no spikes in the land */
         float b = G.have ? G.m.bands[i] : 0;
@@ -277,7 +286,7 @@ static int init(vp_game *g)
     }
     for (int i = 0; i < RANGE_N; i++)
         G.range[i] = 60 + 260 * noise2(i * 0.45f, 9.5f) * (0.5f + 0.5f * hash01((uint32_t)i + 777u));
-    G.pal_from = G.pal_to = (int)(hash01(5) * NPAL) % NPAL;
+    G.pal_from = G.pal_to = 0;                         /* the classic first */
     G.pal_t = 1;
     G.speed = 22;
     if (vp3d_scene_create(&scene) != VP_OK) return VP_ERR_NOMEM;

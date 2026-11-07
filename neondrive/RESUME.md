@@ -45,3 +45,14 @@
 - Die Doku liegt in `vendor/VectorPie/sdk/docs/`: `05-3d.md` (3D, Szenen) und `09-screensavers.md`. Die API steht in `vp_3d.h`, `vp_saver.h` und `vp_music_feed.h`.
 - Ein Screensaver ist ein normales `vp_run`-Spiel mit `kind = screensaver` im `game.ini`. Den Einbrennschutz übernimmt das SDK.
 - Das SDK neu übernehmen: `F:\Release Game\VectorPie` (oder neuer) nach `vendor/VectorPie` kopieren, ohne `.git`.
+
+## Tempo auf dem Board: die Reihenfolge der Linien
+
+Das SDK zeichnet genau in der Reihenfolge, in der Linien hinzugefügt werden. Zwischen zwei Linien fährt der Strahl dunkel. Das Board wird langsam, wenn der ganze Weg pro Bild (hell und dunkel, `lit length` und `blank length` in `VP_STATS`) zu lang wird, ab etwa 270k.
+
+Seit 0.7.1 (2026-11-07) gilt deshalb:
+- In `road.c` laufen die Linien hin und her (`along(..., back)`, die Querlinien und die Striche). Jede Linie beginnt, wo die letzte endete.
+- In `props.c` gibt es zwei Durchgänge: erst die rechte Seite (und alles über der Straße) von nah nach fern, dann die linke von fern nach nah (`pass`, `here()`).
+- Die Linien der Sonne laufen ebenfalls hin und her.
+
+Neue Teile sollten auch so gezeichnet werden.

@@ -343,7 +343,7 @@ static void sun(void)
     float a = sun_dir - G.heading, r = R_SUN * 0.16f, cy = R_SUN * 0.015f;
     if (!seen(a, 0.25f)) return;
     const float step = r * 0.055f;
-    int band = 0;
+    int band = 0, line = 0;
     for (float y = cy + r - step * 0.5f; y > 8; y -= step) {
         float p = (cy + r - y) / (cy + r);                     /* 0 the top, 1 the horizon */
         if (p > 0.45f) {
@@ -354,7 +354,8 @@ static void sun(void)
         float t = (y - cy) / r, half = r * sqrtf(fmaxf(0, 1 - t * t));
         if (p < 0.5f) color_f(D, 255, 230 - 240 * p, 60, 0.9f);
         else          color_f(D, 255, 110 - 160 * (p - 0.5f), 60 + 180 * (p - 0.5f), 0.9f);
-        vp3d_scene_line(SC, ring(a, R_SUN, -half, y), ring(a, R_SUN, half, y));
+        float side = line++ & 1 ? -1.0f : 1.0f;               /* back and forth: a short way between */
+        vp3d_scene_line(SC, ring(a, R_SUN, -half * side, y), ring(a, R_SUN, half * side, y));
     }
     color_f(D, 255, 40, 180, 0.4f);                             /* a glow round it */
     for (int i = 0; i < 24; i++) {

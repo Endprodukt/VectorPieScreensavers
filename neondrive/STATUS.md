@@ -1,6 +1,6 @@
 # Status
 
-Stand 2026-11-05, Version 0.7.0: **Neon Drive** in 3D (`saver_neondrive`), gebaut mit der 3D-Schnittstelle des SDK (`vp_3d.h`) und verdeckten Linien.
+Stand 2026-11-07, Version 0.7.1: **Neon Drive** in 3D (`saver_neondrive`), gebaut mit der 3D-Schnittstelle des SDK (`vp_3d.h`) und verdeckten Linien.
 
 ## Was da ist
 
@@ -42,14 +42,20 @@ Stand 2026-11-05, Version 0.7.0: **Neon Drive** in 3D (`saver_neondrive`), gebau
 
 ## Geprüft (2026-11-05, am PC)
 
-- PC- und Pi-Build ohne Warnungen im eigenen Code. `build/saver_neondrive-0.7.0.vps` wird erzeugt (`sh tools/make_vps.sh neondrive`). Auf dem Automaten installiert per `sh tools/deploy.sh neondrive` (2026-11-05): läuft auf dem Board ohne verlorene Linien, aber nur mit 28 bis 30 statt 40 Bildern pro Sekunde (das Board braucht etwa 30 ms pro Bild bei 1500 bis 1900 Linien); Rechenzeit am Pi 2 bis 8 ms.
+- PC- und Pi-Build ohne Warnungen im eigenen Code. `build/saver_neondrive-0.7.1.vps` wird erzeugt (`sh tools/make_vps.sh neondrive`). Auf dem Automaten installiert per `sh tools/deploy.sh neondrive`.
+- 0.7.0 lief auf dem Board ohne verlorene Linien, aber nur mit 28 bis 30 statt 40 Bildern pro Sekunde. Das Board brauchte etwa 30 ms pro Bild bei 1500 bis 1900 Linien.
+- 0.7.1 (2026-11-07), 40 s auf dem Board:
+  - Meist 40 Bilder pro Sekunde, Senden etwa 1 ms. In dichten Abschnitten mit 1700 bis 1850 Linien sind es noch 35 bis 38.
+  - Der Leerweg des Strahls ist von etwa 260k auf 100k bis 140k gesunken.
+  - Rechenzeit am Pi 3 bis 6 ms.
 - Dauertest (`saver_soak`): 5 Strecken je 5 simulierte Stunden mit einer vorübergehenden Kollisionsprüfung. **0 Überschneidungen, kein Hänger.**
 - Bilder angesehen: alle Abschnittsarten, Kamera-Schwenk, runde Räder mit Speichen, Flugzeug mit Banner, VECTORPIE auf Schildern, Tafeln und Schilderbrücke, Vogelschwarm. Übersichten liegen in `screenshots/`.
 - Linien pro Bild: üblich 1100 bis 1900. Seltene Spitzen bis etwa 2300 (Stadt, Wüste).
 
 ## Bekannte Probleme und Grenzen
 
-- **Auf dem Board nur 28 bis 30 Bilder pro Sekunde** statt 40 (siehe „Geprüft“). Ideen: weniger Grid-Linien und Leerwege, oder `frame_hz = 30` im `[dvg]`-Teil der `game.ini` für einen gleichmäßigen Takt. Helligkeit am Monitor noch nicht beurteilt.
+- **In dichten Abschnitten auf dem Board 35 bis 38 statt 40 Bilder pro Sekunde** (siehe „Geprüft“). Langsam wird das Board, wenn der ganze Weg des Strahls pro Bild (hell und dunkel) zu lang wird, ab etwa 270k. Ideen: weniger Linien in der Ferne oder Fahrzeuge und Gegenstände in Strahlreihenfolge zeichnen.
+- Helligkeit am Monitor noch nicht beurteilt.
 - Werden Programme aus der Claude-Umgebung heraus gestartet, werden sie gelegentlich von außen beendet (Code 127/143). Zum Ansehen am PC deshalb `neondrive/run_pc.bat` per Doppelklick starten.
 - Der Dauertest (`saver_soak`) öffnete früher ein sichtbares Fenster mit „Keine Rückmeldung“. Das war nie der Screensaver selbst. Jetzt bleibt sein Fenster unsichtbar und beantwortet die Fensternachrichten.
 

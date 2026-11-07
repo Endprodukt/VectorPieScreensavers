@@ -1,6 +1,6 @@
 # Neon Drive: an endless 80s drive (README.md). Built from the top folder's
 # CMakeLists.txt, which brings the SDK.
-project(neondrive VERSION 0.7.0 LANGUAGES C)
+project(neondrive VERSION 0.7.1 LANGUAGES C)
 
 # The executable's name is the one package/game.ini names (executable = ...).
 add_executable(saver_neondrive

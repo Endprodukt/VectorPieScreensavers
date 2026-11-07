@@ -23,6 +23,12 @@
 static vp3d_scene *S;
 static vp_dvg *D;
 
+/* Drawn in two passes, the right side (and over the road) near to far, then
+ * the left: the beam's dark way from one thing to the next stays short
+ * (crossing the road for every other palm made it long, and the board slow). */
+static int pass;
+static int here(float x) { return pass == 0 ? x >= 0 : x < 0; }
+
 static float left_x(float d, float off) { return -(ROAD_HALF + off) - ON_SHIFT * road_oncoming(d); }
 static float right_x(float off) { return ROAD_HALF + off; }
 
@@ -35,12 +41,14 @@ static vp_xf placing(float d, float x, float turn)
 /* A prop at d, x across; on the left turned round, to face the road. */
 static void put(int kind, float d, float x, vp3d_mode mode)
 {
+    if (!here(x)) return;
     vp_xf p = placing(d, x, x < 0 ? PI_F : 0);
     vp3d_scene_mesh(S, model_prop(kind), &p, mode);
 }
 
 static void palm(float d, float x, uint32_t h)
 {
+    if (!here(x)) return;
     float k = fade(d);
     color_f(D, 255, 70, 190, k);
     put(P_PALM, d, x, VP3D_WIREFRAME);
@@ -66,6 +74,7 @@ static void lamp(float d, float x)
  * `off` from the road's edge; a few lit windows on its front */
 static void tower(float d, int right, float off, float w, float deep, float h, uint32_t id)
 {
+    if (!here(right ? 1.0f : -1.0f)) return;
     float face = right ? right_x(off) : left_x(d, off), mid = face + (right ? deep : -deep) / 2;
     vp_xf p = vp_xf_mul2(placing(d, mid, 0), vp_xf_scale(deep, h, w));
     color_f(D, 40, 200, 255, fade(d));
@@ -86,6 +95,7 @@ static void rail(float a, float b, int right)
 {
     /* its posts stand on the road, every 8 m from its start: the car goes
      * by them (they do not move with it) */
+    if (!here(right ? 1.0f : -1.0f)) return;
     const float every = 8;
     float first_d = fmaxf(a, -30.0f);                     /* (behind even the furthest camera) */
     first_d = a + ceilf((first_d - a) / every) * every;
@@ -105,6 +115,7 @@ static void rail(float a, float b, int right)
 
 static void pylons(float start, float end)
 {
+    if (pass) return;                                           /* on the right */
     vp_vec3 prev[4];
     int have = 0;
     for (float at = start + 20; at < end; at += 70) {
@@ -174,6 +185,7 @@ static void zone(long n)
             uint32_t h = zs + (uint32_t)(at * 11);
             float off = 6 + hash01(h) * 14, sc = 0.7f + hash01(h + 2) * 0.9f;
             float x = hash01(h + 1) < 0.5f ? right_x(off) : left_x(d, off);
+            if (!here(x)) continue;
             vp_xf p = vp_xf_mul2(placing(d, x, hash01(h + 3) * 6), vp_xf_scale(sc, sc, sc));
             color_f(D, 255, 120, 70, fade(d));
             vp3d_scene_mesh(S, model_prop(P_ROCK), &p, VP3D_SOLID);
@@ -218,5 +230,6 @@ void props_draw(vp3d_scene *sc, vp_dvg *d)
     S = sc;
     D = d;
     long n0 = (long)floorf((G.s + NEAR) / ZONE_LEN), n1 = (long)floorf((G.s + FAR) / ZONE_LEN);
-    for (long n = n0; n <= n1; n++) zone(n);
+    for (pass = 0; pass < 2; pass++)                            /* the right out, the left back */
+        for (long n = pass ? n1 : n0; pass ? n >= n0 : n <= n1; n += pass ? -1 : 1) zone(n);
 }

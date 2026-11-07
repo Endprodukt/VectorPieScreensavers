@@ -140,37 +140,49 @@ float road_oncoming(float d)
 
 /* ---- the lines --------------------------------------------------------- */
 
+/* The order of the lines matters as much as their number: the beam moves,
+ * dark, from the end of one to the start of the next (the SDK draws in the
+ * order asked), and a frame's whole way, lit and dark, is what makes the
+ * board slow. So each line starts near where the last ended: the lines
+ * along the road go back and forth (back: from far to near), the ones
+ * across it too. */
+
 /* A line along the road, x across (on the left, pushed out by the oncoming
  * carriageway when `shift`), faded with distance, through every `stride`th
- * of the distances. */
-static void along(vp3d_scene *sc, vp_dvg *d, float x, int shift, int stride, float r, float g, float b, float k)
+ * of the distances; back: drawn from far to near. */
+static void along(vp3d_scene *sc, vp_dvg *d, float x, int shift, int stride, float r, float g, float b, float k,
+                  int back)
 {
-    vp_vec3 prev = vp_v3(0, 0, 0);
+    vp_vec3 pts[64];
+    float kk[64];
+    int n = 0;
     for (int j = 0;; j += stride) {
         int i = j < nds - 1 ? j : nds - 1;              /* the last one always */
         float xx = shift ? x - ON_SHIFT * road_oncoming(ds[i]) : x;
-        vp_vec3 p = road_point(ds[i], xx, 0);
-        if (i > 0) {
-            color_f(d, r, g, b, k * fade(ds[i]));
-            vp3d_scene_line(sc, prev, p);
-        }
-        prev = p;
+        pts[n] = road_point(ds[i], xx, 0);
+        kk[n++] = k * fade(ds[i]);
         if (i == nds - 1) break;
+    }
+    for (int m = 1; m < n; m++) {
+        int a = back ? n - m : m - 1, e = back ? n - m - 1 : m;
+        color_f(d, r, g, b, kk[a > e ? a : e]);         /* as faded as its far end */
+        vp3d_scene_line(sc, pts[a], pts[e]);
     }
 }
 
 /* The oncoming carriageway: a line at `at` (-1 its left edge, 1 its right
  * edge), where there is one. */
-static void oncoming_line(vp3d_scene *sc, vp_dvg *d, float at, float r, float g, float b)
+static void oncoming_line(vp3d_scene *sc, vp_dvg *d, float at, float r, float g, float b, int back)
 {
     vp_vec3 prev = vp_v3(0, 0, 0);
     float fprev = 0;
-    for (int i = 0; i < nds; i++) {
+    for (int m = 0; m < nds; m++) {
+        int i = back ? nds - 1 - m : m;
         float f = road_oncoming(ds[i]);
         float mid = -ROAD_HALF - (MEDIAN + ON_HALF) * f;
         vp_vec3 p = road_point(ds[i], mid + at * ON_HALF * f, 0);
-        if (i > 0 && f > 0.001f && fprev > 0.001f) {
-            color_f(d, r, g, b, fade(ds[i]));
+        if (m > 0 && f > 0.001f && fprev > 0.001f) {
+            color_f(d, r, g, b, fade(ds[back ? i + 1 : i]));
             vp3d_scene_line(sc, prev, p);
         }
         prev = p;
@@ -180,48 +192,62 @@ static void oncoming_line(vp3d_scene *sc, vp_dvg *d, float at, float r, float g,
 
 void road_draw(vp3d_scene *sc, vp_dvg *d)
 {
-    /* the grid along the roads, fading outwards and with distance */
-    for (int k = 0; k < GRID_N; k++) {
-        float x = ROAD_HALF + GRID_IN + k * GRID_X, f = 0.85f - k * 0.05f;
-        along(sc, d, x, 0, 2, 220, 30, 190, f);           /* straight enough with half the points */
-        along(sc, d, -x, 1, 2, 220, 30, 190, f);
+    /* the grid along the roads, fading outwards and with distance: out on the
+     * right, back and forth, then in on the left (straight enough with half
+     * the points) */
+    int back = 0;
+    for (int k = 0; k < GRID_N; k++, back ^= 1) {
+        float x = ROAD_HALF + GRID_IN + k * GRID_X;
+        along(sc, d, x, 0, 2, 220, 30, 190, 0.85f - k * 0.05f, back);
     }
-    /* across, rushing in; every other one far away */
-    long n0 = (long)ceilf((G.s - 10) / GRID_Z);
-    for (long n = n0;; n++) {
-        float dz = n * GRID_Z - G.s;
-        if (dz > 300) break;
-        if (dz > 120 && (n & 1)) continue;
-        float in = ROAD_HALF + GRID_IN, out = in + (GRID_N - 1) * GRID_X, sh = ON_SHIFT * road_oncoming(dz);
-        color_f(d, 255, 40, 210, fade(dz) * 0.85f);
-        vp3d_scene_line(sc, road_point(dz, in, 0), road_point(dz, out, 0));
-        vp3d_scene_line(sc, road_point(dz, -in - sh, 0), road_point(dz, -out - sh, 0));
+    for (int k = GRID_N - 1; k >= 0; k--, back ^= 1) {
+        float x = ROAD_HALF + GRID_IN + k * GRID_X;
+        along(sc, d, -x, 1, 2, 220, 30, 190, 0.85f - k * 0.05f, back);
     }
+    /* across, rushing in; every other one far away: on the left from far to
+     * near, back and forth, then on the right from near to far */
+    const float in = ROAD_HALF + GRID_IN, out = in + (GRID_N - 1) * GRID_X;
+    long n0 = (long)ceilf((G.s - 10) / GRID_Z), n1 = (long)floorf((G.s + 300) / GRID_Z);
+    for (int side = 0; side < 2; side++)
+        for (long m = 0; m <= n1 - n0; m++) {
+            long n = side == 0 ? n1 - m : n0 + m;
+            float dz = n * GRID_Z - G.s;
+            if (dz > 120 && (n & 1)) continue;
+            float sh = side == 0 ? ON_SHIFT * road_oncoming(dz) : 0, sign = side == 0 ? -1.0f : 1.0f;
+            vp_vec3 a = road_point(dz, sign * in - sh, 0), b = road_point(dz, sign * out - sh, 0);
+            color_f(d, 255, 40, 210, fade(dz) * 0.85f);
+            if (back) vp3d_scene_line(sc, b, a);
+            else      vp3d_scene_line(sc, a, b);
+            back ^= 1;
+        }
 
-    /* our road: its edges, doubled, and the dashes between its lanes */
-    along(sc, d, ROAD_HALF, 0, 1, 0, 240, 255, 1);
-    along(sc, d, -ROAD_HALF, 0, 1, 0, 240, 255, 1);
-    along(sc, d, ROAD_HALF - 0.3f, 0, 1, 0, 160, 255, 0.6f);
-    along(sc, d, -ROAD_HALF + 0.3f, 0, 1, 0, 160, 255, 0.6f);
+    /* our road: its edges, doubled, and the dashes between its lanes, from
+     * the right edge to the left one, near to far and back */
+    along(sc, d, ROAD_HALF, 0, 1, 0, 240, 255, 1, 0);
+    along(sc, d, ROAD_HALF - 0.3f, 0, 1, 0, 160, 255, 0.6f, 1);
     const float dash = 3, every = 12;
-    for (int l = 1; l < LANES; l++) {
+    long e0 = (long)ceilf((G.s - 10) / every), e1 = (long)floorf((G.s + 260) / every);
+    for (int l = LANES - 1, up = 1; l >= 1; l--, up ^= 1) {
         float x = -ROAD_HALF + l * LANE_W;
-        for (long n = (long)ceilf((G.s - 10) / every);; n++) {
-            float a = n * every - G.s;
-            if (a > 260) break;
+        for (long m = 0; m <= e1 - e0; m++) {
+            float a = (up ? e0 + m : e1 - m) * every - G.s;
             color_f(d, 255, 225, 70, fade(a));
-            vp3d_scene_line(sc, road_point(a, x, 0), road_point(a + dash, x, 0));
+            if (up) vp3d_scene_line(sc, road_point(a, x, 0), road_point(a + dash, x, 0));
+            else    vp3d_scene_line(sc, road_point(a + dash, x, 0), road_point(a, x, 0));
         }
     }
+    int up = (LANES - 1) & 1;                           /* where the dashes ended: far (1) or near */
+    along(sc, d, -ROAD_HALF + 0.3f, 0, 1, 0, 160, 255, 0.6f, up);
+    along(sc, d, -ROAD_HALF, 0, 1, 0, 240, 255, 1, !up);
 
-    /* the oncoming carriageway */
-    oncoming_line(sc, d, -1, 0, 240, 255);
-    oncoming_line(sc, d, 1, 0, 240, 255);
-    for (long n = (long)ceilf((G.s - 10) / 12);; n++) {
-        float a = n * 12 - G.s;
-        if (a > 260) break;
+    /* the oncoming carriageway: out and back */
+    oncoming_line(sc, d, 1, 0, 240, 255, up);
+    for (long m = 0; m <= e1 - e0; m++) {
+        float a = (up ? e0 + m : e1 - m) * every - G.s;
         if (road_oncoming(a) < 0.9f) continue;
         color_f(d, 230, 230, 255, fade(a) * 0.8f);
-        vp3d_scene_line(sc, road_point(a, ON_CENTER, 0), road_point(a + 3, ON_CENTER, 0));
+        if (up) vp3d_scene_line(sc, road_point(a, ON_CENTER, 0), road_point(a + 3, ON_CENTER, 0));
+        else    vp3d_scene_line(sc, road_point(a + 3, ON_CENTER, 0), road_point(a, ON_CENTER, 0));
     }
+    oncoming_line(sc, d, -1, 0, 240, 255, up);
 }

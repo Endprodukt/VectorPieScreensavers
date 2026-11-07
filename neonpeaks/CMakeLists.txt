@@ -1,6 +1,6 @@
 # Neon Peaks: a flight down a neon valley, its mountains made by the music
 # (README.md). Built from the top folder's CMakeLists.txt, which brings the SDK.
-project(neonpeaks VERSION 0.1.0 LANGUAGES C)
+project(neonpeaks VERSION 0.1.1 LANGUAGES C)
 
 # The executable's name is the one package/game.ini names (executable = ...).
 add_executable(saver_neonpeaks src/main.c)
