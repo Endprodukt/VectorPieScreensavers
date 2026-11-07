@@ -1,6 +1,6 @@
 # Stand
 
-Stand 2026-11-07, Version 0.1.0: **Constellations** (`saver_constellations`).
+Stand 2026-11-07, Version 0.1.1: **Constellations** (`saver_constellations`).
 
 ## Was er zeigt
 
@@ -21,6 +21,8 @@ Stand 2026-11-07, Version 0.1.0: **Constellations** (`saver_constellations`).
 - **Musik, alles gleitend:** Bei lauter Musik geht der Rundflug etwas schneller, die Sterne funkeln lebhafter und Sternschnuppen kommen öfter. Bei einem neuen Track steht 7 s lang sein Titel oben.
 
 ## Geprüft
+
+- 0.1.1: Die Sternbilder haben auf dem 4:3-Monitor ihre echten Proportionen. Vorher waren sie um ein Drittel zu breit.
 
 - PC- und Pi-Build ohne Warnungen. `build/saver_constellations-0.1.0.vps` wird erzeugt.
 - Am PC Bilder angesehen, mit vierfachem Tempo über zwei Runden: Die Formen stimmen, zum Beispiel Orion, das Pegasus-Quadrat, das W der Kassiopeia, das Kreuz des Schwans und die Teekanne des Schützen. Auch die Lage stimmt, Norden oben und Osten links wie am Himmel.

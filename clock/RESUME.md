@@ -33,6 +33,7 @@ Noch am Automaten zu prüfen, siehe STATUS „Offen“. Hilfen dabei:
 ## Aufbau
 
 - `src/main.c`:
+  - Alle Linien laufen über `mv` und `ln` (Makros für `vp_moveto` und `vp_lineto`) und werden dabei quer zusammengezogen. Textpositionen ziehen `SX()` zusammen, `SQUEEZE = 0` schaltet das aus.
   - die Zifferblätter (`face_*`), das Überblenden, `info_line`, die Wortuhr (`WC_*`, `words_target` je Sprache)
   - die Steuerung: `control` reicht an das Menü weiter oder öffnet es, `wake` beendet die Uhr
   - `follow_settings`: Was das Menü in `SET` ändert, wird übernommen, etwa ein neuer Ort für das Wetter oder neue Wörter für die Wortuhr.
@@ -47,3 +48,7 @@ Noch am Automaten zu prüfen, siehe STATUS „Offen“. Hilfen dabei:
   - `SAVER_FACE=<0..9>` und `SAVER_CYCLE=<s>`
   - `SAVER_SCRIPT="<s>:<Taste>,..."`: drückt zu diesen Zeiten Tasten (U D L R OK BACK S1 S2)
   - `SAVER_SHOTS=<Ordner>`
+
+## Rund auf der Röhre
+
+Das Board hat ein quadratisches Koordinatenfeld, der Monitor zieht es aber auf 4:3 (bei senkrechtem Monitor 3:4). Was in 2D rund gezeichnet wird, erscheint deshalb um ein Drittel zu breit. Die 3D-Screensaver gleichen das über `view.aspect` aus. In 2D gilt: quer zur Mitte mit 0,75 zusammenziehen (`ASPECT_X`; bei `VP_VERTICAL=1` stattdessen die Höhe). Aufgefallen ist das dem Nutzer an der Uhr (2026-11-07).

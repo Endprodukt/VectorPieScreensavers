@@ -23,3 +23,7 @@
   - `stars_draw` sortiert die sichtbaren Sterne in Bändern hin und her, damit der Strahl kurze Wege hat.
   - Die Zeichenrichtung jedes Sterns und jeder Figurenlinie ist fest: Sterne von links nach rechts und von unten nach oben, Linien in der Reihenfolge des Pfads (siehe `../neonridge/RESUME.md`, „Zeichenrichtung muss fest bleiben“).
 - Zum Testen: `SAVER_TEMPO=<Faktor>` macht den Rundflug schneller, `SAVER_SHOTS=<Ordner>` speichert alle 2 s ein Bild.
+
+## Rund auf der Röhre
+
+Das Board hat ein quadratisches Koordinatenfeld, der Monitor zieht es aber auf 4:3 (bei senkrechtem Monitor 3:4). Was in 2D rund gezeichnet wird, erscheint deshalb um ein Drittel zu breit. Die 3D-Screensaver gleichen das über `view.aspect` aus. In 2D gilt: quer zur Mitte mit 0,75 zusammenziehen (`ASPECT_X`; bei `VP_VERTICAL=1` stattdessen die Höhe). Aufgefallen ist das dem Nutzer an der Uhr (2026-11-07).

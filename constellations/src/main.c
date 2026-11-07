@@ -182,6 +182,7 @@ static void sky_make(void)
 /* ---- the view -------------------------------------------------------------- */
 
 static v3 VE, VN;                           /* the view's east (to the left) and north (up) */
+static float ASPECT_X = 0.75f, ASPECT_Y = 1; /* the board's square stretched to the 4:3 tube (3:4 vertical) */
 static float VS;                            /* board units per stereographic unit */
 static float VCOS;                          /* stars farther from the middle are not drawn */
 
@@ -200,8 +201,8 @@ static int project(v3 v, float *x, float *y)
     float z = dot(v, G.mid);
     if (z < VCOS) return 0;
     float k = 2 / (1 + z);
-    *x = CX - VS * k * dot(v, VE);
-    *y = CY + VS * k * dot(v, VN);
+    *x = CX - VS * k * dot(v, VE) * ASPECT_X;    /* the tube is 4:3: across a quarter less, so shapes stay true */
+    *y = CY + VS * k * dot(v, VN) * ASPECT_Y;
     return 1;
 }
 
@@ -310,8 +311,8 @@ static void stars_draw(vp_dvg *d)
         float mag = S[VIS[j].i].mag;
         if (mag < 2.6f) {                                  /* the bright: a little cross */
             float a = mag < 0.6f ? 16 : mag < 1.6f ? 11 : 7;
-            seg(d, x - a, y, x + a, y);
-            seg(d, x, y - a, x, y + a);
+            seg(d, x - a * ASPECT_X, y, x + a * ASPECT_X, y);
+            seg(d, x, y - a * ASPECT_Y, x, y + a * ASPECT_Y);
         } else {
             seg(d, x - 3, y, x + 3, y);
         }
@@ -412,6 +413,7 @@ static int init(vp_game *g)
     G.from = G.to;
     G.leaving = -1;
     G.glide = 1;
+    if (getenv("VP_VERTICAL") && atoi(getenv("VP_VERTICAL"))) { ASPECT_X = 1; ASPECT_Y = 0.75f; }
     G.mid = CON_MID[G.to];
     G.half = con_half(G.to);
     return VP_OK;

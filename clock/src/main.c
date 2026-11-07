@@ -89,6 +89,21 @@ static struct {
 } G;
 
 static float clampf(float v, float lo, float hi) { return v < lo ? lo : v > hi ? hi : v; }
+
+/* ROUND ON THE TUBE. The board's square of coordinates is stretched to the
+ * monitor's 4:3 (vp_dvg.h), so a circle drawn round comes out a third too
+ * wide. Every line here is drawn through these two, which pull it together
+ * across the middle (along the height on a vertical 3:4 monitor). Text
+ * (vp_text) keeps the font's own shape; only where it stands is pulled in
+ * (SX). SQUEEZE 0 for a part laid out as text (the line under the faces). */
+static float ASPECT_X = 0.75f, ASPECT_Y = 1;
+static int SQUEEZE = 1;
+static float SX(float x) { return SQUEEZE ? CX + (x - CX) * ASPECT_X : x; }
+static float SY(float y) { return SQUEEZE ? W / 2.0f + (y - W / 2.0f) * ASPECT_Y : y; }
+static void mv(vp_dvg *d, float x, float y) { vp_moveto(d, (int)SX(x), (int)SY(y)); }
+static void ln(vp_dvg *d, float x, float y) { vp_lineto(d, (int)SX(x), (int)SY(y)); }
+#define vp_moveto(d, x, y) mv(d, (float)(x), (float)(y))
+#define vp_lineto(d, x, y) ln(d, (float)(x), (float)(y))
 static float smooth01(float t) { t = clampf(t, 0, 1); return t * t * (3 - 2 * t); }
 
 static void color(vp_dvg *d, float r, float g, float b, float k)
@@ -285,7 +300,7 @@ static void face_analog(vp_dvg *d, float k)
         line(d, wx - 110, wy - 80, wx + 110, wy - 80); vp_lineto(d, (int)(wx + 110), (int)(wy + 80));
         vp_lineto(d, (int)(wx - 110), (int)(wy + 80)); vp_lineto(d, (int)(wx - 110), (int)(wy - 80));
         color(d, 235, 240, 255, k);
-        text(d, buf, wx, wy - 45, 90, VP_TEXT_CENTER);
+        text(d, buf, SX(wx), wy - 45, 90, VP_TEXT_CENTER);
     }
     /* the hands, sweeping */
     float sec = n->s + n->frac, min = n->m + sec / 60, hour = (n->h % 12) + min / 60;
@@ -456,7 +471,7 @@ static void face_binary(vp_dvg *d, float k)
     float total = (cols - 1) * step + (cols / 2 - 1) * pair, x0 = CX - total / 2 + 120, y0 = 1350;
     color(d, 80, 255, 140, k * 0.4f * accent());
     const char *VAL[4] = { "1", "2", "4", "8" };
-    for (int b = 0; b < 4; b++) text(d, VAL[b], x0 - 380, y0 + b * step - 45, 90, VP_TEXT_CENTER);
+    for (int b = 0; b < 4; b++) text(d, VAL[b], SX(x0 - 380), y0 + b * step - 45, 90, VP_TEXT_CENTER);
     float x = x0;
     for (int c = 0; c < cols; c++) {
         for (int b = 0; b < NB[c]; b++) {
@@ -801,7 +816,7 @@ static float rock_rnd(void)
 static void rocks_make(void)
 {
     for (int i = 0; i < NROCK; i++) {
-        ROCK[i].x = rock_rnd() * W;
+        ROCK[i].x = CX + (rock_rnd() - 0.5f) * W / ASPECT_X;
         ROCK[i].y = rock_rnd() * W;
         float a = rock_rnd() * 2 * PI, v = 60 + 90 * rock_rnd();
         ROCK[i].vx = cosf(a) * v;
@@ -846,7 +861,8 @@ static void rocks_update(float dt)
     if (rock_min < 0) { rocks_make(); rock_min = G.now.m; }
     if (G.now.m != rock_min) { rocks_break(rock_min); rock_min = G.now.m; }
     for (int i = 0; i < NROCK; i++) {
-        ROCK[i].x = fmodf(ROCK[i].x + ROCK[i].vx * dt + W + 600, W + 600) - 300;   /* round the edges */
+        float span = W / ASPECT_X + 600, left = CX - span / 2;                 /* round the edges */
+        ROCK[i].x = fmodf(ROCK[i].x - left + ROCK[i].vx * dt + span, span) + left;
         ROCK[i].y = fmodf(ROCK[i].y + ROCK[i].vy * dt + W + 600, W + 600) - 300;
         ROCK[i].a += ROCK[i].spin * dt;
     }
@@ -867,7 +883,7 @@ static void face_rocks(vp_dvg *d, float k)
         for (int j = 0; j <= 10; j++) {
             float a = ROCK[i].a + j * 2 * PI / 10, rr = ROCK[i].size * ROCK[i].rad[j % 10];
             int x = (int)(ROCK[i].x + cosf(a) * rr), y = (int)(ROCK[i].y + sinf(a) * rr);
-            if (x < 0 || x > W || y < 0 || y > W) { j = 11; break; }
+            if (SX(x) < 0 || SX(x) > W || y < 0 || y > W) { j = 11; break; }
             if (j == 0) vp_moveto(d, x, y);
             else        vp_lineto(d, x, y);
         }
@@ -1034,7 +1050,7 @@ static void face_weather(vp_dvg *d, float k)
     float th = 800, tw = temperature(d, w->temp, 0, 0, th, 0);
     temperature(d, w->temp, CX + 450 - tw / 2, 2250, th, 1);
     color(d, 200, 215, 240, k * 0.85f);
-    vp_text_fit(d, weather_words(w->code, SET.lang), CX + 450, 2000, 120, W * 0.5f, VP_TEXT_CENTER);
+    vp_text_fit(d, weather_words(w->code, SET.lang), SX(CX + 450), 2000, 120, W * 0.5f, VP_TEXT_CENTER);
     snprintf(buf, sizeof buf, "%s %d KM/H   %s %d%%", S(S_WIND), (int)lroundf(w->wind), S(S_HUMIDITY),
              (int)lroundf(w->humidity));
     color(d, 200, 215, 240, k * 0.6f * accent());
@@ -1043,11 +1059,11 @@ static void face_weather(vp_dvg *d, float k)
     for (int i = 0; i < w->days && i < 4; i++) {
         float x = CX + (i - 1.5f) * 900, y = 1050;
         color(d, 200, 215, 240, k * 0.75f);
-        text(d, i == 0 ? S(S_TODAY) : L_WEEKDAY_SHORT[SET.lang][(n->wday + i) % 7], x, y + 330, 90, VP_TEXT_CENTER);
+        text(d, i == 0 ? S(S_TODAY) : L_WEEKDAY_SHORT[SET.lang][(n->wday + i) % 7], SX(x), y + 330, 90, VP_TEXT_CENTER);
         weather_icon(d, w->day_code[i], 1, x, y + 120, 170, k * 0.9f);
         snprintf(buf, sizeof buf, "%d / %d", (int)lroundf(w->day_max[i]), (int)lroundf(w->day_min[i]));
         color(d, 245, 245, 250, k * 0.8f);
-        text(d, buf, x, y - 200, 90, VP_TEXT_CENTER);
+        text(d, buf, SX(x), y - 200, 90, VP_TEXT_CENTER);
     }
 }
 
@@ -1073,7 +1089,9 @@ static void info_line(vp_dvg *d, float k)
     color(d, 200, 215, 240, k * 0.55f);
     vp_text(d, left, x, y, h, VP_TEXT_LEFT);
     if (wx) {
-        circle(d, x + wl + deg * 0.45f, y + h * 0.88f, h * 0.13f, 8);
+        SQUEEZE = 0;                                    /* (beside the text: as wide as it) */
+        arc(d, x + wl + deg * 0.45f, y + h * 0.88f, h * 0.13f * ASPECT_X, h * 0.13f, 90, 450, 8);
+        SQUEEZE = 1;
         vp_text(d, right, x + wl + deg, y, h, VP_TEXT_LEFT);
     }
 }
@@ -1156,6 +1174,7 @@ static void control(int in)
 static int init(vp_game *g)
 {
     G.game = g;
+    if (getenv("VP_VERTICAL") && atoi(getenv("VP_VERTICAL"))) { ASPECT_X = 1; ASPECT_Y = 0.75f; }
     glyphs_make();
     const char *f = getenv("SAVER_FACE"), *c = getenv("SAVER_CYCLE");
     if (f) SET.face = ((atoi(f) % NFACE) + NFACE) % NFACE;

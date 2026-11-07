@@ -1,6 +1,6 @@
 # Stand
 
-Stand 2026-11-07, Version 0.2.0: **Clock** (`saver_clock`).
+Stand 2026-11-07, Version 0.2.1: **Clock** (`saver_clock`).
 
 ## Was er kann
 
@@ -18,6 +18,8 @@ Stand 2026-11-07, Version 0.2.0: **Clock** (`saver_clock`).
 - **Musik, alles gleitend:** Bei lauter Musik leuchten Ringe und Marken etwas heller. Nichts blinkt.
 
 ## Geprüft (am PC)
+
+- 0.2.1: Kreise sind auf dem 4:3-Monitor rund. Die Linien werden quer um 0,75 zusammengezogen, Text behält seine Form. Alle Zifferblätter wurden danach angesehen.
 
 - PC- und Pi-Build ohne Warnungen.
 - Das Menü wurde per `SAVER_SCRIPT` durchgespielt:
