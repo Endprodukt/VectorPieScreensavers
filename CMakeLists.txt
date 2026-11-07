@@ -33,3 +33,4 @@ add_subdirectory(vendor/VectorPie/sdk vectorpie)
 # The screensavers: each builds into build/<pc|pi>/<folder>/.
 add_subdirectory(neondrive)
 add_subdirectory(digitalrain)
+add_subdirectory(labyrinth)
