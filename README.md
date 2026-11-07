@@ -11,6 +11,7 @@ Jeder Screensaver hat einen eigenen Ordner:
 | [`labyrinth/`](labyrinth/) | **Labyrinth** | Ein Gang durch ein Labyrinth nach dem anderen, aus Sicht des Wanderers: Wände mit Mustern und VECTORPIE-Schildern, drehende Kristalle und als Ausgang ein Kuchen. |
 | [`neonpeaks/`](neonpeaks/) | **Neon Peaks** | Retrowave: ein Flug durch ein Neon-Gittertal auf eine gestreifte Sonne zu. Die Berge am Horizont formt die Musik (ihr Spektrum), Tempo und Farben folgen ihr gleitend. |
 | [`neonridge/`](neonridge/) | **Neon Ridge** | Wie die Retrowave-Mountains-Videos: Sternenhimmel, cyan leuchtender Horizont, ein Bergmassiv aus Höhenlinien, davor eine Ebene aus Linien und eine pinke Lichtspur. Die Kamera steht still. |
+| [`constellations/`](constellations/) | **Constellations** | Ein Rundflug über den echten Nachthimmel: 26 Sternbilder zeichnen sich nacheinander ein, mit deutschen und lateinischen Namen und benannten hellen Sternen. Die Sterne funkeln, die Milchstraße zieht durch, ab und zu fällt eine Sternschnuppe. |
 
 ## Gemeinsam
 
