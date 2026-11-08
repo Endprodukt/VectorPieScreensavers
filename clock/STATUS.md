@@ -1,6 +1,6 @@
 # Stand
 
-Stand 2026-11-07, Version 0.3.0: **Clock** (`saver_clock`).
+Stand 2026-11-08, Version 0.3.1: **Clock** (`saver_clock`).
 
 ## Was er kann
 
@@ -26,6 +26,16 @@ Stand 2026-11-07, Version 0.3.0: **Clock** (`saver_clock`).
 - **Datum und Wetter** stehen in einer Zeile unter jedem Zifferblatt außer WEATHER, jedes in seiner Farbe. Sie sind je nach Menü an oder aus, das Gradzeichen ist gezeichnet.
 - **Musik, alles gleitend:** Bei lauter Musik leuchten Ringe und Marken etwas heller. Nichts blinkt.
 
+## Geprüft am Automaten (2026-11-08)
+
+- 0.3.0 und 0.3.1 installiert, 40 Bilder pro Sekunde, etwa 500 Linien, keine verworfenen Linien.
+- Die Übernahme der Steuerung klappt. Der Screensaver läuft als `pi`, der zur Gruppe `input` gehört.
+  - Gegriffen werden die Tastatur des Bedienfelds (Arduino Micro Keyboard), der Spinner (Ultimarc SpinTrak), die Arduino-Maus und das 2.4G-Funkgerät mit Tastatur, Maus und Consumer Control.
+  - Seit 0.3.1 bleiben der Einschaltknopf (`pwr_button`), die System-Tasten des Funkgeräts, das USB-Audiogerät und HDMI unberührt. In 0.3.0 hatte die Uhr auch den Einschaltknopf gegriffen.
+  - Das SDK sieht keinen Joystick, die Steuerung kommt als Tastatur. Die Tasten folgen den Standardtasten des SDK (START 1 = `KEY_1`, Button 1 = `KEY_LEFTCTRL`, Button 2 = `KEY_LEFTALT`), die Zuordnung der Uhr passt dazu.
+  - Im Test drückte jemand Button 3 (`KEY_SPACE`): Die Uhr endete wie verlangt. Den Spinner zu drehen weckt nicht.
+- `curl` und `wget` sind vorhanden. Wetter und Ortssuche von Open-Meteo antworten.
+
 ## Geprüft (am PC)
 
 - 0.3.0:
@@ -48,12 +58,9 @@ Stand 2026-11-07, Version 0.3.0: **Clock** (`saver_clock`).
 
 ## Offen
 
-- **Noch nicht auf dem Automaten.** Er war am 2026-11-07 den ganzen Nachmittag per SSH nicht erreichbar (Ping ging).
-- **Die Übernahme der Steuerung (`input.c`) ist ungetestet.** Am Automaten zu prüfen:
-  - welche Eingabegeräte es gibt und welche Codes die Tasten senden, zum Beispiel mit `CLOCK_INPUT_LOG=1`
-  - ob das Greifen klappt und mit welchen Rechten der Screensaver läuft
+- **Am Automaten noch von Hand zu prüfen:**
+  - ob START 1 das Menü öffnet und Joystick und Buttons darin wirken
   - ob das Menü des Automaten nach dem Wecken wieder erscheint und den Screensaver nicht sofort neu startet
-  - Die Zuordnung (START 1 = `KEY_1`, START 2 = `KEY_2`, Button 1 = `KEY_LEFTCTRL`, Button 2 = `KEY_LEFTALT` und die üblichen Joystick-Codes) ist eine Annahme nach den MAME-Standardtasten.
-  - Mit `CLOCK_NO_GRAB=1` lässt sich das Greifen abschalten.
-- Ob `curl` oder `wget` auf dem Pi vorhanden ist.
+  - Mit `CLOCK_INPUT_LOG=1` (und `VP_SAVER=1` beim Start von Hand) zeigt die Uhr jede Taste. Mit `CLOCK_NO_GRAB=1` lässt sich das Greifen abschalten.
+- **Der Automat steht auf der Zeitzone America/New_York.** Mit „Ortszeit des Automaten“ geht die Uhr in Deutschland sechs Stunden nach. Abhilfe: im Menü unter PLACE eine Stadt wählen, oder die Zeitzone des Pi umstellen.
 - Am echten Monitor noch nicht beurteilt.

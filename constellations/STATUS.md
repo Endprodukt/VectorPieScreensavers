@@ -30,6 +30,6 @@ Stand 2026-11-07, Version 0.1.1: **Constellations** (`saver_constellations`).
 
 ## Offen
 
-- Noch nicht auf dem Automaten getestet: Am 2026-11-07 war er per SSH nicht erreichbar.
+- Am 2026-11-08 installiert (0.1.1): 40 Bilder pro Sekunde, 70 bis 230 Linien, keine verworfenen Linien. Am echten Monitor noch nicht beurteilt.
 - Am echten Monitor noch nicht beurteilt: ob die schwachen Sterne und die schwachen Figuren sichtbar genug sind.
 - Ein paar Figurenlinien sind vereinfacht (Großer Bär, Drache, Jungfrau), so wie viele Sternkarten sie zeichnen.

@@ -24,14 +24,14 @@
 
 Laut SDK (`vendor/VectorPie/sdk/docs/09-screensavers.md`) liest das Menü des Automaten die Steuerung selbst. Bei jeder Taste außer NEXT TRACK beendet es den Screensaver.
 
-Die Uhr öffnet deshalb, wenn sie als Screensaver läuft (`vp_saver_active()`), alle `/dev/input/event*` mit Tasten oder Achsen und greift sie mit `EVIOCGRAB`. Dann sieht das Menü des Automaten nichts mehr, und die Uhr macht selbst, was das Menü sonst tut:
+Die Uhr öffnet deshalb, wenn sie als Screensaver läuft (`vp_saver_active()`), die `/dev/input/event*` der Steuerung und greift sie mit `EVIOCGRAB`. Steuerung heißt: Tastatur (`KEY_1` oder `KEY_LEFTCTRL`), Maus und Spinner (`BTN_LEFT`), Joystick (`BTN_TRIGGER`, `BTN_SOUTH`) oder Achsen. Einschaltknopf, Lautstärketasten und HDMI (`vc4-hdmi`) bleiben dem System. Dann sieht das Menü des Automaten nichts mehr, und die Uhr macht selbst, was das Menü sonst tut:
 - **START 1** öffnet das Uhr-Menü.
 - **START 2** ruft `vp_saver_skip()` auf (NEXT TRACK).
 - **Jede andere Taste** gibt die Geräte frei (`input_release`), damit das Menü des Automaten wenigstens das Loslassen sieht, und beendet die Uhr (`vp_game_quit`).
 - **Im Uhr-Menü** gehören alle Tasten dem Menü. Analoge Sticks zählen erst ab drei Vierteln Ausschlag, außerhalb des Menüs gar nicht (Joystick-Drift).
 
 Noch am Automaten zu prüfen, siehe STATUS „Offen“. Hilfen dabei:
-- `CLOCK_INPUT_LOG=1` schreibt Geräte und Ereignisse nach stderr.
+- `CLOCK_INPUT_LOG=1` schreibt Geräte und Ereignisse nach stderr. Von Hand gestartet braucht es dazu `VP_SAVER=1`, sonst greift die Uhr nichts.
 - `CLOCK_NO_GRAB=1` schaltet das Greifen ab.
 
 ## Aufbau

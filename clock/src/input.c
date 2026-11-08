@@ -41,6 +41,20 @@ int input_start(void)
         unsigned long evbits[(EV_MAX + 8 * sizeof(long)) / (8 * sizeof(long))] = {0};
         ioctl(fd, EVIOCGBIT(0, sizeof evbits), evbits);
         if (!TEST_BIT(EV_KEY, evbits) && !TEST_BIT(EV_ABS, evbits)) { close(fd); continue; }
+        /* only the controls: keyboards (the panel's encoder), joysticks,
+         * spinners and mice. The power button, the volume keys and HDMI's
+         * remote stay the system's. */
+        unsigned long keybits[(KEY_MAX + 8 * sizeof(long)) / (8 * sizeof(long))] = {0};
+        ioctl(fd, EVIOCGBIT(EV_KEY, sizeof keybits), keybits);
+        char name[128] = "";
+        ioctl(fd, EVIOCGNAME(sizeof name), name);
+        int control = TEST_BIT(KEY_1, keybits) || TEST_BIT(KEY_LEFTCTRL, keybits) || TEST_BIT(BTN_LEFT, keybits)
+                   || TEST_BIT(BTN_TRIGGER, keybits) || TEST_BIT(BTN_SOUTH, keybits) || TEST_BIT(EV_ABS, evbits);
+        if (!control || strncmp(name, "vc4-hdmi", 8) == 0) {
+            if (logging) fprintf(stderr, "clock input: left %s (%s)\n", path, name);
+            close(fd);
+            continue;
+        }
         if (ioctl(fd, EVIOCGRAB, 1) != 0) { close(fd); continue; }
         memset(&dev[ndev], 0, sizeof dev[ndev]);
         dev[ndev].fd = fd;
@@ -56,11 +70,7 @@ int input_start(void)
                 }
             }
         }
-        if (logging) {
-            char name[128] = "";
-            ioctl(fd, EVIOCGNAME(sizeof name), name);
-            fprintf(stderr, "clock input: grabbed %s (%s)\n", path, name);
-        }
+        if (logging) fprintf(stderr, "clock input: grabbed %s (%s)\n", path, name);
         ndev++;
     }
     closedir(dir);
