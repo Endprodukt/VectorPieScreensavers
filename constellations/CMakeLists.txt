@@ -1,6 +1,6 @@
 # Constellations: a slow tour of the real night sky
 # (README.md). Built from the top folder's CMakeLists.txt, which brings the SDK.
-project(constellations VERSION 0.1.1 LANGUAGES C)
+project(constellations VERSION 0.1.2 LANGUAGES C)
 
 # The executable's name is the one package/game.ini names (executable = ...).
 add_executable(saver_constellations src/main.c)

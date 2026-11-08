@@ -1,29 +1,29 @@
-# Weitermachen
+# Continuing
 
-**Constellations** ist der sechste Screensaver im Repository „VectorPie Screensavers“ (Ordner `constellations/`). Bauen, Paketieren und Installieren: siehe `../BUILD.md`. Stand: siehe `STATUS.md`.
+**Constellations** is the sixth screensaver in the "VectorPie Screensavers" repository (folder `constellations/`). Building, packaging and installing: see `../BUILD.md`. Status: see `STATUS.md`.
 
-## Wünsche des Nutzers
+## User's wishes
 
-- **Echte Sternbilder** (2026-11-07).
-- **Sterne müssen funkeln**, sanft und gleitend, jeder in seinem eigenen Takt (2026-11-07).
-- Nichts darf pulsieren oder blinken. Musik ändert Dinge nur gleitend (siehe `../neondrive/RESUME.md`).
+- **Real constellations** (2026-11-07).
+- **Stars must twinkle**, gently and smoothly, each at its own rate (2026-11-07).
+- Nothing may pulse or blink. Music only changes things smoothly (see `../neondrive/RESUME.md`).
 
-## Aufbau
+## Structure
 
-- `src/sky.h`: die Daten.
-  - Je Sternbild seine Sterne mit Rektaszension (Stunden), Deklination (Grad), Helligkeit, Farbe und gegebenenfalls Namen.
-  - `path`: die Figur als Folge von Sternnummern, −1 beginnt eine neue Linie.
-  - `shared`: derselbe Stern in zwei Figuren (Elnath, Alpheratz). Er wird nur einmal gezeichnet.
-  - `SKY_CON` ist zugleich die Reihenfolge des Rundflugs.
-  - `SKY_LONE`: helle Einzelsterne.
+- `src/sky.h`: the data.
+  - For each constellation its stars with right ascension (hours), declination (degrees), magnitude, colour and, where applicable, name.
+  - `path`: the figure as a sequence of star numbers; −1 starts a new line.
+  - `shared`: the same star in two figures (Elnath, Alpheratz). It is drawn only once.
+  - `SKY_CON` is also the order of the tour.
+  - `SKY_LONE`: bright single stars.
 - `src/main.c`:
-  - `sky_make`: Richtungen aller Sterne, Mitte und Größe jeder Figur, dazu die schwachen Sterne (Milchstraße über den galaktischen Nordpol und das galaktische Zentrum).
-  - Projektion: stereografisch um `G.mid`, Norden oben, Osten links. `G.half` ist die halbe Bildbreite (`con_half`).
-  - `tour_update`: Gleiten (`glide`), Einzeichnen (`fig`), Stehen (`hold`), dann `tour_next`.
-  - `stars_draw` sortiert die sichtbaren Sterne in Bändern hin und her, damit der Strahl kurze Wege hat.
-  - Die Zeichenrichtung jedes Sterns und jeder Figurenlinie ist fest: Sterne von links nach rechts und von unten nach oben, Linien in der Reihenfolge des Pfads (siehe `../neonridge/RESUME.md`, „Zeichenrichtung muss fest bleiben“).
-- Zum Testen: `SAVER_TEMPO=<Faktor>` macht den Rundflug schneller, `SAVER_SHOTS=<Ordner>` speichert alle 2 s ein Bild.
+  - `sky_make`: directions of all stars, centre and size of each figure, plus the faint stars (Milky Way via the galactic north pole and the galactic centre).
+  - Projection: stereographic around `G.mid`, north at the top, east on the left. `G.half` is half the image width (`con_half`).
+  - `tour_update`: gliding (`glide`), drawing in (`fig`), holding (`hold`), then `tour_next`.
+  - `stars_draw` sorts the visible stars in bands back and forth so that the beam has short paths.
+  - The drawing direction of every star and every figure line is fixed: stars from left to right and from bottom to top, lines in the order of the path (see `../neonridge/RESUME.md`, "Drawing direction must stay fixed").
+- For testing: `SAVER_TEMPO=<factor>` makes the tour faster, `SAVER_SHOTS=<folder>` saves a frame every 2 s.
 
-## Rund auf der Röhre
+## Round on the tube
 
-Das Board hat ein quadratisches Koordinatenfeld, der Monitor zieht es aber auf 4:3 (bei senkrechtem Monitor 3:4). Was in 2D rund gezeichnet wird, erscheint deshalb um ein Drittel zu breit. Die 3D-Screensaver gleichen das über `view.aspect` aus. In 2D gilt: quer zur Mitte mit 0,75 zusammenziehen (`ASPECT_X`; bei `VP_VERTICAL=1` stattdessen die Höhe). Aufgefallen ist das dem Nutzer an der Uhr (2026-11-07).
+The board has a square coordinate field, but the monitor stretches it to 4:3 (3:4 with a vertical monitor). Anything drawn round in 2D therefore appears a third too wide. The 3D screensavers compensate for this via `view.aspect`. In 2D the rule is: compress horizontally towards the centre by 0.75 (`ASPECT_X`; with `VP_VERTICAL=1` the height instead). The user noticed this on the clock (2026-11-07).

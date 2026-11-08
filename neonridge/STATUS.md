@@ -1,41 +1,41 @@
 # Status
 
-Stand 2026-11-07, Version 0.1.2: **Neon Ridge** (`saver_neonridge`).
+Status as of 2026-11-07, version 0.1.2: **Neon Ridge** (`saver_neonridge`).
 
-## Was da ist (`src/main.c`)
+## What is there (`src/main.c`)
 
-- **Kamera:** steht still in 8 m Höhe und blickt leicht nach oben, sodass der Horizont unter der Bildmitte liegt (wie im Video).
-- **Bergmassiv:**
-  - Aufbau: ein hoher Gipfel in der Mitte, niedrigere daneben und dazwischen ein Grat.
-  - Gezeichnet als 30 Reihen von Höhenlinien quer, 700 bis 1150 m entfernt. Die vorderen Reihen verdecken die hinteren.
-  - Höhere Linien sind heller und blauer.
-  - Die Details sind bei jedem Start etwas anders.
-- **Himmel:** 140 Sterne, die sanft funkeln: Jeder wird in seinem eigenen Takt (alle 1,7 bis 5 s) gleitend heller und dunkler, aus zwei überlagerten Wellen, damit es unregelmäßig wirkt (seit 0.1.1, Wunsch des Nutzers). Dazu ein Leuchten über dem Horizont aus 9 Linien, unten cyan, nach oben blau und schwächer.
-- **Ebene:** waagrechte Linien, die langsam herankommen, mit perspektivischen Abständen. Ihr ferner Rand ist eine lange Linie, links pink und rechts cyan.
-- **Lichtspur:** ein heller Kern mit pinkem Schein links und rechts. Sie kommt unten links herein, schwingt nach rechts bis kurz unter den Horizont und läuft am Horizont entlang zurück nach links. Sie schwingt langsam etwas mit.
-- **Musik, gleitend:**
-  - Die Ebene kommt bei lauter Musik schneller heran: 0,35 bis 1,35 Linien pro Sekunde.
-  - Die Lichtspur schwingt schneller.
-  - Das Horizontleuchten wird heller.
-  - Bei einem neuen Track erscheint 7 s lang sein Titel. Nichts blinkt oder pulsiert.
-- Für den PC: `SAVER_SHOTS=<ordner>` speichert alle 2 s ein Bild.
+- **Camera:** stands still at a height of 8 m and looks slightly upwards, so that the horizon lies below the centre of the frame (as in the video).
+- **Mountain massif:**
+  - Layout: a high peak in the middle, lower ones beside it and a ridge in between.
+  - Drawn as 30 rows of contour lines running across, 700 to 1150 m away. The front rows hide the rear ones.
+  - Higher lines are brighter and bluer.
+  - The details are a little different at every start.
+- **Sky:** 140 stars that twinkle gently: each one becomes smoothly brighter and darker at its own rate (every 1.7 to 5 s), from two superimposed waves so that it looks irregular (since 0.1.1, the user's wish). In addition, a glow above the horizon made of 9 lines, cyan at the bottom, bluer and fainter towards the top.
+- **Plain:** horizontal lines that slowly come closer, with perspective spacing. Their far edge is a long line, pink on the left and cyan on the right.
+- **Light trail:** a bright core with a pink glow left and right. It comes in at the bottom left, swings to the right up to just below the horizon and runs back to the left along the horizon. It sways slowly a little.
+- **Music, smooth:**
+  - The plain comes closer faster with loud music: 0.35 to 1.35 lines per second.
+  - The light trail sways faster.
+  - The horizon glow gets brighter.
+  - On a new track its title appears for 7 s. Nothing blinks or pulses.
+- For the PC: `SAVER_SHOTS=<folder>` saves a frame every 2 s.
 
-## Geprüft (2026-11-07)
+## Checked (2026-11-07)
 
-- PC- und Pi-Build ohne Warnungen. `build/saver_neonridge-0.1.2.vps` wird erzeugt. 0.1.2 (2026-11-07): Die Linien der Ebene behalten ihre Zeichenrichtung, während sie näherkommen (vorher kippte sie bei jeder neuen Linie, das zuckt am Monitor). Auf dem Board: 40 Bilder pro Sekunde, etwa 515 Linien, Senden 0,6 ms, keine verlorenen Linien.
-- Am PC Bilder angesehen und mit einem Standbild des Videos verglichen.
-- **Auf dem Automaten installiert** (`sh tools/deploy.sh neonridge`) und 15 s auf dem Board getestet:
-  - gleichmäßig 40 Bilder pro Sekunde
-  - etwa 500 Linien pro Bild
-  - Senden 0,6 ms, keine verlorenen Linien
+- PC and Pi builds without warnings. `build/saver_neonridge-0.1.2.vps` is produced. 0.1.2 (2026-11-07): The lines of the plain keep their drawing direction as they come closer (previously it flipped with every new line, which twitches on the monitor). On the board: 40 frames per second, about 515 lines, sending 0.6 ms, no lost lines.
+- Frames viewed on the PC and compared with a still from the video.
+- **Installed on the cabinet** (`sh tools/deploy.sh neonridge`) and tested on the board for 15 s:
+  - a steady 40 frames per second
+  - about 500 lines per frame
+  - sending 0.6 ms, no lost lines
 
-## Bekannte Probleme und Grenzen
+## Known problems and limitations
 
-- Das weiche Leuchten und die Spiegelungen des Videos gibt es auf einem Vektormonitor nicht. Sie sind hier als Linien angedeutet.
-- Über dem Hauptgipfel steht manchmal ein einzelner Strich einer hinteren Linienreihe heraus.
-- Am echten Monitor noch nicht beurteilt: Helligkeit von Sternen und Leuchten, und ob das Funkeln der Sterne schnell genug ist.
+- The soft glow and the reflections of the video do not exist on a vector monitor. Here they are suggested with lines.
+- Above the main peak a single stroke of a rear row of lines sometimes sticks out.
+- Not yet judged on the real monitor: brightness of stars and glow, and whether the twinkling of the stars is fast enough.
 
-## Offene Aufgaben
+## Open tasks
 
-- [ ] Am Automaten ansehen
-- [ ] Unter SETTINGS → SCREENSAVERS → SELECT auswählen (das geht nur am Automaten)
+- [ ] Look at it on the cabinet
+- [ ] Select it under SETTINGS → SCREENSAVERS → SELECT (this can only be done on the cabinet)

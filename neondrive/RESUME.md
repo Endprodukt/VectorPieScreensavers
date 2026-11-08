@@ -1,62 +1,62 @@
-# Weitermachen
+# Continuing
 
-**Neon Drive** ist ein VectorPie-Screensaver: eine endlose Synthwave-Fahrt in 3D zur Musik des Automaten. Er ist der erste Screensaver im Repository „VectorPie Screensavers“ (Ordner `neondrive/`). Bauen, Paketieren und Installieren: siehe `../BUILD.md`. Aktueller Stand und offene Punkte: siehe `STATUS.md`.
+**Neon Drive** is a VectorPie screensaver: an endless synthwave drive in 3D to the cabinet's music. It is the first screensaver in the "VectorPie Screensavers" repository (folder `neondrive/`). Building, packaging and installing: see `../BUILD.md`. Current status and open points: see `STATUS.md`.
 
-## Wünsche des Nutzers (dauerhaft gültig)
+## User's wishes (permanently valid)
 
-- **Nichts pulsiert, blitzt oder blinkt.** Keine Reaktion auf Beats, auch nicht von der Sonne. Die Musik darf nur gleitend Tempo und Verkehrsdichte steuern.
-- Keine Sterne neben der Sonne.
-- Alles am Straßenrand steht fest an der Strecke: nichts springt, nichts fährt mit dem Auto mit.
-- Kulissen am Horizont wechseln langsam (Minuten).
-- VECTORPIE soll vorkommen: auf LKW, Schilderbrücken, Straßenschildern, Werbetafeln und dem Flugzeug-Banner.
+- **Nothing pulses, flashes or blinks.** No reaction to beats, not even from the sun. The music may only smoothly control speed and traffic density.
+- No stars next to the sun.
+- Everything at the roadside stands fixed to the track: nothing jumps, nothing moves along with the car.
+- Backdrops on the horizon change slowly (minutes).
+- VECTORPIE should appear: on lorries, sign gantries, road signs, billboards and the plane's banner.
 
-## Aufbau
+## Structure
 
-| Datei | Inhalt |
+| File | Contents |
 |---|---|
-| `src/saver.h` | gemeinsamer Zustand `G` (Weg, Tempo, Kurs, Kamera, Musik), Maße der Straße, Prototypen |
-| `src/main.c` | Musik-Feed, Tempo, Titel, die Szene pro Bild, `SAVER_SHOTS`; mit `SAVER_SOAK` der Dauertest |
-| `src/road.c` | Kurven, Straßentabelle (`road_point`, `road_heading`), Abschnitte (`zone_kind`), Gegenfahrbahn (`road_oncoming`), Grid und Fahrbahnlinien |
-| `src/models.c` | alle Meshes aus Quadern und Einzellinien: Auto, 7 Fahrzeugtypen, Randobjekte; die VECTORPIE-Linienschrift (`vectorpie_strokes`, `word`) |
-| `src/props.c` | Randobjekte je Abschnittsart |
-| `src/traffic.c` | Verkehr in beide Richtungen, Ausweich-Logik, Tempobegrenzung hinter Fahrzeugen |
-| `src/flyers.c` | Vogelschwärme, Flugzeug mit VECTORPIE-Banner |
-| `src/car.c` | das eigene Auto (Neigen beim Spurwechsel) und die Kamera (Positionen, Gleiten) |
-| `src/scenery.c` | Kulissen-Ring, Auftauchen und Versinken, Sonne, Horizontlinie |
+| `src/saver.h` | shared state `G` (distance, speed, heading, camera, music), road dimensions, prototypes |
+| `src/main.c` | music feed, speed, title, the scene per frame, `SAVER_SHOTS`; with `SAVER_SOAK` the soak test |
+| `src/road.c` | curves, road table (`road_point`, `road_heading`), sections (`zone_kind`), oncoming carriageway (`road_oncoming`), grid and lane lines |
+| `src/models.c` | all meshes made of boxes and single lines: car, 7 vehicle types, roadside objects; the VECTORPIE line font (`vectorpie_strokes`, `word`) |
+| `src/props.c` | roadside objects per section type |
+| `src/traffic.c` | traffic in both directions, evasion logic, speed limiting behind vehicles |
+| `src/flyers.c` | flocks of birds, plane with VECTORPIE banner |
+| `src/car.c` | our own car (leaning when changing lanes) and the camera (positions, gliding) |
+| `src/scenery.c` | backdrop ring, rising and sinking, sun, horizon line |
 
-## Grundlagen
+## Basics
 
-- In jedem Bild steht das Auto im Ursprung, die Straße zeigt dort nach +z. `road_build()` legt die Straße ab 40 m hinter bis 420 m vor dem Auto aus. `road_point(d, x, y)` liefert den Punkt d Meter voraus, x quer, y hoch.
-- Alles läuft durch eine einzige `vp3d_scene`. Feste Meshes und `vp3d_scene_polygon` verdecken, Linien und Drahtmodelle verdecken nichts. Mit `vp3d_scene_set_contact(0.3)` bleiben Linien auf dem Boden sichtbar. Ein unsichtbares Bodenpolygon verdeckt alles unter y=0.
-- Kulissen sind flache Polygone auf einem Ring mit R=3500 m. Ihre Details liegen 3 m davor, damit das eigene Polygon sie nicht verdeckt.
-- **Randobjekte hängen an der Strecke.** Positionen, Seiten und Abwechslung leiten sich aus dem Abstand ab Abschnittsbeginn ab, nie aus einem Zähler über die gerade sichtbaren Objekte. Ein solcher Zähler hat die Palmen springen lassen. Pfosten und Wiederholungen beginnen am Abschnittsanfang, nicht am Auto. So hatten die Leitplanken-Pfosten mitgefahren.
-- **Keine Würfel-Schleifen** wie `do x = zufall(); while (x == alt);` mit einem Würfelwert, der sich in der Schleife nicht ändert. Das hat das Programm aufgehängt (Kamerawechsel). Stattdessen: `(alt + 1 + zufall * (n - 1)) % n`.
-- Linienbudget: Bei etwa 2000 Linien pro Bild wird es auf dem Board knapp (Erfahrung aus Vector Racer). Messen mit `VP_STATS=1` oder dem Dauertest.
-- Zum Ansehen am PC: `neondrive/run_pc.bat` per Doppelklick. Aus der Claude-Umgebung gestartete Programme werden dort manchmal von außen beendet. Bilder: `SAVER_SHOTS=<ordner>`, gespeichert wird am Ende von `draw()`.
-- Dauertest: `build/pc/neondrive/saver_soak.exe <stunden> <seed>` simuliert ohne Musik etwa 25 Minuten Fahrt pro Sekunde, gibt die schwersten Bilder aus und findet Hänger (dann läuft er nicht zu Ende).
-- **Nie durch andere Fahrzeuge:** `traffic_limit()` begrenzt den Weg des Autos (Front nie über das Heck eines Fahrzeugs in seinem Weg). `steer()` lässt das Auto nicht seitlich in ein Fahrzeug daneben ziehen. Fahrzeuge hinter dem Auto übernehmen sein Tempo. Wer daran etwas ändert, prüft mit dem Dauertest und einer vorübergehenden Überlappungsprüfung in `traffic_update` (zuletzt 0 in 25 simulierten Stunden) und entfernt die Prüfung danach wieder.
-- Räder: `wheel()` in `models.c` merkt sich je Fahrzeugtyp die Radpositionen. `model_spokes()` zeichnet pro Rad drei Speichen, gedreht um Weg mal `WHEEL_TURN`. Das ist bewusst langsamer als echt, sonst gäbe es den Speichenrad-Effekt durch die Bildrate.
-- Kamera: `SHOTS` in `car.c`. Das Feld `swing` lässt eine Einstellung um die Wagenmitte nach rechts herum und zurück schwingen (sin²-Verlauf, `SWING_TIME`). Vorher holt `traffic_hold_lane(RIGHT_LANE)` das Auto auf die rechte Spur, und der Schwenk startet erst bei `traffic_room` größer als `SWING_ROOM`.
-- **Die Kamera darf nie in einem Fahrzeug stecken.** Dafür sorgen drei Dinge: Seitliche Einstellungen bleiben neben der Fahrbahn, beim Gleiten über die Spuren steigt die Kamera auf `OVER_TRAFFIC`, und Fahrzeuge hinter dem Auto halten `BEHIND` Abstand. Geprüft wird mit einer vorübergehenden Punkt-in-Fahrzeug-Prüfung im Dauertest (zuletzt 0 Fälle) und mit der gefahrenen Strecke (kein Tempoverlust).
-- Der Dauertest `saver_soak` versteckt sein Fenster und beantwortet die Fensternachrichten. Sonst zeigt Windows es als „Keine Rückmeldung“ an, was wie ein Absturz aussieht.
+- In every frame the car is at the origin, and the road there points towards +z. `road_build()` lays out the road from 40 m behind to 420 m ahead of the car. `road_point(d, x, y)` returns the point d metres ahead, x across, y up.
+- Everything runs through a single `vp3d_scene`. Solid meshes and `vp3d_scene_polygon` hide things; lines and wireframes hide nothing. With `vp3d_scene_set_contact(0.3)` lines on the ground stay visible. An invisible ground polygon hides everything below y=0.
+- Backdrops are flat polygons on a ring with R=3500 m. Their details lie 3 m in front, so that their own polygon does not hide them.
+- **Roadside objects are tied to the track.** Positions, sides and variety are derived from the distance from the start of the section, never from a counter over the currently visible objects. Such a counter made the palms jump. Posts and repetitions start at the beginning of the section, not at the car. That is how the guard rail posts had moved along.
+- **No dice loops** like `do x = random(); while (x == old);` with a random value that does not change inside the loop. That hung the program (camera change). Instead: `(old + 1 + random * (n - 1)) % n`.
+- Line budget: at about 2000 lines per frame it gets tight on the board (experience from Vector Racer). Measure with `VP_STATS=1` or the soak test.
+- To view on the PC: double-click `neondrive/run_pc.bat`. Programs started from the Claude environment are sometimes terminated from outside there. Frames: `SAVER_SHOTS=<folder>`, saved at the end of `draw()`.
+- Soak test: `build/pc/neondrive/saver_soak.exe <hours> <seed>` simulates about 25 minutes of driving per second without music, outputs the heaviest frames and finds hangs (in which case it does not run to completion).
+- **Never through other vehicles:** `traffic_limit()` limits the car's path (front never past the rear of a vehicle in its path). `steer()` does not let the car pull sideways into a vehicle beside it. Vehicles behind the car take on its speed. Anyone changing this checks with the soak test and a temporary overlap check in `traffic_update` (last time 0 in 25 simulated hours) and removes the check again afterwards.
+- Wheels: `wheel()` in `models.c` remembers the wheel positions per vehicle type. `model_spokes()` draws three spokes per wheel, rotated by distance times `WHEEL_TURN`. This is deliberately slower than real, otherwise the frame rate would cause the wagon-wheel effect.
+- Camera: `SHOTS` in `car.c`. The field `swing` makes a position swing around the centre of the car to the right and back (sin² curve, `SWING_TIME`). Beforehand `traffic_hold_lane(RIGHT_LANE)` brings the car into the right lane, and the swing only starts when `traffic_room` is greater than `SWING_ROOM`.
+- **The camera must never be inside a vehicle.** Three things ensure this: sideways positions stay beside the carriageway, when gliding across the lanes the camera rises to `OVER_TRAFFIC`, and vehicles behind the car keep a `BEHIND` distance. This is checked with a temporary point-in-vehicle check in the soak test (last time 0 cases) and with the distance driven (no loss of speed).
+- The soak test `saver_soak` hides its window and answers the window messages. Otherwise Windows shows it as "Not responding", which looks like a crash.
 
 ## SDK
 
-- Die Doku liegt in `vendor/VectorPie/sdk/docs/`: `05-3d.md` (3D, Szenen) und `09-screensavers.md`. Die API steht in `vp_3d.h`, `vp_saver.h` und `vp_music_feed.h`.
-- Ein Screensaver ist ein normales `vp_run`-Spiel mit `kind = screensaver` im `game.ini`. Den Einbrennschutz übernimmt das SDK.
-- Das SDK neu übernehmen: `F:\Release Game\VectorPie` (oder neuer) nach `vendor/VectorPie` kopieren, ohne `.git`.
+- The documentation is in `vendor/VectorPie/sdk/docs/`: `05-3d.md` (3D, scenes) and `09-screensavers.md`. The API is in `vp_3d.h`, `vp_saver.h` and `vp_music_feed.h`.
+- A screensaver is a normal `vp_run` game with `kind = screensaver` in `game.ini`. The SDK takes care of burn-in protection.
+- To take over the SDK again: copy `F:\Release Game\VectorPie` (or newer) to `vendor/VectorPie`, without `.git`.
 
-## Tempo auf dem Board: die Reihenfolge der Linien
+## Speed on the board: the order of the lines
 
-Das SDK zeichnet genau in der Reihenfolge, in der Linien hinzugefügt werden. Zwischen zwei Linien fährt der Strahl dunkel. Das Board wird langsam, wenn der ganze Weg pro Bild (hell und dunkel, `lit length` und `blank length` in `VP_STATS`) zu lang wird, ab etwa 270k.
+The SDK draws in exactly the order in which lines are added. Between two lines the beam travels dark. The board gets slow when the whole path per frame (lit and blank, `lit length` and `blank length` in `VP_STATS`) becomes too long, from about 270k.
 
-Seit 0.7.1 (2026-11-07) gilt deshalb:
-- In `road.c` laufen die Linien hin und her (`along(..., back)`, die Querlinien und die Striche). Jede Linie beginnt, wo die letzte endete.
-- In `props.c` gibt es zwei Durchgänge: erst die rechte Seite (und alles über der Straße) von nah nach fern, dann die linke von fern nach nah (`pass`, `here()`).
-- Die Linien der Sonne laufen ebenfalls hin und her.
+Since 0.7.1 (2026-11-07) the following therefore applies:
+- In `road.c` the lines run back and forth (`along(..., back)`, the cross lines and the dashes). Each line starts where the last one ended.
+- In `props.c` there are two passes: first the right side (and everything above the road) from near to far, then the left from far to near (`pass`, `here()`).
+- The sun's lines also run back and forth.
 
-Neue Teile sollten auch so gezeichnet werden.
+New parts should be drawn the same way.
 
-## Zeichenrichtung muss fest bleiben
+## Drawing direction must stay fixed
 
-Eine Linie, die andersherum gezeichnet wird, liegt auf dem Monitor ein wenig versetzt. Wenn Linien hin und her gezeichnet werden, muss die Richtung deshalb an der Linie selbst hängen (an ihrer eigenen Nummer), nicht an ihrem Platz in der Schleife. Sonst kippt die Richtung jedes Mal, wenn eine Linie nachrückt, und alle Linien zucken links und rechts (Rückmeldung des Nutzers zu Neon Peaks, 2026-11-07; seit Neon Peaks 0.1.2, Neon Ridge 0.1.2, Neon Drive 0.7.2 behoben).
+A line drawn the other way round lies slightly offset on the monitor. When lines are drawn back and forth, the direction must therefore be tied to the line itself (to its own number), not to its place in the loop. Otherwise the direction flips every time a line moves up, and all lines twitch left and right (user feedback on Neon Peaks, 2026-11-07; fixed since Neon Peaks 0.1.2, Neon Ridge 0.1.2, Neon Drive 0.7.2).

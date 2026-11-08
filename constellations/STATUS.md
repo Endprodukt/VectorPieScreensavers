@@ -1,35 +1,39 @@
-# Stand
+# Status
 
-Stand 2026-11-07, Version 0.1.1: **Constellations** (`saver_constellations`).
+Status as of 2026-11-08, version 0.1.2: **Constellations** (`saver_constellations`).
 
-## Was er zeigt
+## What it shows
 
-- **26 echte Sternbilder** im Rundflug, jedes nah am vorigen: Großer Bär, Kleiner Bär, Drache, Herkules, Nördliche Krone, Bärenhüter, Jungfrau, Skorpion, Schütze, Adler, Delfin, Leier, Schwan, Kepheus, Kassiopeia, Andromeda, Pegasus, Widder, Perseus, Fuhrmann, Stier, Orion, Großer Hund, Kleiner Hund, Zwillinge, Löwe. Der Start ist jedes Mal ein anderes.
-- **Ablauf je Sternbild:**
-  1. Der Blick gleitet auf einem Großkreis hin, 5 bis 11 s.
-  2. Die Figur zeichnet sich in 4 s Linie für Linie ein.
-  3. Sie bleibt 11 s stehen, der Blick rückt dabei leicht näher.
-  4. Beim Weitergleiten verblasst sie in 2,5 s.
-- **Beschriftung:** Der deutsche Name steht unten, darunter der lateinische. Die hellen Sterne der Figur werden benannt (Beteigeuze, Rigel, Wega, Plejaden …). Umlaute sind als ae/oe/ue geschrieben, weil die Schriften nur ASCII kennen.
-- **Die anderen Figuren** stehen schwach im Hintergrund, wie in einem Sternatlas.
-- **Sterne:**
-  - Die Sterne der Figuren und 22 helle Sterne daneben haben ihre echten Positionen (J2000), Helligkeiten und Farben: Beteigeuze und Antares rötlich, Rigel und Wega bläulich.
-  - Helle Sterne sind kleine Kreuze, schwache Punkte.
-  - Dazu kommen 1500 schwache Sterne. Zwei Drittel davon liegen entlang der Milchstraße, an ihrem echten Ort und zur Mitte hin dichter. Ihre einzelnen Positionen sind erfunden.
-- **Alle Sterne funkeln sanft:** Jeder wird in seinem eigenen Takt (1,7 bis 5 s) gleitend heller und dunkler.
-- **Sternschnuppen:** Etwa alle 30 s eine, die gleitend auf- und abblendet.
-- **Musik, alles gleitend:** Bei lauter Musik geht der Rundflug etwas schneller, die Sterne funkeln lebhafter und Sternschnuppen kommen öfter. Bei einem neuen Track steht 7 s lang sein Titel oben.
+- **26 real constellations** in a round tour, each close to the previous one: Great Bear, Little Bear, Dragon, Hercules, Northern Crown, Herdsman, Virgin, Scorpion, Archer, Eagle, Dolphin, Lyre, Swan, Cepheus, Cassiopeia, Andromeda, Pegasus, Ram, Perseus, Charioteer, Bull, Orion, Great Dog, Little Dog, Twins, Lion. The start is a different one each time.
+- **Sequence per constellation:**
+  1. The view glides there along a great circle, 5 to 11 s.
+  2. The figure draws itself in line by line over 4 s.
+  3. It stays for 11 s while the view moves slightly closer.
+  4. As the view glides on, it fades out over 2.5 s.
+- **Labels:** The English name is at the bottom, with the Latin one below it (only one line where both are the same, e.g. ORION). The bright stars of the figure are named in their English spelling (Betelgeuse, Rigel, Vega, Pleiades …). Since 0.1.2; before that the names were German.
+- **The other figures** stand faintly in the background, as in a star atlas.
+- **Stars:**
+  - The stars of the figures and 22 bright stars beside them have their real positions (J2000), magnitudes and colours: Betelgeuse and Antares reddish, Rigel and Vega bluish.
+  - Bright stars are small crosses, faint ones dots.
+  - In addition there are 1500 faint stars. Two thirds of them lie along the Milky Way, at its real location and denser towards the centre. Their individual positions are invented.
+- **All stars twinkle gently:** Each one becomes smoothly brighter and darker at its own rate (1.7 to 5 s).
+- **Shooting stars:** About one every 30 s, fading smoothly in and out.
+- **Music, everything smooth:** With loud music the tour goes a little faster, the stars twinkle more lively and shooting stars come more often. On a new track its title is shown at the top for 7 s.
 
-## Geprüft
+## Checked
 
-- 0.1.1: Die Sternbilder haben auf dem 4:3-Monitor ihre echten Proportionen. Vorher waren sie um ein Drittel zu breit.
+- 0.1.2: All names in English: the 26 constellations (e.g. SWAN / CYGNUS, GREAT BEAR / URSA MAJOR) and ten star names that were spelled the German way (VEGA, ALTAIR, BETELGEUSE, POLARIS, PLEIADES …). Checked on the PC with screenshots.
 
-- PC- und Pi-Build ohne Warnungen. `build/saver_constellations-0.1.0.vps` wird erzeugt.
-- Am PC Bilder angesehen, mit vierfachem Tempo über zwei Runden: Die Formen stimmen, zum Beispiel Orion, das Pegasus-Quadrat, das W der Kassiopeia, das Kreuz des Schwans und die Teekanne des Schützen. Auch die Lage stimmt, Norden oben und Osten links wie am Himmel.
-- Am PC 40 Bilder pro Sekunde mit 150 bis 300 Linien.
+- 0.1.1: The constellations have their real proportions on the 4:3 monitor. Previously they were a third too wide.
 
-## Offen
+- PC and Pi builds without warnings. `build/saver_constellations-0.1.0.vps` is produced.
+- Frames viewed on the PC, at four times the speed over two rounds: the shapes are right, for example Orion, the Square of Pegasus, the W of Cassiopeia, the cross of the Swan and the teapot of the Archer. The orientation is right too, north at the top and east on the left as in the sky.
+- On the PC 40 frames per second with 150 to 300 lines.
 
-- Am 2026-11-08 installiert (0.1.1): 40 Bilder pro Sekunde, 70 bis 230 Linien, keine verworfenen Linien. Am echten Monitor noch nicht beurteilt.
-- Am echten Monitor noch nicht beurteilt: ob die schwachen Sterne und die schwachen Figuren sichtbar genug sind.
-- Ein paar Figurenlinien sind vereinfacht (Großer Bär, Drache, Jungfrau), so wie viele Sternkarten sie zeichnen.
+## Open
+
+- 0.1.2 is built and packaged but not yet on the cabinet: on 2026-11-08 the cabinet could not be reached over SSH.
+
+- Installed on 2026-11-08 (0.1.1): 40 frames per second, 70 to 230 lines, no dropped lines. Not yet judged on the real monitor.
+- Not yet judged on the real monitor: whether the faint stars and the faint figures are visible enough.
+- A few figure lines are simplified (Great Bear, Dragon, Virgin), the way many star charts draw them.

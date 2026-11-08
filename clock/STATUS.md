@@ -1,88 +1,88 @@
-# Stand
+# Status
 
-Stand 2026-11-08, Version 0.7.1: **Clock** (`saver_clock`).
+Status as of 2026-11-08, version 0.7.1: **Clock** (`saver_clock`).
 
-## Was er kann
+## What it can do
 
-- **Fünfzehn Zifferblätter** (siehe README), davon sechs analoge mit je eigenen Zeigern. Eines blendet in 1,4 s ins nächste über, der Name des neuen steht kurz unten.
-- **Das eigene Menü** (F2 oder Tab, ebenso zu) hat 19 Zeilen und blättert. Einstellbar sind:
-  - Zifferblatt und Zufall (aus, beim Start, immer)
-  - Wechsel (aus, mit jedem Track, alle 1, 5, 15 oder 60 Minuten, nach jedem Wetterbericht)
-  - Umschalten mit Spinner, Joystick links/rechts, einer gelernten Taste oder gar nicht
-  - Sekundenzeiger aus, gleitend oder tickend
-  - die Farben von Uhr, Datum und Wetter, jede für sich, auch RANDOM: mit jedem Zifferblatt eine neue der sieben einfachen Farben. Beim Überblenden behält das alte Zifferblatt seine Farbe.
-  - Sekunden, Datum, Wetterzeile, 24 Stunden, Tracktitel
-  - Wetterbericht (alle 1, 2, 3, 5, 10, 15, 30 oder 60 Minuten) und seine Dauer (10 bis 60 s)
-  - Wetter-Ansicht und Wetterfarben (bunt oder einfarbig)
-  - Ort und Sprache
-  - Eine Änderung wirkt sofort.
-  - Beim Schließen wird sie in `save/clock.ini` gespeichert.
-  - Ohne Eingabe schließt sich das Menü nach 60 s.
-- **Ort:**
-  - Ortszeit des Automaten, eine von 59 Städten oder eine Suche über eine Bildschirmtastatur (Open-Meteo-Geocoding, bis zu 6 Treffer).
-  - Uhrzeit und Wetter folgen dem Ort. Den Abstand zu UTC samt Sommerzeit liefert Open-Meteo mit dem Wetter.
-  - Ohne Ort gilt die Ortszeit des Automaten, und es gibt kein Wetter.
-- **Sprachen:** Englisch (Standard), Deutsch, Französisch und Spanisch. Das gilt für Wochentage, Monate, Wetterwörter, Menü, die Namen der Zifferblätter und die Wortuhr. Die Wortuhr hat für jede Sprache ein eigenes Raster und eigene Grammatik, etwa „ES IST FUENF VOR HALB DREI“, „IL EST DEUX HEURES MOINS LE QUART“ oder „SON LAS DOS Y MEDIA“.
-- **Wetterbericht:** Er blendet als Vollbild über die Uhr und wieder zurück. Ist „nach jedem Wetterbericht“ eingestellt, kommt danach das nächste Zifferblatt. Bei eingeschaltetem Wetterbericht wählt der Zufall das Zifferblatt WEATHER nicht, sonst bliebe die Uhr darauf stehen.
-- **Wetter-Ansichten:** OVERVIEW, SIMPLE, TODAY, DAYS (7 Tage), HOURS (24 Stunden als Kurve) oder ROTATING. Jede gibt es bunt oder einfarbig. Die Daten kommen von Open-Meteo: jetzt, stündlich für 24 Stunden, täglich für 7 Tage, mit Sonnenauf- und -untergang.
-- **Datum und Wetter** stehen in einer Zeile unter jedem Zifferblatt außer WEATHER, jedes in seiner Farbe. Sie sind je nach Menü an oder aus, das Gradzeichen ist gezeichnet.
-- **Musik, alles gleitend:** Bei lauter Musik leuchten Ringe und Marken etwas heller. Nichts blinkt.
+- **Fifteen clock faces** (see README), six of them analogue, each with its own hands. One cross-fades into the next in 1.4 s, and the name of the new one is shown briefly at the bottom.
+- **Its own menu** (F2 or Tab, likewise to close) has 19 rows and scrolls. You can set:
+  - clock face and randomness (off, at start, always)
+  - change (off, with every track, every 1, 5, 15 or 60 minutes, after every weather report)
+  - switching with the spinner, joystick left/right, a learned key or not at all
+  - second hand off, sweeping or ticking
+  - the colours of clock, date and weather, each on its own, also RANDOM: a new one of the seven plain colours with every clock face. During the cross-fade the old clock face keeps its colour.
+  - seconds, date, weather line, 24 hours, track title
+  - weather report (every 1, 2, 3, 5, 10, 15, 30 or 60 minutes) and its duration (10 to 60 s)
+  - weather view and weather colours (multicoloured or single colour)
+  - place and language
+  - A change takes effect immediately.
+  - On closing, it is saved to `save/clock.ini`.
+  - Without input, the menu closes after 60 s.
+- **Place:**
+  - Local time of the cabinet, one of 59 cities, or a search via an on-screen keyboard (Open-Meteo geocoding, up to 6 results).
+  - Time and weather follow the place. Open-Meteo supplies the offset from UTC, including daylight saving time, together with the weather.
+  - Without a place, the cabinet's local time applies and there is no weather.
+- **Languages:** English (default), German, French and Spanish. This applies to weekdays, months, weather words, menu, the names of the clock faces and the word clock. The word clock has its own grid and its own grammar for each language, for example "ES IST FUENF VOR HALB DREI", "IL EST DEUX HEURES MOINS LE QUART" or "SON LAS DOS Y MEDIA".
+- **Weather report:** It fades in full screen over the clock and back again. If "after every weather report" is set, the next clock face follows. With the weather report switched on, the random choice does not pick the WEATHER clock face, otherwise the clock would stay on it.
+- **Weather views:** OVERVIEW, SIMPLE, TODAY, DAYS (7 days), HOURS (24 hours as a curve) or ROTATING. Each is available multicoloured or in a single colour. The data comes from Open-Meteo: now, hourly for 24 hours, daily for 7 days, with sunrise and sunset.
+- **Date and weather** are on one line below every clock face except WEATHER, each in its own colour. They are on or off depending on the menu; the degree sign is drawn.
+- **Music, everything smooth:** With loud music, rings and marks glow a little brighter. Nothing blinks.
 
-## Geprüft am Automaten (2026-11-08)
+## Checked on the cabinet (2026-11-08)
 
-- 0.7.1: Aufwachen geht sofort. Vorher hing das Beenden, solange ein Wetterabruf lief: Das normale `exit()` leert alle Datenströme und wartete dabei auf die Leitung zum Abruf. War open-meteo nicht erreichbar, dauerte das 15 s für curl und danach bis zu 20 × 15 s für wget, also Minuten. Jetzt endet die Uhr mit `_Exit()`, curl gibt nach 6 s ohne Verbindung auf, wget versucht es nur einmal. Gemessen: Ende sofort nach dem Tastendruck, auch während open-meteo nicht antwortete.
+- 0.7.1: Waking up is immediate. Previously, quitting hung while a weather fetch was running: the normal `exit()` flushes all streams and in doing so waited on the pipe to the fetch. If open-meteo was unreachable, this took 15 s for curl and then up to 20 × 15 s for wget, i.e. minutes. Now the clock ends with `_Exit()`, curl gives up after 6 s without a connection, and wget tries only once. Measured: ends immediately after the key press, even while open-meteo was not responding.
 
-- 0.3.0 und 0.3.1 installiert, 40 Bilder pro Sekunde, etwa 500 Linien, keine verworfenen Linien.
-- Die Übernahme der Steuerung klappt. Der Screensaver läuft als `pi`, der zur Gruppe `input` gehört.
-  - Gegriffen werden die Tastatur des Bedienfelds (Arduino Micro Keyboard), der Spinner (Ultimarc SpinTrak), die Arduino-Maus und das 2.4G-Funkgerät mit Tastatur, Maus und Consumer Control.
-  - Seit 0.3.1 bleiben der Einschaltknopf (`pwr_button`), die System-Tasten des Funkgeräts, das USB-Audiogerät und HDMI unberührt. In 0.3.0 hatte die Uhr auch den Einschaltknopf gegriffen.
-  - Das SDK sieht keinen Joystick, die Steuerung kommt als Tastatur. Die Tasten folgen den Standardtasten des SDK (START 1 = `KEY_1`, Button 1 = `KEY_LEFTCTRL`, Button 2 = `KEY_LEFTALT`), die Zuordnung der Uhr passt dazu.
-  - Im Test drückte jemand Button 3 (`KEY_SPACE`): Die Uhr endete wie verlangt. Den Spinner zu drehen weckt nicht.
-- `curl` und `wget` sind vorhanden. Wetter und Ortssuche von Open-Meteo antworten.
+- 0.3.0 and 0.3.1 installed, 40 frames per second, about 500 lines, no dropped lines.
+- Taking over the controls works. The screensaver runs as `pi`, which belongs to the group `input`.
+  - Grabbed are the control panel keyboard (Arduino Micro Keyboard), the spinner (Ultimarc SpinTrak), the Arduino mouse and the 2.4G wireless device with keyboard, mouse and Consumer Control.
+  - Since 0.3.1 the power button (`pwr_button`), the wireless device's system keys, the USB audio device and HDMI are left untouched. In 0.3.0 the clock had also grabbed the power button.
+  - The SDK sees no joystick; the controls come in as a keyboard. The keys follow the SDK's standard keys (START 1 = `KEY_1`, Button 1 = `KEY_LEFTCTRL`, Button 2 = `KEY_LEFTALT`), and the clock's mapping matches.
+  - In the test someone pressed Button 3 (`KEY_SPACE`): the clock ended as required. Turning the spinner does not wake it.
+- `curl` and `wget` are present. Open-Meteo weather and place search respond.
 
-## Geprüft (am PC)
+## Checked (on the PC)
 
-- 0.7.0: Alle Zifferblätter in eigenen, passenden Farben (ORBIT, TUNNEL und WEATHER waren es schon). Neue Farbwahl RANDOM MULTI, RANDOM heißt jetzt RANDOM SINGLE. Alle Zifferblätter am PC angesehen, dazu vier mit RANDOM MULTI. Am Automaten 40 Bilder pro Sekunde.
+- 0.7.0: All clock faces in their own matching colours (ORBIT, TUNNEL and WEATHER already were). New colour option RANDOM MULTI; RANDOM is now called RANDOM SINGLE. All clock faces viewed on the PC, plus four with RANDOM MULTI. On the cabinet 40 frames per second.
 
 - 0.6.0:
-  - Fünf neue analoge Zifferblätter (MINIMAL, NUMERALS, ROMAN, SQUARE, FULL SCREEN) mit eigenen Zeigern angesehen. Am Automaten 40 Bilder pro Sekunde, etwa 440 bis 520 Linien.
-  - Das Datumsfenster von ANALOG ist größer (380 × 230 statt 220 × 160, Zahl 110 statt 90 hoch).
-  - Umschalten mit eigener Taste per `SAVER_SCRIPT` (`K57`): gelernt als „CUSTOM: BUTTON 3“, gespeichert, danach schaltet Button 3 weiter.
-  - Gespeicherte Zifferblätter: WEATHER war Nummer 9 und ist jetzt 14. Wer WEATHER gespeichert hatte, landet einmal auf MINIMAL.
+  - Five new analogue clock faces (MINIMAL, NUMERALS, ROMAN, SQUARE, FULL SCREEN) with their own hands viewed. On the cabinet 40 frames per second, about 440 to 520 lines.
+  - The date window of ANALOG is larger (380 × 230 instead of 220 × 160, number 110 instead of 90 high).
+  - Switching with a custom key via `SAVER_SCRIPT` (`K57`): learned as "CUSTOM: BUTTON 3", saved, after which Button 3 switches onward.
+  - Saved clock faces: WEATHER was number 9 and is now 14. Anyone who had saved WEATHER lands on MINIMAL once.
 
-- 0.5.1: Der Spinner war zu empfindlich. Ein Schritt braucht jetzt 240 statt 60 Zählschritte, danach ruht er 0,35 s: ein Schwung, ein Schritt. Am Automaten noch von Hand zu beurteilen.
+- 0.5.1: The spinner was too sensitive. A step now needs 240 instead of 60 counts, after which it rests for 0.35 s: one spin, one step. Still to be judged by hand on the cabinet.
 
-- 0.5.0: Spinner per `SAVER_SCRIPT` (`SL`, `SR`) geprüft: ROCKS, WEATHER, Wetterbericht, ANALOG und zurück. Das analoge Zifferblatt sitzt höher und ist etwas kleiner (Mitte 2150, Radius 1430), mit Abstand zur Zeile darunter. Am Automaten wird der SpinTrak als Spinner erkannt.
+- 0.5.0: Spinner checked via `SAVER_SCRIPT` (`SL`, `SR`): ROCKS, WEATHER, weather report, ANALOG and back. The analogue clock face sits higher and is a little smaller (centre 2150, radius 1430), with space to the line below. On the cabinet the SpinTrak is recognised as a spinner.
 
-- 0.4.2: Wetterbericht auch alle 1, 2 oder 3 Minuten. Gespeichert wird jetzt in Minuten (`report_minutes`), ein altes `report = <Platz>` wird umgerechnet. Am PC geprüft: altes „alle 5“ gelesen, im Menü auf 1 Minute gestellt, der Bericht kam eine Minute nach dem Schließen.
+- 0.4.2: Weather report also every 1, 2 or 3 minutes. It is now saved in minutes (`report_minutes`); an old `report = <slot>` is converted. Checked on the PC: old "every 5" read, set to 1 minute in the menu, the report came one minute after closing.
 
-- 0.4.1: ROCKS behoben. Die Felsen sprangen jedes Bild 300 Einheiten nach unten (Fehler beim Umlauf am Rand) und wirkten dadurch rasend schnell. Jetzt treiben sie langsam (14 bis 36 Einheiten pro Sekunde) und drehen sich gemächlich. Am PC über 8 s geprüft.
+- 0.4.1: ROCKS fixed. The rocks jumped 300 units downwards every frame (bug in the wrap-around at the edge) and therefore seemed to move at breakneck speed. Now they drift slowly (14 to 36 units per second) and rotate leisurely. Checked on the PC over 8 s.
 
-- 0.4.0: Menü mit F2/Tab per `SAVER_SCRIPT` (`MENU`) geöffnet und geschlossen, Einstellung dabei gespeichert. RANDOM für alle drei Farben: Jedes Zifferblatt kam in einer anderen Farbe, Datum und Wetter wechselten mit. Am Automaten 40 Bilder pro Sekunde, keine verworfenen Linien.
+- 0.4.0: Menu opened and closed with F2/Tab via `SAVER_SCRIPT` (`MENU`), setting saved in the process. RANDOM for all three colours: every clock face came in a different colour, date and weather changed along with it. On the cabinet 40 frames per second, no dropped lines.
 
 - 0.3.0:
-  - Alle Wetter-Ansichten mit echten Daten für Berlin angesehen, bunt und einfarbig.
-  - Den Wetterbericht im schnellen Takt (`SAVER_REPORT_EVERY`) über 60 s geprüft: zufällige Zifferblätter, nach jedem Bericht ein neues, die Ansichten im Wechsel.
-  - Getrennte Farben für Uhr, Datum und Wetter.
-  - Das blätternde Menü.
-  - Dabei behoben: Mit „nach Wetterbericht“ wechselte das Zifferblatt ständig, und der Zufall konnte auf WEATHER stehen bleiben.
+  - All weather views viewed with real data for Berlin, multicoloured and single colour.
+  - Checked the weather report at a fast rate (`SAVER_REPORT_EVERY`) over 60 s: random clock faces, a new one after every report, the views alternating.
+  - Separate colours for clock, date and weather.
+  - The scrolling menu.
+  - Fixed along the way: with "after weather report" the clock face changed constantly, and the random choice could get stuck on WEATHER.
 
-- 0.2.1: Kreise sind auf dem 4:3-Monitor rund. Die Linien werden quer um 0,75 zusammengezogen, Text behält seine Form. Alle Zifferblätter wurden danach angesehen.
+- 0.2.1: Circles are round on the 4:3 monitor. The lines are compressed horizontally by 0.75; text keeps its shape. All clock faces were viewed afterwards.
 
-- PC- und Pi-Build ohne Warnungen.
-- Das Menü wurde per `SAVER_SCRIPT` durchgespielt:
-  - Zifferblatt, Farbe und Sprache umgestellt
-  - Köln aus der Liste gewählt: Wetter und Ortszeit auf Französisch, „SAM 7 NOV COLOGNE 7°C COUVERT“
-  - „OSLO“ über die Bildschirmtastatur gesucht: 6 Treffer, Oslo in Norwegen gewählt
-  - die englische Wortuhr („IT IS TEN PAST NINE“) in Bernstein geprüft
-  - Speichern und Laden der Einstellungen
-- Version 0.1.0 lief am PC mit 40 Bildern pro Sekunde und bis etwa 900 Linien.
+- PC and Pi builds without warnings.
+- The menu was played through via `SAVER_SCRIPT`:
+  - clock face, colour and language changed
+  - Cologne chosen from the list: weather and local time in French, "SAM 7 NOV COLOGNE 7°C COUVERT"
+  - "OSLO" searched via the on-screen keyboard: 6 results, Oslo in Norway chosen
+  - the English word clock ("IT IS TEN PAST NINE") checked in amber
+  - saving and loading the settings
+- Version 0.1.0 ran on the PC at 40 frames per second and up to about 900 lines.
 
-## Offen
+## Open
 
-- **Am Automaten noch von Hand zu prüfen:**
-  - ob F2 oder Tab das Menü öffnet und Joystick und Buttons darin wirken
-  - ob das Menü des Automaten nach dem Wecken wieder erscheint und den Screensaver nicht sofort neu startet
-  - Mit `CLOCK_INPUT_LOG=1` (und `VP_SAVER=1` beim Start von Hand) zeigt die Uhr jede Taste. Mit `CLOCK_NO_GRAB=1` lässt sich das Greifen abschalten.
-- **Zeitzone:** Ohne Ort oder solange kein Wetter aus dem Internet kam, zeigt die Uhr die Zeit des Pi. Dessen Zeitzone stand auf America/New_York und ist seit 2026-11-08 auf Europe/Berlin umgestellt (`timedatectl set-timezone`, dazu `/etc/timezone`). Mit einem Ort unter PLACE gilt nach dem ersten Wetter dessen Zeitzone. Fällt das Internet danach weg, bleibt dieser Versatz, bis zur nächsten Zeitumstellung stimmt er.
-- Am echten Monitor noch nicht beurteilt.
+- **Still to be checked by hand on the cabinet:**
+  - whether F2 or Tab opens the menu and joystick and buttons work in it
+  - whether the cabinet's menu reappears after waking and does not immediately restart the screensaver
+  - With `CLOCK_INPUT_LOG=1` (and `VP_SAVER=1` when started by hand) the clock shows every key. With `CLOCK_NO_GRAB=1` grabbing can be switched off.
+- **Time zone:** Without a place, or as long as no weather has arrived from the internet, the clock shows the Pi's time. Its time zone was set to America/New_York and has been changed to Europe/Berlin since 2026-11-08 (`timedatectl set-timezone`, plus `/etc/timezone`). With a place under PLACE, its time zone applies after the first weather. If the internet drops out after that, this offset remains; it is correct until the next daylight saving change.
+- Not yet judged on the real monitor.

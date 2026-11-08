@@ -11,7 +11,7 @@ Each screensaver has its own folder:
 | [`labyrinth/`](labyrinth/) | **Labyrinth** | A walk through one maze after another, seen through the walker's eyes: patterned walls with VECTORPIE signs, spinning crystals and a cake as the exit. |
 | [`neonpeaks/`](neonpeaks/) | **Neon Peaks** | Retrowave: a flight through a neon grid valley towards a striped sun. The music shapes the mountains on the horizon (its spectrum); speed and colors follow it smoothly. |
 | [`neonridge/`](neonridge/) | **Neon Ridge** | Like the retrowave mountain videos: a starry sky, a glowing cyan horizon, a mountain range of contour lines, a plain of lines in front and a pink light trail. The camera stands still. |
-| [`constellations/`](constellations/) | **Constellations** | A tour of the real night sky: 26 constellations draw themselves one after another, with German and Latin names and named bright stars. The stars twinkle, the Milky Way runs through, and now and then a shooting star falls. |
+| [`constellations/`](constellations/) | **Constellations** | A tour of the real night sky: 26 constellations draw themselves one after another, with English and Latin names and named bright stars. The stars twinkle, the Milky Way runs through, and now and then a shooting star falls. |
 | [`clock/`](clock/) | **Clock** | The time on fifteen clock faces (six analog, digital, flip, binary, word clock, Nixie, orbit, tunnel, rocks, weather), with the date and the weather from the internet and a weather report in five views. Its own menu (F2 or Tab) sets face, random, change, switching (spinner, left/right, a custom button), colors, second hand, what is shown, weather report, place and language. |
 
 ## Screenshots

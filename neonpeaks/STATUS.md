@@ -1,38 +1,38 @@
 # Status
 
-Stand 2026-11-07, Version 0.1.2: **Neon Peaks** (`saver_neonpeaks`).
+Status as of 2026-11-07, version 0.1.2: **Neon Peaks** (`saver_neonpeaks`).
 
-## Was da ist (`src/main.c`)
+## What is there (`src/main.c`)
 
-- **Tal:** ein flaches Gitter, 32 m breit. Die Kamera fliegt in 5 m Höhe darüber und driftet langsam etwas seitwärts.
-- **Berge:** links und rechts als Drahtgitter, aber massiv: Sie verdecken, was hinter ihnen liegt. Das Gelände hat 24 Reihen zu je 10 m und 21 Punkte quer, außen weiter auseinander. Es ist fest in der Welt, man fliegt also daran vorbei.
-  - Neue Reihen wachsen am Horizont aus der Ebene, sie springen nicht auf.
-  - Das Gelände wird mit der Entfernung dunkler. Das ist ein eigener Nebel, der Nebel der Ansicht würde auch die Sonne dimmen.
-- **Sonne:** ein Kreis aus waagrechten Linien, die langsam nach unten gleiten. In der unteren Hälfte werden die Lücken breiter, das gibt die typischen Streifen. Davor steht eine ferne Bergkette, die man nie erreicht.
-- **Musik:**
-  - Jede neue Reihe am Horizont bekommt ihre Form aus dem Spektrum, das gerade läuft. Die Bässe formen die Berge nah am Tal, die Höhen die äußeren. Laute Passagen ergeben hohe Berge, die dann heranfliegen.
-  - Das Spektrum ist geglättet, damit keine Zacken entstehen.
-  - Die Fluggeschwindigkeit liegt bei 20 bis 42 m/s und folgt gleitend der Lautstärke.
-  - **Farben:** 5 Neon-Farbsätze (Magenta, Cyan, Pink, Violett, Blau; Grün und Orange sind raus). Sie blenden ständig ineinander über: Jeder wird 18 s gehalten, dann folgt eine Überblendung von 8 s. Ein neuer Track startet die nächste Überblendung sofort. Der Start ist immer der klassische Satz (Magenta-Gitter, Cyan-Gipfel).
-  - Bei einem neuen Track erscheint 7 s lang sein Titel.
-  - Nichts blinkt oder pulsiert.
-- Für den PC: `SAVER_SHOTS=<ordner>` speichert alle 2 s ein Bild.
+- **Valley:** a flat grid, 32 m wide. The camera flies over it at a height of 5 m and slowly drifts a little sideways.
+- **Mountains:** left and right as wireframes, but solid: they hide what lies behind them. The terrain has 24 rows of 10 m each and 21 points across, further apart on the outside. It is fixed in the world, so you fly past it.
+  - New rows grow out of the plain at the horizon; they do not pop up.
+  - The terrain gets darker with distance. This is a custom fog; the view's fog would also dim the sun.
+- **Sun:** a circle of horizontal lines that slowly glide downwards. In the lower half the gaps get wider, which gives the typical stripes. In front of it stands a distant mountain range that is never reached.
+- **Music:**
+  - Every new row at the horizon gets its shape from the spectrum currently playing. The bass shapes the mountains close to the valley, the treble the outer ones. Loud passages produce high mountains, which then fly closer.
+  - The spectrum is smoothed so that no spikes appear.
+  - The flying speed is 20 to 42 m/s and follows the volume smoothly.
+  - **Colours:** 5 neon colour sets (magenta, cyan, pink, violet, blue; green and orange are out). They constantly cross-fade into each other: each is held for 18 s, followed by a cross-fade of 8 s. A new track starts the next cross-fade immediately. The start is always the classic set (magenta grid, cyan peaks).
+  - On a new track its title appears for 7 s.
+  - Nothing blinks or pulses.
+- For the PC: `SAVER_SHOTS=<folder>` saves a frame every 2 s.
 
-## Geprüft (2026-11-07)
+## Checked (2026-11-07)
 
-- PC- und Pi-Build ohne Warnungen. `build/saver_neonpeaks-0.1.2.vps` wird erzeugt.
-- 0.1.2 (2026-11-07): Die Reihen zuckten links und rechts, weil ihre Zeichenrichtung bei jeder nachrückenden Reihe kippte. Jetzt hängt sie an der Nummer der Reihe. Auf dem Board 40 Bilder pro Sekunde, Senden 0,6 ms. Am Monitor noch nicht bestätigt.
-- Am PC Bilder angesehen, mit Farbwechsel beim Track-Wechsel.
-- **Auf dem Automaten installiert** (`sh tools/deploy.sh neonpeaks`) und 25 s auf dem Board getestet:
-  - gleichmäßig 40 Bilder pro Sekunde
-  - etwa 520 Linien pro Bild, aber nur etwa 80 Sprünge
-  - Senden 0,5 ms, keine verlorenen Linien
+- PC and Pi builds without warnings. `build/saver_neonpeaks-0.1.2.vps` is produced.
+- 0.1.2 (2026-11-07): The rows twitched left and right because their drawing direction flipped with every row moving up. Now it is tied to the row's number. On the board 40 frames per second, sending 0.6 ms. Not yet confirmed on the monitor.
+- Frames viewed on the PC, with colour change on track change.
+- **Installed on the cabinet** (`sh tools/deploy.sh neonpeaks`) and tested on the board for 25 s:
+  - a steady 40 frames per second
+  - about 520 lines per frame, but only about 80 jumps
+  - sending 0.5 ms, no lost lines
 
-## Bekannte Probleme und Grenzen
+## Known problems and limitations
 
-- Am echten Monitor noch nicht beurteilt: Helligkeit, Tempo, wie stark man die Musik in den Bergen erkennt.
+- Not yet judged on the real monitor: brightness, speed, how clearly the music can be seen in the mountains.
 
-## Offene Aufgaben
+## Open tasks
 
-- [ ] Am Automaten ansehen und mit echter Musik beurteilen
-- [ ] Unter SETTINGS → SCREENSAVERS → SELECT auswählen (das geht nur am Automaten)
+- [ ] Look at it on the cabinet and judge it with real music
+- [ ] Select it under SETTINGS → SCREENSAVERS → SELECT (this can only be done on the cabinet)

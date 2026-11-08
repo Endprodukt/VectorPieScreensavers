@@ -1,22 +1,22 @@
-# Weitermachen
+# Continuing
 
-**Neon Peaks** ist der vierte Screensaver im Repository „VectorPie Screensavers“ (Ordner `neonpeaks/`). Bauen, Paketieren und Installieren: siehe `../BUILD.md`. Stand: siehe `STATUS.md`.
+**Neon Peaks** is the fourth screensaver in the "VectorPie Screensavers" repository (folder `neonpeaks/`). Building, packaging and installing: see `../BUILD.md`. Status: see `STATUS.md`.
 
-## Wünsche des Nutzers
+## User's wishes
 
-- Im Stil von Retrowave-Mountains-Videos (Vorlage: YouTube „4K Retrowave Mountains Screensaver“): Neon-Gitter, Drahtgitterberge, gestreifte Sonne.
-- **Hier darf der Screensaver auf die Musik reagieren** (2026-11-07).
-- **Farben:** nur Neonfarben, die ineinander überblenden. Am besten gefiel dem Nutzer der erste Satz (Magenta und Cyan); Grün und Orange gefielen weniger (2026-11-07). Trotzdem gilt: nichts blinkt oder pulsiert, alles ändert sich gleitend (siehe `../neondrive/RESUME.md`).
+- In the style of retrowave mountains videos (model: YouTube "4K Retrowave Mountains Screensaver"): neon grid, wireframe mountains, striped sun.
+- **Here the screensaver may react to the music** (2026-11-07).
+- **Colours:** only neon colours that cross-fade into each other. The user liked the first set best (magenta and cyan); green and orange were liked less (2026-11-07). Even so: nothing blinks or pulses, everything changes smoothly (see `../neondrive/RESUME.md`).
 
-## Aufbau (alles in `src/main.c`)
+## Structure (everything in `src/main.c`)
 
-- `G.h[RING][COLS]`: die Höhen jeder Geländereihe (Reihe n liegt bei z = n·DZ). `make_row` erzeugt sie, sobald sie gebraucht werden, aus Rauschen mal Musik (`G.bands`, geglättet). `height` lässt sie am Horizont aus der Ebene wachsen.
+- `G.h[RING][COLS]`: the heights of each terrain row (row n lies at z = n·DZ). `make_row` generates them as soon as they are needed, from noise times music (`G.bands`, smoothed). `height` makes them grow out of the plain at the horizon.
 - `ground_draw`:
-  - unsichtbare Dreiecke (`vp3d_scene_polygon` mit Maske 0) als Verdeckung. Dreiecke, weil Vierecke am Hang nicht eben sind und sonst ihre eigenen Kanten verdecken würden.
-  - Darauf die Gitterlinien als `vp3d_scene_line`, in Schlangenlinien: Jedes Stück beginnt, wo das letzte endete. Das senkte auf dem Board die Sprünge von 470 auf 80 und die Sendezeit von 25 auf 0,5 ms. **Dieser Trick könnte auch Neon Drive (28–30 fps, Senden etwa 30 ms) helfen.**
-- `sun_draw` und `range_draw`: Sonne und ferne Kette wandern mit der Kamera mit und werden so nie erreicht. Ein unsichtbarer Boden bei y = 0 verdeckt ihre unteren Teile.
-- `PAL`: 5 Farbsätze (Boden, Hang, Gipfel, Sonne oben, Sonne unten, Kette). `pal()` blendet über. Jeder wird `PAL_HOLD` gehalten, die Überblendung dauert `PAL_BLEND`, ein neuer Track startet die nächste.
+  - invisible triangles (`vp3d_scene_polygon` with mask 0) for occlusion. Triangles, because quads on a slope are not flat and would otherwise hide their own edges.
+  - On top, the grid lines as `vp3d_scene_line`, in serpentine lines: each piece starts where the last one ended. On the board this reduced the jumps from 470 to 80 and the send time from 25 to 0.5 ms. **This trick could also help Neon Drive (28–30 fps, sending about 30 ms).**
+- `sun_draw` and `range_draw`: sun and distant range move along with the camera and so are never reached. An invisible floor at y = 0 hides their lower parts.
+- `PAL`: 5 colour sets (ground, slope, peak, sun top, sun bottom, range). `pal()` cross-fades. Each is held for `PAL_HOLD`, the cross-fade takes `PAL_BLEND`, and a new track starts the next one.
 
-## Zeichenrichtung muss fest bleiben
+## Drawing direction must stay fixed
 
-Eine Linie, die andersherum gezeichnet wird, liegt auf dem Monitor ein wenig versetzt. Wenn Linien hin und her gezeichnet werden, muss die Richtung deshalb an der Linie selbst hängen (an ihrer eigenen Nummer), nicht an ihrem Platz in der Schleife. Sonst kippt die Richtung jedes Mal, wenn eine Linie nachrückt, und alle Linien zucken links und rechts (Rückmeldung des Nutzers zu Neon Peaks, 2026-11-07; seit Neon Peaks 0.1.2, Neon Ridge 0.1.2, Neon Drive 0.7.2 behoben).
+A line drawn the other way round lies slightly offset on the monitor. When lines are drawn back and forth, the direction must therefore be tied to the line itself (to its own number), not to its place in the loop. Otherwise the direction flips every time a line moves up, and all lines twitch left and right (user feedback on Neon Peaks, 2026-11-07; fixed since Neon Peaks 0.1.2, Neon Ridge 0.1.2, Neon Drive 0.7.2).

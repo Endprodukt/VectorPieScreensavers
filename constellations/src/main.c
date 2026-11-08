@@ -1,6 +1,6 @@
 /* Constellations — a VectorPie screensaver: a slow tour of the real night
  * sky. The view glides from one constellation to the next, each near the
- * last; there its figure draws itself in, its German name (and the Latin one)
+ * last; there its figure draws itself in, its English name (and the Latin one)
  * appears under it, its bright stars are named; then on to the next.
  *
  * The stars of the figures and the bright ones beside them are real (sky.h:

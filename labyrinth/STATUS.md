@@ -1,42 +1,42 @@
 # Status
 
-Stand 2026-11-07, Version 0.1.1: **Labyrinth** (`saver_labyrinth`).
+Status as of 2026-11-07, version 0.1.1: **Labyrinth** (`saver_labyrinth`).
 
-## Was da ist (`src/main.c`)
+## What is there (`src/main.c`)
 
-- **Labyrinthe:** jedes zufällig, 9 bis 16 Zellen pro Seite. Jede Zelle ist auf genau einem Weg erreichbar. Zellen sind 2,4 m groß, die Wände 2,2 m hoch, das Auge ist in halber Höhe.
-- **Der Gang:** Der Wanderer hält die rechte Hand an der Wand und kommt so immer zum Ausgang.
-  - Er bleibt nie stehen. Kurven nimmt er im Bogen und dreht sich dabei; in Sackgassen läuft er hinein, wendet nach rechts und läuft zurück.
-  - Tempo: 2 Zellen pro Sekunde, bei lauter Musik gleitend bis 3,2. In Kurven geht er etwas langsamer, beim Wenden deutlich.
-- **Wände:** Je Labyrinth ein Muster: Ziegel, Kassetten, Kacheln oder Streifen mit Raute. Das Muster wird nur bis etwa 5 Zellen Entfernung gezeichnet, dahinter wäre es im Nebel ohnehin verloren. Dazu ein Gitter auf Boden und Decke und Nebel, der mit der Entfernung abdunkelt.
-- **VECTORPIE-Schilder:** auf etwa jeder elften Wand, auf einer Seite.
-- **Kristalle:** 3 pro Labyrinth, auf dem Weg. Sie drehen sich und verschwinden, wenn der Wanderer kommt. Läuft der Wanderer auf dem Boden durch einen, dreht sich die Welt in 3 s langsam auf den Kopf. Er läuft dann 10 Zellen über Kopf weiter und dreht danach langsam zurück (seit 0.1.1, Wunsch des Nutzers).
-  - Ein Kristall steht nur auf dem ersten Besuch einer Zelle und ist eine halbe Zelle vor dem Wanderer verschwunden. So kommt die Kamera nie in ihn hinein.
-  - Früher konnte das passieren; seine Kanten zogen dann als schräge Striche durchs Bild (Rückmeldung 2026-11-07).
-- **Ausgang:** ein drehender Kuchen mit fehlendem Stück. Davor blendet das Labyrinth aus und das nächste in anderen Farben wieder ein. Es gibt 5 Farbsätze.
-- **Musik:** Das Tempo folgt gleitend der Lautstärke. Bei einem neuen Track erscheint 7 s lang sein Titel. Nichts pulsiert oder blinkt.
-- Für den PC:
-  - `SAVER_SHOTS=<ordner>` speichert alle 2 s ein Bild.
-  - `SAVER_TEMPO=<faktor>` läuft entsprechend schneller.
+- **Mazes:** each one random, 9 to 16 cells per side. Every cell can be reached by exactly one path. Cells are 2.4 m in size, the walls 2.2 m high, the eye is at half height.
+- **The walk:** The wanderer keeps his right hand on the wall and so always reaches the exit.
+  - He never stops. He takes curves in an arc and turns as he goes; he walks into dead ends, turns to the right and walks back.
+  - Speed: 2 cells per second, smoothly up to 3.2 with loud music. In curves he goes a little slower, and much slower when turning around.
+- **Walls:** One pattern per maze: bricks, panels, tiles or stripes with a diamond. The pattern is only drawn up to about 5 cells away; beyond that it would be lost in the fog anyway. In addition, a grid on floor and ceiling, and fog that darkens with distance.
+- **VECTORPIE signs:** on about every eleventh wall, on one side.
+- **Crystals:** 3 per maze, on the path. They rotate and disappear when the wanderer arrives. If the wanderer walks through one while on the floor, the world slowly turns upside down over 3 s. He then walks on upside down for 10 cells and afterwards slowly turns back (since 0.1.1, the user's wish).
+  - A crystal only stands on the first visit to a cell and has disappeared when the wanderer is half a cell away. So the camera never ends up inside it.
+  - This used to be possible; its edges then ran across the screen as slanted strokes (feedback 2026-11-07).
+- **Exit:** a rotating pie with a missing slice. Before it, the maze fades out and the next one fades in with different colours. There are 5 colour sets.
+- **Music:** The speed follows the volume smoothly. On a new track its title appears for 7 s. Nothing pulses or blinks.
+- For the PC:
+  - `SAVER_SHOTS=<folder>` saves a frame every 2 s.
+  - `SAVER_TEMPO=<factor>` runs correspondingly faster.
 
-## Geprüft (2026-11-07)
+## Checked (2026-11-07)
 
-- PC- und Pi-Build ohne Warnungen. `build/saver_labyrinth-0.1.1.vps` wird erzeugt. 0.1.1 auf dem Board: 40 Bilder pro Sekunde, keine verlorenen Linien.
-- Am PC Bilder angesehen: Muster, Schilder, Kristalle, das Umdrehen, der Ausgang und mehrere Labyrinthe nacheinander (100 s mit 8-fachem Tempo).
-  - 38 bis 41 fps.
-  - Höchstens etwa 290 Linien pro Bild.
-- **Auf dem Automaten installiert** (`sh tools/deploy.sh labyrinth`) und 25 s auf dem Board getestet:
-  - gleichmäßig 40 Bilder pro Sekunde
-  - 50 bis 126 Linien pro Bild
-  - keine verlorenen Linien
+- PC and Pi builds without warnings. `build/saver_labyrinth-0.1.1.vps` is produced. 0.1.1 on the board: 40 frames per second, no lost lines.
+- Frames viewed on the PC: patterns, signs, crystals, the flip, the exit and several mazes in a row (100 s at 8× speed).
+  - 38 to 41 fps.
+  - At most about 290 lines per frame.
+- **Installed on the cabinet** (`sh tools/deploy.sh labyrinth`) and tested on the board for 25 s:
+  - a steady 40 frames per second
+  - 50 to 126 lines per frame
+  - no lost lines
 
-## Bekannte Probleme und Grenzen
+## Known problems and limitations
 
-- An Kreuzungen, wo eine Querwand auf eine durchgehende Wand trifft, wird die senkrechte Ecklinie manchmal von beiden Wänden gezeichnet, also doppelt. Das ist unschön, aber harmlos.
-- Wie es am echten Monitor aussieht, ist noch nicht beurteilt: Helligkeit der Muster, Tempo und Kurven.
+- At junctions where a cross wall meets a continuous wall, the vertical corner line is sometimes drawn by both walls, i.e. twice. This is unsightly but harmless.
+- How it looks on the real monitor has not yet been judged: brightness of the patterns, speed and curves.
 
-## Offene Aufgaben
+## Open tasks
 
-- [ ] Am Automaten ansehen: Tempo, Kurven, Helligkeit
-- [ ] Unter SETTINGS → SCREENSAVERS → SELECT auswählen (das geht nur am Automaten)
-- [ ] Mögliche Erweiterungen: ein Wesen, das durch die Gänge läuft; Labyrinthe mit Räumen
+- [ ] Look at it on the cabinet: speed, curves, brightness
+- [ ] Select it under SETTINGS → SCREENSAVERS → SELECT (this can only be done on the cabinet)
+- [ ] Possible extensions: a creature that walks through the corridors; mazes with rooms

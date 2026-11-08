@@ -5,7 +5,7 @@
  * magnitudes, from the usual catalogues (rounded, good to a fraction of a
  * degree: plenty for the screen). The figures follow the common modern
  * drawings (as in star atlases and planetarium programs). Names are the
- * German ones, in capitals without umlauts (the fonts know only ASCII).
+ * English ones, in capitals (the fonts know only ASCII).
  */
 #ifndef SKY_H
 #define SKY_H
@@ -46,7 +46,7 @@ static const signed char uma_p[] = { 6, 5, 4, 3, 0, 1, 2, 3, -1, 0, 18, 7, 8, 1,
                                      2, 12, 13, 14, 15, -1, 12, 16, 17 };
 
 static const sky_star umi_s[] = {
-    { 2.530f, 89.264f, 1.98f, 'y', 0, "POLARSTERN" }, { 17.537f, 86.586f, 4.35f, 0, 0, 0 },
+    { 2.530f, 89.264f, 1.98f, 'y', 0, "POLARIS" }, { 17.537f, 86.586f, 4.35f, 0, 0, 0 },
     { 16.766f, 82.037f, 4.21f, 0, 0, 0 },             { 15.734f, 77.795f, 4.29f, 0, 0, 0 },
     { 14.845f, 74.156f, 2.07f, 'r', 0, "KOCHAB" },    { 15.345f, 71.834f, 3.00f, 0, 0, 0 },
     { 16.292f, 75.755f, 4.95f, 0, 0, 0 },
@@ -73,7 +73,7 @@ static const sky_star cep_s[] = {
 static const signed char cep_p[] = { 0, 1, 2, 3, 4, 0, -1, 1, 3, -1, 5, 4, 6 };
 
 static const sky_star cas_s[] = {
-    { 0.153f, 59.150f, 2.27f, 0, 0, "CAPH" },   { 0.675f, 56.537f, 2.24f, 'y', 0, "SCHEDIR" },
+    { 0.153f, 59.150f, 2.27f, 0, 0, "CAPH" },   { 0.675f, 56.537f, 2.24f, 'y', 0, "SCHEDAR" },
     { 0.945f, 60.717f, 2.15f, 'b', 0, 0 },      { 1.430f, 60.235f, 2.66f, 0, 0, "RUCHBAH" },
     { 1.907f, 63.670f, 3.35f, 'b', 0, 0 },
 };
@@ -114,7 +114,7 @@ static const sky_star per_s[] = {
 static const signed char per_p[] = { 6, 2, 0, 3, 9, 4, 11, 5, 10, -1, 0, 7, 1, 8 };
 
 static const sky_star aur_s[] = {
-    { 5.278f, 45.998f, 0.08f, 'y', 0, "KAPELLA" }, { 5.992f, 44.948f, 1.90f, 0, 0, "MENKALINAN" },
+    { 5.278f, 45.998f, 0.08f, 'y', 0, "CAPELLA" }, { 5.992f, 44.948f, 1.90f, 0, 0, "MENKALINAN" },
     { 5.995f, 37.213f, 2.62f, 0, 0, 0 },           { 5.438f, 28.608f, 1.65f, 'b', 1, 0 },
     { 4.950f, 33.166f, 2.69f, 'r', 0, 0 },         { 5.033f, 43.823f, 2.99f, 'y', 0, 0 },
     { 5.041f, 41.076f, 3.75f, 'r', 0, 0 },         { 5.109f, 41.234f, 3.17f, 'b', 0, 0 },
@@ -127,14 +127,14 @@ static const sky_star tau_s[] = {
     { 4.330f, 15.628f, 3.65f, 'y', 0, 0 },           { 4.383f, 17.543f, 3.76f, 'y', 0, 0 },
     { 4.477f, 19.180f, 3.53f, 'y', 0, 0 },           { 4.011f, 12.490f, 3.47f, 'b', 0, 0 },
     { 3.414f, 9.029f, 3.60f, 'y', 0, 0 },            { 3.453f, 9.733f, 3.73f, 0, 0, 0 },
-    { 3.791f, 24.105f, 2.87f, 'b', 0, "PLEJADEN" },  { 3.819f, 24.053f, 3.62f, 'b', 0, 0 },
+    { 3.791f, 24.105f, 2.87f, 'b', 0, "PLEIADES" },  { 3.819f, 24.053f, 3.62f, 'b', 0, 0 },
     { 3.748f, 24.113f, 3.70f, 'b', 0, 0 },           { 3.763f, 24.367f, 3.87f, 'b', 0, 0 },
     { 3.772f, 23.948f, 4.18f, 'b', 0, 0 },           { 3.753f, 24.467f, 4.30f, 'b', 0, 0 },
 };
 static const signed char tau_p[] = { 1, 6, 5, 4, 3, 0, 2, -1, 4, 7, 8 };
 
 static const sky_star gem_s[] = {
-    { 7.577f, 31.888f, 1.58f, 0, 0, "KASTOR" },  { 7.755f, 28.026f, 1.14f, 'y', 0, "POLLUX" },
+    { 7.577f, 31.888f, 1.58f, 0, 0, "CASTOR" },  { 7.755f, 28.026f, 1.14f, 'y', 0, "POLLUX" },
     { 6.629f, 16.399f, 1.93f, 0, 0, "ALHENA" },  { 6.732f, 25.131f, 2.98f, 'y', 0, 0 },
     { 6.383f, 22.514f, 2.87f, 'r', 0, 0 },       { 6.248f, 22.507f, 3.28f, 'r', 0, 0 },
     { 7.335f, 21.982f, 3.53f, 0, 0, 0 },         { 7.068f, 20.570f, 3.79f, 'y', 0, 0 },
@@ -145,7 +145,7 @@ static const sky_star gem_s[] = {
 static const signed char gem_p[] = { 0, 9, 3, 4, 5, -1, 1, 11, 6, 7, 2, -1, 11, 10, -1, 6, 12, 8, -1, 9, 11 };
 
 static const sky_star cmi_s[] = {
-    { 7.655f, 5.225f, 0.34f, 0, 0, "PROKYON" }, { 7.453f, 8.289f, 2.89f, 'b', 0, "GOMEISA" },
+    { 7.655f, 5.225f, 0.34f, 0, 0, "PROCYON" }, { 7.453f, 8.289f, 2.89f, 'b', 0, "GOMEISA" },
 };
 static const signed char cmi_p[] = { 0, 1 };
 
@@ -159,7 +159,7 @@ static const sky_star cma_s[] = {
 static const signed char cma_p[] = { 1, 0, 6, 3, 4, -1, 3, 2, 5, -1, 0, 8, 7, 9 };
 
 static const sky_star ori_s[] = {
-    { 5.919f, 7.407f, 0.50f, 'r', 0, "BETEIGEUZE" }, { 5.242f, -8.202f, 0.13f, 'b', 0, "RIGEL" },
+    { 5.919f, 7.407f, 0.50f, 'r', 0, "BETELGEUSE" }, { 5.242f, -8.202f, 0.13f, 'b', 0, "RIGEL" },
     { 5.419f, 6.350f, 1.64f, 'b', 0, "BELLATRIX" },  { 5.533f, -0.299f, 2.23f, 'b', 0, 0 },
     { 5.604f, -1.202f, 1.69f, 'b', 0, 0 },           { 5.679f, -1.943f, 1.77f, 'b', 0, 0 },
     { 5.796f, -9.670f, 2.06f, 'b', 0, "SAIPH" },     { 5.585f, 9.934f, 3.39f, 'b', 0, 0 },
@@ -174,7 +174,7 @@ static const signed char ori_p[] = { 7, 0, 5, 4, 3, 2, 7, -1, 5, 6, -1, 3, 1, -1
                                      -1, 0, 13, 14, 17, -1, 13, 15, 16 };
 
 static const sky_star lyr_s[] = {
-    { 18.616f, 38.784f, 0.03f, 'b', 0, "WEGA" }, { 18.739f, 39.670f, 4.67f, 0, 0, 0 },
+    { 18.616f, 38.784f, 0.03f, 'b', 0, "VEGA" }, { 18.739f, 39.670f, 4.67f, 0, 0, 0 },
     { 18.746f, 37.605f, 4.36f, 0, 0, 0 },        { 18.908f, 36.899f, 4.30f, 'r', 0, 0 },
     { 18.982f, 32.690f, 3.24f, 'b', 0, "SULAFAT" }, { 18.835f, 33.363f, 3.52f, 'b', 0, "SHELIAK" },
 };
@@ -190,7 +190,7 @@ static const sky_star cyg_s[] = {
 static const signed char cyg_p[] = { 0, 1, 5, 2, -1, 4, 1, 3, 6, -1, 4, 7, 8 };
 
 static const sky_star aql_s[] = {
-    { 19.846f, 8.868f, 0.77f, 0, 0, "ATAIR" },  { 19.771f, 10.613f, 2.72f, 'r', 0, "TARAZED" },
+    { 19.846f, 8.868f, 0.77f, 0, 0, "ALTAIR" },  { 19.771f, 10.613f, 2.72f, 'r', 0, "TARAZED" },
     { 19.922f, 6.407f, 3.71f, 'y', 0, 0 },      { 19.425f, 3.115f, 3.36f, 0, 0, 0 },
     { 19.090f, 13.863f, 2.99f, 0, 0, 0 },       { 20.188f, -0.821f, 3.23f, 'b', 0, 0 },
     { 19.104f, -4.882f, 3.43f, 'b', 0, 0 },     { 19.874f, 1.006f, 3.87f, 'y', 0, 0 },
@@ -223,7 +223,7 @@ static const sky_star crb_s[] = {
 static const signed char crb_p[] = { 0, 1, 2, 3, 4, 5, 6 };
 
 static const sky_star boo_s[] = {
-    { 14.261f, 19.182f, -0.05f, 'r', 0, "ARKTUR" }, { 14.750f, 27.074f, 2.35f, 'y', 0, "IZAR" },
+    { 14.261f, 19.182f, -0.05f, 'r', 0, "ARCTURUS" }, { 14.750f, 27.074f, 2.35f, 'y', 0, "IZAR" },
     { 15.258f, 33.315f, 3.47f, 'y', 0, 0 },         { 15.032f, 40.390f, 3.49f, 'y', 0, 0 },
     { 14.535f, 38.308f, 3.03f, 0, 0, 0 },           { 14.531f, 30.371f, 3.58f, 'y', 0, 0 },
     { 13.911f, 18.398f, 2.68f, 'y', 0, "MUPHRID" }, { 14.686f, 13.728f, 3.78f, 0, 0, 0 },
@@ -270,32 +270,32 @@ static const signed char sgr_p[] = { 3, 1, 2, 4, 1, 0, 3, -1, 0, 7, 4, 5, 6, 7 }
 
 /* the tour, one figure after the next, each near the last */
 static const sky_con SKY_CON[] = {
-    CON(uma, "GROSSER BAER", "URSA MAIOR"),
-    CON(umi, "KLEINER BAER", "URSA MINOR"),
-    CON(dra, "DRACHE", "DRACO"),
-    CON(her, "HERKULES", "HERCULES"),
-    CON(crb, "NOERDLICHE KRONE", "CORONA BOREALIS"),
-    CON(boo, "BAERENHUETER", "BOOTES"),
-    CON(vir, "JUNGFRAU", "VIRGO"),
-    CON(sco, "SKORPION", "SCORPIUS"),
-    CON(sgr, "SCHUETZE", "SAGITTARIUS"),
-    CON(aql, "ADLER", "AQUILA"),
-    CON(del, "DELFIN", "DELPHINUS"),
-    CON(lyr, "LEIER", "LYRA"),
-    CON(cyg, "SCHWAN", "CYGNUS"),
-    CON(cep, "KEPHEUS", "CEPHEUS"),
-    CON(cas, "KASSIOPEIA", "CASSIOPEIA"),
+    CON(uma, "GREAT BEAR", "URSA MAJOR"),
+    CON(umi, "LITTLE BEAR", "URSA MINOR"),
+    CON(dra, "DRAGON", "DRACO"),
+    CON(her, "HERCULES", "HERCULES"),
+    CON(crb, "NORTHERN CROWN", "CORONA BOREALIS"),
+    CON(boo, "HERDSMAN", "BOOTES"),
+    CON(vir, "VIRGIN", "VIRGO"),
+    CON(sco, "SCORPION", "SCORPIUS"),
+    CON(sgr, "ARCHER", "SAGITTARIUS"),
+    CON(aql, "EAGLE", "AQUILA"),
+    CON(del, "DOLPHIN", "DELPHINUS"),
+    CON(lyr, "LYRE", "LYRA"),
+    CON(cyg, "SWAN", "CYGNUS"),
+    CON(cep, "CEPHEUS", "CEPHEUS"),
+    CON(cas, "CASSIOPEIA", "CASSIOPEIA"),
     CON(and, "ANDROMEDA", "ANDROMEDA"),
     CON(peg, "PEGASUS", "PEGASUS"),
-    CON(ari, "WIDDER", "ARIES"),
+    CON(ari, "RAM", "ARIES"),
     CON(per, "PERSEUS", "PERSEUS"),
-    CON(aur, "FUHRMANN", "AURIGA"),
-    CON(tau, "STIER", "TAURUS"),
+    CON(aur, "CHARIOTEER", "AURIGA"),
+    CON(tau, "BULL", "TAURUS"),
     CON(ori, "ORION", "ORION"),
-    CON(cma, "GROSSER HUND", "CANIS MAIOR"),
-    CON(cmi, "KLEINER HUND", "CANIS MINOR"),
-    CON(gem, "ZWILLINGE", "GEMINI"),
-    CON(leo, "LOEWE", "LEO"),
+    CON(cma, "GREAT DOG", "CANIS MAJOR"),
+    CON(cmi, "LITTLE DOG", "CANIS MINOR"),
+    CON(gem, "TWINS", "GEMINI"),
+    CON(leo, "LION", "LEO"),
 };
 #define SKY_NCON ((int)(sizeof SKY_CON / sizeof SKY_CON[0]))
 

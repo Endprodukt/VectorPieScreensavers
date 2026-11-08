@@ -1,67 +1,67 @@
 # Status
 
-Stand 2026-11-07, Version 0.7.2: **Neon Drive** in 3D (`saver_neondrive`), gebaut mit der 3D-Schnittstelle des SDK (`vp_3d.h`) und verdeckten Linien.
+Status as of 2026-11-07, version 0.7.2: **Neon Drive** in 3D (`saver_neondrive`), built with the SDK's 3D interface (`vp_3d.h`) and hidden lines.
 
-## Was da ist
+## What is there
 
-- **3D-Welt** in Metern, alles in einer Szene: Feste Körper verdecken, was dahinter liegt. Ein unsichtbarer Boden verdeckt alles unterhalb des Horizonts.
-- **Straße** (`src/road.c`): endlos, Kurven aus geglättetem Rauschen, drei Spuren in unsere Richtung. Das pinke Grid liegt nur neben den Fahrbahnen.
-- **Abschnitte** von je 520 m, nie zweimal derselbe hintereinander (`src/props.c`):
-  - Strand: Palmen, Laternen, VECTORPIE-Schild
-  - Stadt: Hochhäuser mit festen beleuchteten Fenstern, Laternen, Werbetafeln (eine davon groß mit VECTORPIE)
-  - Wüste: Kakteen, Felsen, VECTORPIE-Schilder
-  - Strom: Masten mit Leitungen, Leitplanken, Schild
-  - Neon-Tunnel: Lichtbögen über der Straße
-  - Autobahn: Schilderbrücken (jede zweite mit VECTORPIE), Laternen, Leitplanken, Schild
-- **Alles am Rand steht fest an der Strecke**: Nichts wechselt die Seite, nichts fährt mit. Man fährt an allem vorbei.
-- **Gegenfahrbahn** in etwa 45 % der Abschnitte, mit Gegenverkehr, der von vorne zu sehen ist.
-- **Verkehr** (`src/traffic.c`, Modelle in `src/models.c`): Limousine, Sportwagen, Sattelzug (mit **VECTORPIE** auf beiden Seiten des Aufliegers), Motorrad mit Fahrer, Transporter, Pickup, Bus.
-  - Das Auto weicht per Spurwechsel aus und bremst, wenn keine Spur frei ist.
-  - **Es fährt nie durch andere Fahrzeuge** (siehe unten).
-- **Räder** sind rund (zehneckige Zylinder). Drei Speichenstriche drehen sich mit der Fahrt, beim eigenen Auto und bei Fahrzeugen bis 80 m Entfernung.
-- **Flieger** (`src/flyers.c`): Vogelschwärme in V-Formation, die langsam mit den Flügeln schlagen und gleiten. Ab und zu ein Propellerflugzeug, das die Straße vorne kreuzt und ein **VECTORPIE**-Banner zieht (im Bild bestätigt).
-- **Kamera** (`src/car.c`): sieben Einstellungen hinter dem Auto, alle 18 bis 32 s gleitet sie zur nächsten. **Die Kamera ist nie in einem Fahrzeug:**
-  - Der **Schwenk** nach rechts um das Auto (bis etwa 57°, 14 s) beginnt erst, wenn das Auto auf die rechte Spur gewechselt ist und dort 180 m frei sind. Die Kamera schwingt dann über den Seitenstreifen. Gelingt das nicht innerhalb von 12 s, wählt sie eine andere Einstellung.
-  - Seitlich versetzte Einstellungen bleiben immer neben der Fahrbahn (Seitenstreifen rechts, Mittelstreifen links).
-  - Beim Gleiten quer über die Spuren hebt sich die Kamera auf 6 m, über jeden LKW hinweg.
-  - Fahrzeuge hinter dem Auto halten 12 m Abstand.
-- **Horizont** (`src/scenery.c`): Kulissen auf einem Ring in 3,5 km Entfernung, die sich mit den Kurven drehen. Die Sonne ist gestreift und ruhig. Keine Sterne.
-- **Nichts pulsiert, blitzt oder blinkt.** Die Musik bestimmt nur gleitend Tempo und Verkehrsdichte. Bei jedem Trackwechsel erscheint der Titel.
+- **3D world** in metres, everything in one scene: solid bodies hide what lies behind them. An invisible floor hides everything below the horizon.
+- **Road** (`src/road.c`): endless, curves from smoothed noise, three lanes in our direction. The pink grid lies only beside the carriageways.
+- **Sections** of 520 m each, never the same one twice in a row (`src/props.c`):
+  - Beach: palms, street lamps, VECTORPIE sign
+  - City: high-rises with fixed lit windows, street lamps, billboards (one of them large with VECTORPIE)
+  - Desert: cacti, rocks, VECTORPIE signs
+  - Power: pylons with cables, guard rails, sign
+  - Neon tunnel: arcs of light over the road
+  - Motorway: sign gantries (every second one with VECTORPIE), street lamps, guard rails, sign
+- **Everything at the roadside stands fixed to the track**: nothing changes sides, nothing moves along. You drive past everything.
+- **Oncoming carriageway** in about 45 % of the sections, with oncoming traffic that is seen from the front.
+- **Traffic** (`src/traffic.c`, models in `src/models.c`): saloon, sports car, articulated lorry (with **VECTORPIE** on both sides of the trailer), motorbike with rider, van, pickup, bus.
+  - The car evades by changing lanes and brakes when no lane is free.
+  - **It never drives through other vehicles** (see below).
+- **Wheels** are round (ten-sided cylinders). Three spoke strokes turn with the motion, on our own car and on vehicles up to 80 m away.
+- **Flyers** (`src/flyers.c`): flocks of birds in V formation that slowly flap their wings and glide. Now and then a propeller plane that crosses the road ahead and tows a **VECTORPIE** banner (confirmed in the frames).
+- **Camera** (`src/car.c`): seven positions behind the car; every 18 to 32 s it glides to the next one. **The camera is never inside a vehicle:**
+  - The **swing** to the right around the car (up to about 57°, 14 s) only begins once the car has changed to the right lane and 180 m are free there. The camera then swings out over the hard shoulder. If this does not succeed within 12 s, it chooses another position.
+  - Sideways offset positions always stay beside the carriageway (hard shoulder on the right, central reservation on the left).
+  - When gliding across the lanes, the camera rises to 6 m, above any lorry.
+  - Vehicles behind the car keep a distance of 12 m.
+- **Horizon** (`src/scenery.c`): backdrops on a ring 3.5 km away that turn with the curves. The sun is striped and calm. No stars.
+- **Nothing pulses, flashes or blinks.** The music only smoothly determines speed and traffic density. The title appears at every track change.
 
-## Behoben am 2026-11-05
+## Fixed on 2026-11-05
 
-- **„Stürzt ständig ab“:** Ursache war eine Endlosschleife beim Kamerawechsel (`car.c`). Die nächste Kameraposition wurde neu gewürfelt, solange sie gleich der alten war, aber der Würfelwert änderte sich in der Schleife nicht. Jetzt ist die Wahl schleifenfrei. Kulissenwechsel und Winkel-Normalisieren habe ich ebenfalls schleifenfrei gemacht.
-  - Ein späteres Beenden war **kein Absturz**: Laut Ereignis-Mitschnitt kam nach 87 s ein Druck auf Esc.
-- **Kamera in Fahrzeugen** (beim Schwenk und beim Gleiten über die Spuren): behoben wie oben unter „Kamera“ beschrieben. Prüfung: 15 simulierte Stunden, 0 Fälle, 157 Schwenks, kein Tempoverlust (504 bis 533 km in 5 h).
-- **Durchfahren anderer Autos:** Das Auto bremste zu weich (gleitend) und rauschte durch langsamere Fahrzeuge. Jetzt gelten feste Regeln (`traffic.c`):
-  - Die Front des Autos kommt nie über das Heck eines Fahrzeugs in seinem Weg (`traffic_limit`).
-  - Es zieht nicht seitlich in ein Fahrzeug neben sich.
-  - Schnellere Fahrzeuge von hinten passen ihr Tempo an.
-  - Gebremst wird kräftiger.
-- **Mitfahrende Leitplanken-Pfosten und springende Palmen und Werbetafeln:** Sie stehen jetzt fest an der Strecke.
+- **"Keeps crashing":** The cause was an endless loop on camera change (`car.c`). The next camera position was re-rolled as long as it was equal to the old one, but the random value did not change inside the loop. Now the choice is loop-free. I also made backdrop changes and angle normalisation loop-free.
+  - A later exit was **not a crash**: according to the event log, a press of Esc came after 87 s.
+- **Camera inside vehicles** (during the swing and when gliding across the lanes): fixed as described above under "Camera". Check: 15 simulated hours, 0 cases, 157 swings, no loss of speed (504 to 533 km in 5 h).
+- **Driving through other cars:** The car braked too softly (smoothly) and ploughed through slower vehicles. Now fixed rules apply (`traffic.c`):
+  - The car's front never passes the rear of a vehicle in its path (`traffic_limit`).
+  - It does not pull sideways into a vehicle beside it.
+  - Faster vehicles from behind adjust their speed.
+  - Braking is harder.
+- **Guard rail posts moving along and jumping palms and billboards:** They now stand fixed to the track.
 
-## Geprüft (2026-11-05, am PC)
+## Checked (2026-11-05, on the PC)
 
-- PC- und Pi-Build ohne Warnungen im eigenen Code. `build/saver_neondrive-0.7.2.vps` wird erzeugt (`sh tools/make_vps.sh neondrive`). Auf dem Automaten installiert per `sh tools/deploy.sh neondrive`.
-- 0.7.0 lief auf dem Board ohne verlorene Linien, aber nur mit 28 bis 30 statt 40 Bildern pro Sekunde. Das Board brauchte etwa 30 ms pro Bild bei 1500 bis 1900 Linien.
-- 0.7.1 (2026-11-07), 40 s auf dem Board:
-  - Meist 40 Bilder pro Sekunde, Senden etwa 1 ms. In dichten Abschnitten mit 1700 bis 1850 Linien sind es noch 35 bis 38.
-  - Der Leerweg des Strahls ist von etwa 260k auf 100k bis 140k gesunken.
-  - Rechenzeit am Pi 3 bis 6 ms.
-- 0.7.2 (2026-11-07): Die Querlinien des Gitters behalten ihre Zeichenrichtung, während sie näherkommen (vorher kippte sie bei jeder neuen Linie, das zuckt am Monitor). Auf dem Board 40 Bilder pro Sekunde, Senden etwa 1,2 ms.
-- Dauertest (`saver_soak`): 5 Strecken je 5 simulierte Stunden mit einer vorübergehenden Kollisionsprüfung. **0 Überschneidungen, kein Hänger.**
-- Bilder angesehen: alle Abschnittsarten, Kamera-Schwenk, runde Räder mit Speichen, Flugzeug mit Banner, VECTORPIE auf Schildern, Tafeln und Schilderbrücke, Vogelschwarm. Übersichten liegen in `screenshots/`.
-- Linien pro Bild: üblich 1100 bis 1900. Seltene Spitzen bis etwa 2300 (Stadt, Wüste).
+- PC and Pi builds without warnings in our own code. `build/saver_neondrive-0.7.2.vps` is produced (`sh tools/make_vps.sh neondrive`). Installed on the cabinet via `sh tools/deploy.sh neondrive`.
+- 0.7.0 ran on the board without lost lines, but only at 28 to 30 instead of 40 frames per second. The board needed about 30 ms per frame at 1500 to 1900 lines.
+- 0.7.1 (2026-11-07), 40 s on the board:
+  - Mostly 40 frames per second, sending about 1 ms. In dense sections with 1700 to 1850 lines it is still 35 to 38.
+  - The beam's blank path has dropped from about 260k to 100k to 140k.
+  - Compute time on the Pi 3 to 6 ms.
+- 0.7.2 (2026-11-07): The cross lines of the grid keep their drawing direction as they come closer (previously it flipped with every new line, which twitches on the monitor). On the board 40 frames per second, sending about 1.2 ms.
+- Soak test (`saver_soak`): 5 tracks of 5 simulated hours each with a temporary collision check. **0 overlaps, no hang.**
+- Frames viewed: all section types, camera swing, round wheels with spokes, plane with banner, VECTORPIE on signs, billboards and sign gantry, flock of birds. Overviews are in `screenshots/`.
+- Lines per frame: usually 1100 to 1900. Rare peaks up to about 2300 (city, desert).
 
-## Bekannte Probleme und Grenzen
+## Known problems and limitations
 
-- **In dichten Abschnitten auf dem Board 35 bis 38 statt 40 Bilder pro Sekunde** (siehe „Geprüft“). Langsam wird das Board, wenn der ganze Weg des Strahls pro Bild (hell und dunkel) zu lang wird, ab etwa 270k. Ideen: weniger Linien in der Ferne oder Fahrzeuge und Gegenstände in Strahlreihenfolge zeichnen.
-- Helligkeit am Monitor noch nicht beurteilt.
-- Werden Programme aus der Claude-Umgebung heraus gestartet, werden sie gelegentlich von außen beendet (Code 127/143). Zum Ansehen am PC deshalb `neondrive/run_pc.bat` per Doppelklick starten.
-- Der Dauertest (`saver_soak`) öffnete früher ein sichtbares Fenster mit „Keine Rückmeldung“. Das war nie der Screensaver selbst. Jetzt bleibt sein Fenster unsichtbar und beantwortet die Fensternachrichten.
+- **In dense sections on the board 35 to 38 instead of 40 frames per second** (see "Checked"). The board gets slow when the beam's whole path per frame (lit and blank) becomes too long, from about 270k. Ideas: fewer lines in the distance, or draw vehicles and objects in beam order.
+- Brightness on the monitor not yet judged.
+- When programs are started from within the Claude environment, they are occasionally terminated from outside (code 127/143). To view on the PC, therefore start `neondrive/run_pc.bat` by double-clicking.
+- The soak test (`saver_soak`) used to open a visible window with "Not responding". That was never the screensaver itself. Now its window stays invisible and answers the window messages.
 
-## Offene Aufgaben
+## Open tasks
 
-- [ ] `.vps` auf dem Automaten testen (`VP_STATS=1`)
-- [ ] Falls das Board flackert: Stadt und Wüste weiter ausdünnen (`props.c`)
-- [ ] Ideen: Hügel, Brücken über Wasser, Nachtabschnitte ohne Sonne
+- [ ] Test the `.vps` on the cabinet (`VP_STATS=1`)
+- [ ] If the board flickers: thin out city and desert further (`props.c`)
+- [ ] Ideas: hills, bridges over water, night sections without sun
