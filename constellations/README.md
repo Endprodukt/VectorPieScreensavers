@@ -6,3 +6,5 @@ Ein langsamer Rundflug über den echten Nachthimmel. Der Blick gleitet von Stern
 - Stand und offene Punkte: [STATUS.md](STATUS.md)
 - Für die Weiterarbeit: [RESUME.md](RESUME.md)
 - Bauen und Installieren: [../BUILD.md](../BUILD.md)
+
+![Das Sternbild Schwan mit seinen hellen Sternen](screenshots/constellations.png)

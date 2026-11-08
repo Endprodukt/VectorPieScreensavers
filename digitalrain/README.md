@@ -6,3 +6,5 @@ Grüner Code, der in Spalten den Vektor-Monitor herunterregnet. Mit ihm fallen i
 - Stand und offene Punkte: [STATUS.md](STATUS.md)
 - Für die Weiterarbeit: [RESUME.md](RESUME.md)
 - Bauen und Installieren: [../BUILD.md](../BUILD.md)
+
+![Der Code-Regen, mit VECTORPIE in einer Spalte](screenshots/digitalrain.png)

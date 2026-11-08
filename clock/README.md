@@ -20,6 +20,12 @@ Die Uhrzeit auf fünfzehn Zifferblättern:
 
 Jedes Zifferblatt hat eigene, aufeinander abgestimmte Farben, etwa bei DIGITAL Stunden cyan, Minuten magenta, Sekunden gelb. Unter jedem Zifferblatt steht eine Zeile mit Datum und Wetter.
 
+Alle fünfzehn Zifferblätter in ihren eigenen Farben (von links oben: ANALOG, DIGITAL, FLIP, BINARY, WORDS, NIXIE, ORBIT, TUNNEL, ROCKS, MINIMAL, NUMERALS, ROMAN, SQUARE, FULL SCREEN, WEATHER):
+
+![Alle Zifferblätter](screenshots/clock_faces.png)
+
+![Das Zifferblatt WEATHER](screenshots/clock_weather.png)
+
 ## Das Menü der Uhr
 
 **F2 oder Tab** öffnet es, während die Uhr läuft, und schließt es wieder. Darin bewegt man sich mit dem Joystick. Button 1 oder START 1 wählt aus, Button 2 oder START 2 geht zurück und schließt das Menü. Nach einer Minute ohne Eingabe schließt es sich selbst.

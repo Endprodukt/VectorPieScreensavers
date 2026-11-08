@@ -14,6 +14,21 @@ Jeder Screensaver hat einen eigenen Ordner:
 | [`constellations/`](constellations/) | **Constellations** | Ein Rundflug über den echten Nachthimmel: 26 Sternbilder zeichnen sich nacheinander ein, mit deutschen und lateinischen Namen und benannten hellen Sternen. Die Sterne funkeln, die Milchstraße zieht durch, ab und zu fällt eine Sternschnuppe. |
 | [`clock/`](clock/) | **Clock** | Die Uhrzeit auf fünfzehn Zifferblättern (sechs analoge, digital, Klappzahlen, binär, Wortuhr, Nixie, Orbit, Tunnel, Rocks, Wetter), mit Datum und Wetter aus dem Netz und einem Wetterbericht in fünf Ansichten. Ein eigenes Menü (F2 oder Tab) stellt Zifferblatt, Zufall, Wechsel, Umschalten (Spinner, links/rechts, eigene Taste), Farben, Sekundenzeiger, Anzeigen, Wetterbericht, Ort und Sprache ein. |
 
+## Bilder
+
+| | |
+|---|---|
+| **Neon Drive**<br>![Neon Drive](neondrive/screenshots/neondrive.png) | **Digital Rain**<br>![Digital Rain](digitalrain/screenshots/digitalrain.png) |
+| **Labyrinth**<br>![Labyrinth](labyrinth/screenshots/labyrinth.png) | **Neon Peaks**<br>![Neon Peaks](neonpeaks/screenshots/neonpeaks.png) |
+| **Neon Ridge**<br>![Neon Ridge](neonridge/screenshots/neonridge.png) | **Constellations**<br>![Constellations](constellations/screenshots/constellations.png) |
+| **Clock**<br>![Clock](clock/screenshots/clock.png) | **Clock: Wetter**<br>![Clock, Wetter](clock/screenshots/clock_weather.png) |
+
+**Clock: alle fünfzehn Zifferblätter**
+
+![Clock, alle Zifferblätter](clock/screenshots/clock_faces.png)
+
+Die Bilder macht jeder Bildschirmschoner selbst: am PC mit `SAVER_SHOTS=<ordner>` speichert er alle 2 Sekunden eins.
+
 ## Gemeinsam
 
 - `vendor/VectorPie` – das VectorPie-SDK (Kopie), Doku unter `vendor/VectorPie/sdk/docs/`, für Screensaver besonders `09-screensavers.md`

@@ -6,3 +6,5 @@ Eine stille Nacht im Stil der Retrowave-Mountains-Videos: ein Sternenhimmel mit 
 - Stand und offene Punkte: [STATUS.md](STATUS.md)
 - Für die Weiterarbeit: [RESUME.md](RESUME.md)
 - Bauen und Installieren: [../BUILD.md](../BUILD.md)
+
+![Bergmassiv aus Höhenlinien und die pinke Lichtspur](screenshots/neonridge.png)

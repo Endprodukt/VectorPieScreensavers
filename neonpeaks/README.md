@@ -6,3 +6,5 @@ Retrowave: ein Flug durch ein Neon-Gittertal zwischen Drahtgitterbergen, auf ein
 - Stand und offene Punkte: [STATUS.md](STATUS.md)
 - Für die Weiterarbeit: [RESUME.md](RESUME.md)
 - Bauen und Installieren: [../BUILD.md](../BUILD.md)
+
+![Das Neon-Gittertal mit der gestreiften Sonne](screenshots/neonpeaks.png)

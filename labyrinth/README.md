@@ -6,3 +6,5 @@ Ein Gang durch ein Labyrinth nach dem anderen, aus der Sicht dessen, der hindurc
 - Stand und offene Punkte: [STATUS.md](STATUS.md)
 - Für die Weiterarbeit: [RESUME.md](RESUME.md)
 - Bauen und Installieren: [../BUILD.md](../BUILD.md)
+
+![Ein Gang im Labyrinth mit einem Kristall](screenshots/labyrinth.png)
