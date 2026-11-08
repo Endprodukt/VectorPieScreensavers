@@ -1,10 +1,10 @@
 # Digital Rain
 
-Grüner Code, der in Spalten den Vektor-Monitor herunterregnet. Mit ihm fallen immer wieder Namen von Spielen des Automaten herunter, mehrere gleichzeitig, und **VECTORPIE**.
+Green code raining down the vector monitor in columns. Names of the cabinet's games keep falling with it, several at a time, and **VECTORPIE**.
 
-- Starten am PC: `run_pc.bat` per Doppelklick
-- Stand und offene Punkte: [STATUS.md](STATUS.md)
-- Für die Weiterarbeit: [RESUME.md](RESUME.md)
-- Bauen und Installieren: [../BUILD.md](../BUILD.md)
+- Running on a PC: double-click `run_pc.bat`
+- State and open points: [STATUS.md](STATUS.md)
+- For further work: [RESUME.md](RESUME.md)
+- Building and installing: [../BUILD.md](../BUILD.md)
 
-![Der Code-Regen, mit VECTORPIE in einer Spalte](screenshots/digitalrain.png)
+![The code rain, with VECTORPIE in one column](screenshots/digitalrain.png)

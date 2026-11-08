@@ -1,10 +1,10 @@
 # Neon Peaks
 
-Retrowave: ein Flug durch ein Neon-Gittertal zwischen Drahtgitterbergen, auf eine gestreifte Sonne zu. Die Musik baut die Berge.
+Retrowave: a flight through a neon grid valley between wireframe mountains, towards a striped sun. The music builds the mountains.
 
-- Starten am PC: `run_pc.bat` per Doppelklick
-- Stand und offene Punkte: [STATUS.md](STATUS.md)
-- Für die Weiterarbeit: [RESUME.md](RESUME.md)
-- Bauen und Installieren: [../BUILD.md](../BUILD.md)
+- Running on a PC: double-click `run_pc.bat`
+- State and open points: [STATUS.md](STATUS.md)
+- For further work: [RESUME.md](RESUME.md)
+- Building and installing: [../BUILD.md](../BUILD.md)
 
-![Das Neon-Gittertal mit der gestreiften Sonne](screenshots/neonpeaks.png)
+![The neon grid valley with the striped sun](screenshots/neonpeaks.png)

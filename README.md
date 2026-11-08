@@ -1,41 +1,41 @@
 # VectorPie Screensavers
 
-Screensaver-Apps für den **VectorPie**-Vektor-Automaten. Der Automat startet eine solche App statt seines eigenen Screensavers. Sie zeichnet auf den Vektor-Monitor, während das Menü seine Musik weiterspielt.
+Screensaver apps for the **VectorPie** vector arcade cabinet. The cabinet starts one of these apps instead of its own screensaver. It draws on the vector monitor while the menu keeps playing its music.
 
-Jeder Screensaver hat einen eigenen Ordner:
+Each screensaver has its own folder:
 
-| Ordner | Name | Was |
+| Folder | Name | What it is |
 |---|---|---|
-| [`neondrive/`](neondrive/) | **Neon Drive** | Eine endlose Fahrt im 80er-Synthwave-Stil in 3D: Grid, Sonne, wechselnde Strecken und Kulissen, Verkehr in beide Richtungen, Vögel und ein Flugzeug mit VECTORPIE-Banner. |
-| [`digitalrain/`](digitalrain/) | **Digital Rain** | Grüner Code-Regen im Matrix-Stil. Mit dem Regen fallen immer wieder Namen von Spielen des Automaten herunter, mehrere gleichzeitig, und VECTORPIE. |
-| [`labyrinth/`](labyrinth/) | **Labyrinth** | Ein Gang durch ein Labyrinth nach dem anderen, aus Sicht des Wanderers: Wände mit Mustern und VECTORPIE-Schildern, drehende Kristalle und als Ausgang ein Kuchen. |
-| [`neonpeaks/`](neonpeaks/) | **Neon Peaks** | Retrowave: ein Flug durch ein Neon-Gittertal auf eine gestreifte Sonne zu. Die Berge am Horizont formt die Musik (ihr Spektrum), Tempo und Farben folgen ihr gleitend. |
-| [`neonridge/`](neonridge/) | **Neon Ridge** | Wie die Retrowave-Mountains-Videos: Sternenhimmel, cyan leuchtender Horizont, ein Bergmassiv aus Höhenlinien, davor eine Ebene aus Linien und eine pinke Lichtspur. Die Kamera steht still. |
-| [`constellations/`](constellations/) | **Constellations** | Ein Rundflug über den echten Nachthimmel: 26 Sternbilder zeichnen sich nacheinander ein, mit deutschen und lateinischen Namen und benannten hellen Sternen. Die Sterne funkeln, die Milchstraße zieht durch, ab und zu fällt eine Sternschnuppe. |
-| [`clock/`](clock/) | **Clock** | Die Uhrzeit auf fünfzehn Zifferblättern (sechs analoge, digital, Klappzahlen, binär, Wortuhr, Nixie, Orbit, Tunnel, Rocks, Wetter), mit Datum und Wetter aus dem Netz und einem Wetterbericht in fünf Ansichten. Ein eigenes Menü (F2 oder Tab) stellt Zifferblatt, Zufall, Wechsel, Umschalten (Spinner, links/rechts, eigene Taste), Farben, Sekundenzeiger, Anzeigen, Wetterbericht, Ort und Sprache ein. |
+| [`neondrive/`](neondrive/) | **Neon Drive** | An endless 80s synthwave drive in 3D: grid, sun, changing roads and scenery, traffic in both directions, birds and a plane towing a VECTORPIE banner. |
+| [`digitalrain/`](digitalrain/) | **Digital Rain** | Green code rain in the Matrix style. Names of the cabinet's games keep falling with the rain, several at a time, and VECTORPIE. |
+| [`labyrinth/`](labyrinth/) | **Labyrinth** | A walk through one maze after another, seen through the walker's eyes: patterned walls with VECTORPIE signs, spinning crystals and a cake as the exit. |
+| [`neonpeaks/`](neonpeaks/) | **Neon Peaks** | Retrowave: a flight through a neon grid valley towards a striped sun. The music shapes the mountains on the horizon (its spectrum); speed and colors follow it smoothly. |
+| [`neonridge/`](neonridge/) | **Neon Ridge** | Like the retrowave mountain videos: a starry sky, a glowing cyan horizon, a mountain range of contour lines, a plain of lines in front and a pink light trail. The camera stands still. |
+| [`constellations/`](constellations/) | **Constellations** | A tour of the real night sky: 26 constellations draw themselves one after another, with German and Latin names and named bright stars. The stars twinkle, the Milky Way runs through, and now and then a shooting star falls. |
+| [`clock/`](clock/) | **Clock** | The time on fifteen clock faces (six analog, digital, flip, binary, word clock, Nixie, orbit, tunnel, rocks, weather), with the date and the weather from the internet and a weather report in five views. Its own menu (F2 or Tab) sets face, random, change, switching (spinner, left/right, a custom button), colors, second hand, what is shown, weather report, place and language. |
 
-## Bilder
+## Screenshots
 
 | | |
 |---|---|
 | **Neon Drive**<br>![Neon Drive](neondrive/screenshots/neondrive.png) | **Digital Rain**<br>![Digital Rain](digitalrain/screenshots/digitalrain.png) |
 | **Labyrinth**<br>![Labyrinth](labyrinth/screenshots/labyrinth.png) | **Neon Peaks**<br>![Neon Peaks](neonpeaks/screenshots/neonpeaks.png) |
 | **Neon Ridge**<br>![Neon Ridge](neonridge/screenshots/neonridge.png) | **Constellations**<br>![Constellations](constellations/screenshots/constellations.png) |
-| **Clock**<br>![Clock](clock/screenshots/clock.png) | **Clock: Wetter**<br>![Clock, Wetter](clock/screenshots/clock_weather.png) |
+| **Clock**<br>![Clock](clock/screenshots/clock.png) | **Clock: weather**<br>![Clock, weather](clock/screenshots/clock_weather.png) |
 
-**Clock: alle fünfzehn Zifferblätter**
+**Clock: all fifteen faces**
 
-![Clock, alle Zifferblätter](clock/screenshots/clock_faces.png)
+![Clock, all faces](clock/screenshots/clock_faces.png)
 
-Die Bilder macht jeder Bildschirmschoner selbst: am PC mit `SAVER_SHOTS=<ordner>` speichert er alle 2 Sekunden eins.
+Every screensaver takes these pictures itself: on a PC, `SAVER_SHOTS=<folder>` makes it save one every 2 seconds.
 
-## Gemeinsam
+## Shared
 
-- `vendor/VectorPie` – das VectorPie-SDK (Kopie), Doku unter `vendor/VectorPie/sdk/docs/`, für Screensaver besonders `09-screensavers.md`
-- `cmake/` – die Werkzeugkette für den Raspberry Pi des Automaten
-- `tools/` – Paket bauen (`make_vps.sh`), auf den Automaten bringen (`deploy.sh`), am PC starten (`run_pc.bat`), Test-Musik erzeugen (`make_test_track.py`)
-- `BUILD.md` – bauen, testen, installieren, einen neuen Screensaver anlegen
+- `vendor/VectorPie` – the VectorPie SDK (a copy); docs in `vendor/VectorPie/sdk/docs/`, for screensavers especially `09-screensavers.md`
+- `cmake/` – the toolchain for the cabinet's Raspberry Pi
+- `tools/` – build a package (`make_vps.sh`), put it on the cabinet (`deploy.sh`), run on a PC (`run_pc.bat`), make test music (`make_test_track.py`)
+- `BUILD.md` – building, testing, installing, starting a new screensaver
 
-## Installieren
+## Installing
 
-Fertige Pakete aller Bildschirmschoner gibt es unter [Releases](https://github.com/Endprodukt/VectorPieScreensavers/releases). Selbst bauen: Pi-Build bauen (siehe `BUILD.md`), dann `sh tools/make_vps.sh <ordner>`. Die `.vps` per USB in SETTINGS → SCREENSAVERS → INSTALL installieren und unter SELECT auswählen. Oder direkt per SSH: `sh tools/deploy.sh <ordner>`.
+Ready-made packages of all screensavers are under [Releases](https://github.com/Endprodukt/VectorPieScreensavers/releases). To build them yourself: make the Pi build (see `BUILD.md`), then run `sh tools/make_vps.sh <folder>`. Install the `.vps` from USB in SETTINGS → SCREENSAVERS → INSTALL and choose it under SELECT. Or directly over SSH: `sh tools/deploy.sh <folder>`.

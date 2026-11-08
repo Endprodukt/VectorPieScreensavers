@@ -1,10 +1,10 @@
 # Constellations
 
-Ein langsamer Rundflug über den echten Nachthimmel. Der Blick gleitet von Sternbild zu Sternbild, jedes liegt neben dem letzten. Dort zeichnet sich die Figur ein, darunter stehen der deutsche und der lateinische Name, und die hellen Sterne werden benannt. Alle Sterne funkeln sanft, die Milchstraße zieht sich als dichteres Band durch den Himmel, und ab und zu fällt eine Sternschnuppe.
+A slow tour of the real night sky. The view glides from constellation to constellation, each one next to the last. There the figure draws itself, its German and Latin names appear below it, and the bright stars are named. All stars twinkle softly, the Milky Way runs across the sky as a denser band, and now and then a shooting star falls.
 
-- Starten am PC: `run_pc.bat` per Doppelklick
-- Stand und offene Punkte: [STATUS.md](STATUS.md)
-- Für die Weiterarbeit: [RESUME.md](RESUME.md)
-- Bauen und Installieren: [../BUILD.md](../BUILD.md)
+- Running on a PC: double-click `run_pc.bat`
+- State and open points: [STATUS.md](STATUS.md)
+- For further work: [RESUME.md](RESUME.md)
+- Building and installing: [../BUILD.md](../BUILD.md)
 
-![Das Sternbild Schwan mit seinen hellen Sternen](screenshots/constellations.png)
+![The constellation Cygnus (the Swan) with its bright stars](screenshots/constellations.png)

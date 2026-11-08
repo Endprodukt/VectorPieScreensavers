@@ -1,12 +1,12 @@
-# Bauen
+# Building
 
-Alle Screensaver werden gemeinsam gebaut. Aufbau und Werkzeuge sind wie bei Vector Racer (`F:\Vector Racer`). Das SDK liegt als Kopie in `vendor/VectorPie`. Es stammt aus `F:\Release Game\VectorPie` (SDK 1.1.13, Stand 2026-11-03) und ist die erste Fassung mit Screensaver-Apps (`vp_saver.h`). Wie Screensaver funktionieren, steht in `vendor/VectorPie/sdk/docs/09-screensavers.md`.
+All screensavers are built together. The layout and tools are the same as for Vector Racer (`F:\Vector Racer`). The SDK is a copy in `vendor/VectorPie`. It comes from `F:\Release Game\VectorPie` (SDK 1.1.13, as of 2026-11-03) and is the first version with screensaver apps (`vp_saver.h`). How screensavers work is described in `vendor/VectorPie/sdk/docs/09-screensavers.md`.
 
-Jeder Screensaver landet in `build/<pc|pi>/<ordner>/`, z. B. `build/pc/neondrive/saver_neondrive.exe`.
+Each screensaver ends up in `build/<pc|pi>/<folder>/`, e.g. `build/pc/neondrive/saver_neondrive.exe`.
 
-## PC (Windows, nativ)
+## PC (Windows, native)
 
-Voraussetzung: MSYS2 mit MinGW-w64-GCC und SDL2 unter `C:\msys64\mingw64`, dazu CMake und Ninja.
+Requirements: MSYS2 with MinGW-w64 GCC and SDL2 in `C:\msys64\mingw64`, plus CMake and Ninja.
 
 ```bash
 export PATH="/c/msys64/mingw64/bin:$PATH"
@@ -14,19 +14,19 @@ cmake -S . -B build/pc -G Ninja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ 
 cmake --build build/pc
 ```
 
-Zum Testen braucht ein Screensaver Musik. Ohne das Menü des Automaten spielt das SDK selbst Musik ab und analysiert sie. Die Musik wird als `.ogg`- oder `.wav`-Datei oder als Ordner übergeben, entweder auf der Kommandozeile oder in `VP_SAVER_MUSIC`. Einen Test-Track mit Beat-Map erzeugt einmalig:
+For testing, a screensaver needs music. Without the cabinet's menu the SDK plays and analyses the music itself. The music is given as an `.ogg` or `.wav` file or as a folder, either on the command line or in `VP_SAVER_MUSIC`. To make a test track with a beat map once:
 
 ```bash
 python tools/make_test_track.py        # music/test_120bpm.wav + .beats
 ```
 
-Am einfachsten startest du einen Screensaver mit **`<ordner>/run_pc.bat` per Doppelklick**. Das nimmt die Musik aus `music/`. Esc beendet, START 2 springt zum nächsten Track.
+The easiest way to start a screensaver is to **double-click `<folder>/run_pc.bat`**. It takes the music from `music/`. Esc quits, START 2 skips to the next track.
 
-`VP_STATS=1` gibt einmal pro Sekunde die Linien pro Bild und die Zeiten aus.
+`VP_STATS=1` prints the lines per frame and the timings once a second.
 
 ## Raspberry Pi (arm64)
 
-Wie bei Vector Racer: clang und lld auf dem PC, gegen die Kopie der Bibliotheken des Automaten (`F:\Tempest 2000 Port\build\pi-sysroot`).
+As for Vector Racer: clang and lld on the PC, against the copy of the cabinet's libraries (`F:\Tempest 2000 Port\build\pi-sysroot`).
 
 ```bash
 export PATH="/c/Users/ocare/.local/share/retcomm/toolchains/cmake-clang-v1/latest/bin:$PATH"
@@ -34,21 +34,21 @@ cmake -S . -B build/pi -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-pi-clang.
 cmake --build build/pi
 ```
 
-## Paket und Installation auf dem Automaten
+## Packaging and installing on the cabinet
 
 ```bash
-sh tools/make_vps.sh neondrive      # build/<id>-<version>.vps, zum Installieren per USB
-sh tools/deploy.sh neondrive        # direkt per SSH nach /persistent/screensavers/<id>
+sh tools/make_vps.sh neondrive      # build/<id>-<version>.vps, to install from USB
+sh tools/deploy.sh neondrive        # directly over SSH to /persistent/screensavers/<id>
 ```
 
-Weil `package/game.ini` `kind = screensaver` enthält, wird daraus eine `.vps` und keine `.vpk`. Auf dem Automaten: SETTINGS → SCREENSAVERS → INSTALL (USB), dann unter SETTINGS → SCREENSAVERS → SELECT auswählen.
+Because `package/game.ini` contains `kind = screensaver`, this makes a `.vps`, not a `.vpk`. On the cabinet: SETTINGS → SCREENSAVERS → INSTALL (USB), then choose it under SETTINGS → SCREENSAVERS → SELECT.
 
-`deploy.sh` nutzt denselben Schlüssel und Automaten wie Vector Racer (`~/.ssh/id_ed25519_vectorpie`, `pi@192.168.0.122`). Es ersetzt das Programm auch dann, wenn der Screensaver gerade läuft.
+`deploy.sh` uses the same key and cabinet as Vector Racer (`~/.ssh/id_ed25519_vectorpie`, `pi@192.168.0.122`). It replaces the program even while the screensaver is running.
 
-Die Version eines Screensavers steht an zwei Stellen und muss an beiden geändert werden: in `<ordner>/package/game.ini` (`version`) und in `<ordner>/CMakeLists.txt` (`project(... VERSION ...)`).
+A screensaver's version is in two places and must be changed in both: in `<folder>/package/game.ini` (`version`) and in `<folder>/CMakeLists.txt` (`project(... VERSION ...)`).
 
-## Einen neuen Screensaver anlegen
+## Adding a new screensaver
 
-1. Einen Ordner anlegen mit `CMakeLists.txt` (wie `neondrive/CMakeLists.txt`), `src/`, `package/game.ini` (mit `kind = screensaver`, eigener `id` mit Präfix `saver_`) und `run_pc.bat`.
-2. In der obersten `CMakeLists.txt` `add_subdirectory(<ordner>)` ergänzen.
-3. In `README.md` in die Liste eintragen.
+1. Make a folder with `CMakeLists.txt` (like `neondrive/CMakeLists.txt`), `src/`, `package/game.ini` (with `kind = screensaver` and its own `id` with the prefix `saver_`) and `run_pc.bat`.
+2. Add `add_subdirectory(<folder>)` to the top-level `CMakeLists.txt`.
+3. Add it to the list in `README.md`.

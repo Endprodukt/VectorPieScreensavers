@@ -1,10 +1,10 @@
 # Neon Ridge
 
-Eine stille Nacht im Stil der Retrowave-Mountains-Videos: ein Sternenhimmel mit cyan leuchtendem Horizont, ein Bergmassiv aus Höhenlinien, davor eine dunkle Ebene aus Linien und darüber eine pinke Lichtspur.
+A quiet night in the style of the retrowave mountain videos: a starry sky with a glowing cyan horizon, a mountain range of contour lines, a dark plain of lines in front and a pink light trail above.
 
-- Starten am PC: `run_pc.bat` per Doppelklick
-- Stand und offene Punkte: [STATUS.md](STATUS.md)
-- Für die Weiterarbeit: [RESUME.md](RESUME.md)
-- Bauen und Installieren: [../BUILD.md](../BUILD.md)
+- Running on a PC: double-click `run_pc.bat`
+- State and open points: [STATUS.md](STATUS.md)
+- For further work: [RESUME.md](RESUME.md)
+- Building and installing: [../BUILD.md](../BUILD.md)
 
-![Bergmassiv aus Höhenlinien und die pinke Lichtspur](screenshots/neonridge.png)
+![A mountain range of contour lines and the pink light trail](screenshots/neonridge.png)

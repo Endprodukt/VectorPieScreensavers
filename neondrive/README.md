@@ -1,16 +1,16 @@
 # Neon Drive
 
-Eine endlose Fahrt im 80er-Synthwave-Stil, als 3D-Vektorgrafik für den VectorPie-Automaten:
-- Neon-Grid und eine gestreifte Sonne
-- wechselnde Strecken (Strand, Stadt, Wüste, Strommasten, Neon-Tunnel, Autobahn) und Kulissen am Horizont, die man nie erreicht
-- Verkehr in beide Richtungen, dem das Auto ausweicht
-- Vögel und ab und zu ein Flugzeug mit VECTORPIE-Banner
+An endless 80s synthwave drive, as 3D vector graphics for the VectorPie cabinet:
+- a neon grid and a striped sun
+- changing roads (beach, city, desert, power pylons, neon tunnel, highway) and scenery on the horizon that you never reach
+- traffic in both directions, which the car dodges
+- birds and now and then a plane towing a VECTORPIE banner
 
-Nichts pulsiert oder blinkt; die Musik steuert nur gleitend Tempo und Verkehr.
+Nothing pulses or blinks; the music only steers speed and traffic, smoothly.
 
-- Starten am PC: `run_pc.bat` per Doppelklick
-- Stand und offene Punkte: [STATUS.md](STATUS.md)
-- Für die Weiterarbeit: [RESUME.md](RESUME.md)
-- Bauen und Installieren: [../BUILD.md](../BUILD.md)
+- Running on a PC: double-click `run_pc.bat`
+- State and open points: [STATUS.md](STATUS.md)
+- For further work: [RESUME.md](RESUME.md)
+- Building and installing: [../BUILD.md](../BUILD.md)
 
-![Übersicht](screenshots/neondrive_swing_wheels_plane.png)
+![Overview](screenshots/neondrive_swing_wheels_plane.png)
