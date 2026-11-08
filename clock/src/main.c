@@ -1945,5 +1945,9 @@ int main(int argc, char **argv)
     desc.draw = draw;
     int rc = vp_run(&desc, argc, argv);
     input_release();
-    return rc;
+    /* out at once: a normal exit would wait for a weather fetch still
+     * running (it flushes every stream, the weather pipe too) */
+    fflush(stdout);
+    fflush(stderr);
+    _Exit(rc);
 }

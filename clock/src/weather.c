@@ -37,7 +37,7 @@ static char *fetch(const char *url)
 {
     char cmd[1024];
     /* double quotes: the same in sh and in cmd */
-    snprintf(cmd, sizeof cmd, "curl -s -m 15 \"%s\" || wget -q -T 15 -O - \"%s\"", url, url);
+    snprintf(cmd, sizeof cmd, "curl -s --connect-timeout 6 -m 15 \"%s\" || wget -q -t 1 -T 15 -O - \"%s\"", url, url);
     FILE *p = popen(cmd, "r");
     if (!p) return NULL;
     size_t cap = 1 << 16, n = 0;

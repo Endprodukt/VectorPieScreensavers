@@ -1,6 +1,6 @@
 # Stand
 
-Stand 2026-11-08, Version 0.7.0: **Clock** (`saver_clock`).
+Stand 2026-11-08, Version 0.7.1: **Clock** (`saver_clock`).
 
 ## Was er kann
 
@@ -29,6 +29,8 @@ Stand 2026-11-08, Version 0.7.0: **Clock** (`saver_clock`).
 - **Musik, alles gleitend:** Bei lauter Musik leuchten Ringe und Marken etwas heller. Nichts blinkt.
 
 ## Geprüft am Automaten (2026-11-08)
+
+- 0.7.1: Aufwachen geht sofort. Vorher hing das Beenden, solange ein Wetterabruf lief: Das normale `exit()` leert alle Datenströme und wartete dabei auf die Leitung zum Abruf. War open-meteo nicht erreichbar, dauerte das 15 s für curl und danach bis zu 20 × 15 s für wget, also Minuten. Jetzt endet die Uhr mit `_Exit()`, curl gibt nach 6 s ohne Verbindung auf, wget versucht es nur einmal. Gemessen: Ende sofort nach dem Tastendruck, auch während open-meteo nicht antwortete.
 
 - 0.3.0 und 0.3.1 installiert, 40 Bilder pro Sekunde, etwa 500 Linien, keine verworfenen Linien.
 - Die Übernahme der Steuerung klappt. Der Screensaver läuft als `pi`, der zur Gruppe `input` gehört.
