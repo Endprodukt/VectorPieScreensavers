@@ -58,8 +58,8 @@
 #define W      VP_DVG_COORD_MAX
 #define CX     (W / 2.0f)
 #define PI     3.14159265f
-#define NFACE  10
-#define FACE_WEATHER 9
+#define NFACE  NFACES          /* lang.h: the faces' names */
+#define FACE_WEATHER (NFACE - 1)  /* the last: random faces and the report count on it */
 #define BLEND  1.4f                     /* s from one face to the next */
 
 /* h: 0..23; hd: the hour as shown (1..12 when the menu says 12 hours) */
@@ -289,6 +289,15 @@ static void glyph(vp_dvg *d, int g, float ox, float oy, float w, float h)
 static float accent(void) { return 0.72f + 0.28f * G.loud; }   /* the music, slowly */
 
 /* a watch dial */
+/* where the second hand stands: gliding (SECONDS SMOOTH), or a quick step
+ * at each second (TICK: there in an eighth of a second, eased) */
+static float sec_hand(const now_t *n)
+{
+    if (SET.seconds != SEC_TICK) return n->s + n->frac;
+    float t = fminf(1, n->frac / 0.125f);
+    return n->s - 1 + t * t * (3 - 2 * t);
+}
+
 static void face_analog(vp_dvg *d, float k)
 {
     const now_t *n = &G.now;
@@ -323,14 +332,15 @@ static void face_analog(vp_dvg *d, float k)
         snprintf(buf, sizeof buf, "%02d", n->mday);
         float wx = cx + R * 0.42f, wy = cy;
         color(d, 120, 200, 255, k * 0.7f);
-        line(d, wx - 110, wy - 80, wx + 110, wy - 80); vp_lineto(d, (int)(wx + 110), (int)(wy + 80));
-        vp_lineto(d, (int)(wx - 110), (int)(wy + 80)); vp_lineto(d, (int)(wx - 110), (int)(wy - 80));
+        const float bw = 190, bh = 115;                 /* the window: room round the number */
+        line(d, wx - bw, wy - bh, wx + bw, wy - bh); vp_lineto(d, (int)(wx + bw), (int)(wy + bh));
+        vp_lineto(d, (int)(wx - bw), (int)(wy + bh)); vp_lineto(d, (int)(wx - bw), (int)(wy - bh));
         color(d, 235, 240, 255, k);
-        text(d, buf, SX(wx), wy - 45, 90, VP_TEXT_CENTER);
+        text(d, buf, SX(wx), wy - 55, 110, VP_TEXT_CENTER);
         PAINT = theme(SET.theme, PART_CLOCK);
     }
     /* the hands, sweeping */
-    float sec = n->s + n->frac, min = n->m + sec / 60, hour = (n->h % 12) + min / 60;
+    float sec = sec_hand(n), min = n->m + sec / 60, hour = (n->h % 12) + min / 60;
     struct { float a, len, wid, r, g, b; } hand[2] = {
         { hour / 12 * 2 * PI, R * 0.55f, 70, 235, 240, 255 },
         { min / 60 * 2 * PI, R * 0.84f, 46, 235, 240, 255 },
@@ -351,6 +361,209 @@ static void face_analog(vp_dvg *d, float k)
         circle(d, cx - c * R * 0.12f, cy - s * R * 0.12f, 40, 12);
     }
     circle(d, cx, cy, 34, 12);
+}
+
+/* ---- more analog dials: one set of hands, many dials ---------------------
+ * MINIMAL (no rim, no numbers), NUMERALS (only the numbers), ROMAN, SQUARE
+ * and FULL SCREEN (the marks along the screen's edges). A dial is a circle
+ * (radius r) or a rectangle (half sizes rw, rh); the hands reach as far as
+ * its edge lets them. */
+
+static const char *const ROMAN[13] = { "", "I", "II", "III", "IIII", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII" };
+
+/* how far the dial's edge is from its middle, at angle a */
+static float dial_reach(float a, float r, float rw, float rh)
+{
+    if (rw <= 0) return r;
+    float c = fabsf(cosf(a)), s = fabsf(sinf(a));
+    return fminf(c > 1e-4f ? rw / c : 1e9f, s > 1e-4f ? rh / s : 1e9f);
+}
+
+/* a number on the dial, its middle at x, y */
+static void dial_number(vp_dvg *d, int n, float x, float y, float h)
+{
+    y -= h / 2;
+    if (n >= 10) {
+        glyph(d, 1, x - h * 0.62f, y, h * 0.6f, h);
+        glyph(d, n - 10, x + h * 0.04f, y, h * 0.6f, h);
+    } else {
+        glyph(d, n, x - h * 0.3f, y, h * 0.6f, h);
+    }
+}
+
+/* the hands' shapes: each dial its own */
+enum { HAND_STICK, HAND_BATON, HAND_BREGUET, HAND_ARROW, HAND_TAPER };
+
+/* one hand from (cx, cy) at angle a, len long, w its width */
+static void hand_shape(vp_dvg *d, float cx, float cy, float a, float len, float w, int style)
+{
+    float c = cosf(a), s = sinf(a);
+    switch (style) {
+    case HAND_STICK:                                    /* a thin bar */
+    case HAND_BATON: {                                  /* a broad bar with a line inside */
+        float q = style == HAND_STICK ? w * 0.22f : w * 0.6f, back = len * (style == HAND_STICK ? 0.1f : 0.16f);
+        float x, y;
+        x = cx + c * -back - s * q; y = cy + s * -back + c * q; vp_moveto(d, (int)x, (int)y);
+        x = cx + c * len - s * q;   y = cy + s * len + c * q;   vp_lineto(d, (int)x, (int)y);
+        x = cx + c * len + s * q;   y = cy + s * len - c * q;   vp_lineto(d, (int)x, (int)y);
+        x = cx + c * -back + s * q; y = cy + s * -back - c * q; vp_lineto(d, (int)x, (int)y);
+        x = cx + c * -back - s * q; y = cy + s * -back + c * q; vp_lineto(d, (int)x, (int)y);
+        if (style == HAND_BATON) line(d, cx + c * len * 0.3f, cy + s * len * 0.3f, cx + c * len * 0.92f, cy + s * len * 0.92f);
+        break;
+    }
+    case HAND_BREGUET: {                                /* thin, a ring before the tip */
+        float rr = w * 1.5f, at = len * 0.72f;
+        line(d, cx - c * len * 0.15f, cy - s * len * 0.15f, cx + c * (at - rr), cy + s * (at - rr));
+        circle(d, cx + c * at, cy + s * at, rr, 14);
+        vp_moveto(d, (int)(cx + c * (at + rr) - s * w * 0.35f), (int)(cy + s * (at + rr) + c * w * 0.35f));
+        vp_lineto(d, (int)(cx + c * len), (int)(cy + s * len));
+        vp_lineto(d, (int)(cx + c * (at + rr) + s * w * 0.35f), (int)(cy + s * (at + rr) - c * w * 0.35f));
+        break;
+    }
+    case HAND_ARROW: {                                  /* a shaft and an open head */
+        float head = len * 0.8f;
+        line(d, cx - c * len * 0.12f, cy - s * len * 0.12f, cx + c * head, cy + s * head);
+        vp_moveto(d, (int)(cx + c * head - s * w * 1.3f), (int)(cy + s * head + c * w * 1.3f));
+        vp_lineto(d, (int)(cx + c * len), (int)(cy + s * len));
+        vp_lineto(d, (int)(cx + c * head + s * w * 1.3f), (int)(cy + s * head - c * w * 1.3f));
+        vp_lineto(d, (int)(cx + c * head - s * w * 1.3f), (int)(cy + s * head + c * w * 1.3f));
+        break;
+    }
+    case HAND_TAPER:                                    /* broad at the middle, to a long point */
+        vp_moveto(d, (int)(cx - s * w), (int)(cy + c * w));
+        vp_lineto(d, (int)(cx + c * len), (int)(cy + s * len));
+        vp_lineto(d, (int)(cx + s * w), (int)(cy - c * w));
+        vp_lineto(d, (int)(cx - s * w), (int)(cy + c * w));
+        break;
+    }
+}
+
+/* the hands, in the dial's own shape; long as the dial's edge lets them */
+static void dial_hands(vp_dvg *d, float cx, float cy, float r, float rw, float rh, int style, float k)
+{
+    const now_t *n = &G.now;
+    float base = rw > 0 ? fminf(rw, rh) : r, f = base / 1430;
+    float sec = sec_hand(n), min = n->m + sec / 60, hour = (n->h % 12) + min / 60;
+    struct { float a, len, wid; } hand[2] = {
+        { PI / 2 - hour / 12 * 2 * PI, 0.55f, 70 * f },
+        { PI / 2 - min / 60 * 2 * PI, 0.84f, 46 * f },
+    };
+    for (int i = 0; i < 2; i++) {
+        float a = hand[i].a;
+        float len = (i == 0 ? fminf(dial_reach(a, r, rw, rh), base * 1.15f) : dial_reach(a, r, rw, rh)) * hand[i].len;
+        color(d, 235, 240, 255, k);
+        hand_shape(d, cx, cy, a, len, hand[i].wid, style);
+    }
+    float a = PI / 2 - sec / 60 * 2 * PI, c = cosf(a), s = sinf(a), len = dial_reach(a, r, rw, rh) * 0.92f;
+    color(d, 255, 90, 150, k);
+    if (SET.seconds) {
+        line(d, cx - c * base * 0.18f, cy - s * base * 0.18f, cx + c * len, cy + s * len);
+        if (style == HAND_BREGUET || style == HAND_ARROW)   /* a counterweight */
+            circle(d, cx - c * base * 0.12f, cy - s * base * 0.12f, 40 * f, 12);
+    }
+    circle(d, cx, cy, (style == HAND_STICK ? 22 : 34) * f, 12);
+}
+
+/* the 60 marks, inward from the dial's edge: hours longer and brighter */
+static void dial_marks(vp_dvg *d, float cx, float cy, float r, float rw, float rh, float hour_len, float min_len, float k)
+{
+    for (int i = 0; i < 60; i++) {
+        float a = PI / 2 - i * 2 * PI / 60, c = cosf(a), s = sinf(a), e = dial_reach(a, r, rw, rh) * 0.985f;
+        float in = e - (i % 5 == 0 ? hour_len : min_len);
+        if (i % 5 == 0) color(d, 235, 240, 255, k);
+        else            color(d, 120, 200, 255, k * 0.6f * accent());
+        line(d, cx + c * in, cy + s * in, cx + c * e, cy + s * e);
+    }
+}
+
+/* the twelve numbers, `inset` in from the dial's edge; roman or not */
+static void dial_numbers(vp_dvg *d, float cx, float cy, float r, float rw, float rh, float inset, float h, int roman, float k)
+{
+    color(d, 235, 240, 255, k);
+    for (int i = 1; i <= 12; i++) {
+        float a = PI / 2 - i * 2 * PI / 12, e = rw > 0 ? dial_reach(a, r, rw - inset, rh - inset) : r - inset;   /* square in from the edge */
+        float x = cx + cosf(a) * e, y = cy + sinf(a) * e;
+        if (roman) text(d, ROMAN[i], SX(x), y - h / 2, h, VP_TEXT_CENTER);
+        else       dial_number(d, i, x, y, h);
+    }
+}
+
+static void dial_brand(vp_dvg *d, float cx, float cy, float off, float k)
+{
+    color(d, 120, 200, 255, k * 0.8f);
+    text(d, "VECTORPIE", SX(cx), cy + off, 85, VP_TEXT_CENTER);
+}
+
+/* MINIMAL: no rim, no numbers: twelve bars and the hands */
+static void face_minimal(vp_dvg *d, float k)
+{
+    const float cx = CX, cy = 2150, r = 1430;
+    for (int i = 0; i < 12; i++) {
+        float a = PI / 2 - i * 2 * PI / 12, c = cosf(a), s = sinf(a), px = -s * 22, py = c * 22;
+        float in = r * (i % 3 == 0 ? 0.74f : 0.84f), out = r;
+        color(d, 235, 240, 255, k * (i % 3 == 0 ? 1 : 0.8f));
+        vp_moveto(d, (int)(cx + c * in + px), (int)(cy + s * in + py));     /* a bar: a thin outline */
+        vp_lineto(d, (int)(cx + c * out + px), (int)(cy + s * out + py));
+        vp_lineto(d, (int)(cx + c * out - px), (int)(cy + s * out - py));
+        vp_lineto(d, (int)(cx + c * in - px), (int)(cy + s * in - py));
+        vp_lineto(d, (int)(cx + c * in + px), (int)(cy + s * in + py));
+    }
+    dial_hands(d, cx, cy, r, 0, 0, HAND_STICK, k);
+}
+
+/* NUMERALS: no rim, no marks: the twelve numbers */
+static void face_numerals(vp_dvg *d, float k)
+{
+    const float cx = CX, cy = 2150, r = 1430;
+    dial_numbers(d, cx, cy, r, 0, 0, 170, 240, 0, k);
+    dial_brand(d, cx, cy, r * 0.36f, k);
+    dial_hands(d, cx, cy, r, 0, 0, HAND_BATON, k);
+}
+
+/* ROMAN: a thin double rim, roman numerals */
+static void face_roman(vp_dvg *d, float k)
+{
+    const float cx = CX, cy = 2150, r = 1430;
+    color(d, 120, 200, 255, k * accent());
+    circle(d, cx, cy, r, 96);
+    circle(d, cx, cy, r * 0.97f, 96);
+    dial_marks(d, cx, cy, r * 0.97f, 0, 0, 60, 35, k * 0.8f);
+    dial_numbers(d, cx, cy, r, 0, 0, 340, 100, 1, k);
+    dial_brand(d, cx, cy, r * 0.36f, k);
+    dial_hands(d, cx, cy, r, 0, 0, HAND_BREGUET, k);
+}
+
+/* SQUARE: a square dial, the marks and numbers along its sides */
+static void face_square(vp_dvg *d, float k)
+{
+    const float cx = CX, cy = 2150, s = 1400;
+    color(d, 120, 200, 255, k * accent());
+    for (int j = 0; j < 2; j++) {
+        float e = j == 0 ? s * 1.04f : s;
+        vp_moveto(d, (int)(cx - e), (int)(cy - e));
+        vp_lineto(d, (int)(cx + e), (int)(cy - e));
+        vp_lineto(d, (int)(cx + e), (int)(cy + e));
+        vp_lineto(d, (int)(cx - e), (int)(cy + e));
+        vp_lineto(d, (int)(cx - e), (int)(cy - e));
+    }
+    dial_marks(d, cx, cy, 0, s, s, 160, 70, k);
+    dial_numbers(d, cx, cy, 0, s, s, 330, 200, 0, k);
+    dial_brand(d, cx, cy, s * 0.36f, k);
+    dial_hands(d, cx, cy, 0, s, s, HAND_ARROW, k);
+}
+
+/* FULL SCREEN: no frame; the marks along the screen's edges, the hands
+ * reaching out to them */
+static void face_full(vp_dvg *d, float k)
+{
+    /* the screen in true shape (before the squeeze), above the line under the faces */
+    float left = CX - CX / ASPECT_X + 130, right = CX + CX / ASPECT_X - 130;
+    float bottom = W / 2.0f + (620 - W / 2.0f) / ASPECT_Y, top = W / 2.0f + (3975 - W / 2.0f) / ASPECT_Y;
+    float cx = (left + right) / 2, cy = (bottom + top) / 2, rw = (right - left) / 2, rh = (top - bottom) / 2;
+    dial_marks(d, cx, cy, 0, rw, rh, 260, 110, k);
+    dial_numbers(d, cx, cy, 0, rw, rh, 470, 250, 0, k);
+    dial_brand(d, cx, cy, rh * 0.4f, k);
+    dial_hands(d, cx, cy, 0, rw, rh, HAND_TAPER, k);
 }
 
 /* seven segments: a, b, c, d, e, f, g; on: lit, else faintly there */
@@ -735,7 +948,7 @@ static void face_orbit(vp_dvg *d, float k)
 {
     const now_t *n = &G.now;
     float cx = CX, cy = 2030;
-    float sec = n->s + n->frac, min = n->m + sec / 60, hour = (n->h % 12) + min / 60;
+    float sec = sec_hand(n), min = n->m + sec / 60, hour = (n->h % 12) + min / 60;
     struct { float r, a, pr, cr, cg, cb; int ticks; } ring[3] = {
         { 650, hour / 12, 95, 255, 120, 220, 12 },
         { 1080, min / 60, 70, 120, 160, 255, 12 },
@@ -774,7 +987,7 @@ static void face_tunnel(vp_dvg *d, float k)
 {
     const now_t *n = &G.now;
     const float cx = CX, cy = 2030, R = 1560, r = 230;
-    float sec = n->s + n->frac, min = n->m + sec / 60, hour = (n->h % 12) + min / 60;
+    float sec = sec_hand(n), min = n->m + sec / 60, hour = (n->h % 12) + min / 60;
     float vx[5][LANES], vy[5][LANES];
     for (int ring = 0; ring < 5; ring++) {
         float t = ring / 4.0f, rr = r + (R - r) * t * t;         /* far rings closer together */
@@ -937,7 +1150,7 @@ static void face_rocks(vp_dvg *d, float k)
         line(d, FRAG[i].x0, FRAG[i].y0, FRAG[i].x1, FRAG[i].y1);
     }
     /* the ship, gliding round the time, nose ahead (the seconds: once a minute) */
-    float sec = n->s + n->frac, a = PI / 2 - sec / 60 * 2 * PI;
+    float sec = sec_hand(n), a = PI / 2 - sec / 60 * 2 * PI;
     float sx = CX + cosf(a) * 1750, sy = y + h / 2 + sinf(a) * 1250;
     float hx = sinf(a) * 1750, hy = -cosf(a) * 1250, hl = sqrtf(hx * hx + hy * hy);
     hx /= hl; hy /= hl;                                          /* its heading: along the path */
@@ -1372,6 +1585,11 @@ static void face_draw(vp_dvg *d, int f, float k)
     case 6: face_orbit(d, k); break;
     case 7: face_tunnel(d, k); break;
     case 8: face_rocks(d, k); break;
+    case 9: face_minimal(d, k); break;
+    case 10: face_numerals(d, k); break;
+    case 11: face_roman(d, k); break;
+    case 12: face_square(d, k); break;
+    case 13: face_full(d, k); break;
     case FACE_WEATHER: face_weather(d, k); break;
     }
     if (f != FACE_WEATHER) info_line(d, k);
@@ -1554,7 +1772,7 @@ static void update(vp_game *g, float dt)
             if (vp_input_pressed(in, KEY[i].key)) control(KEY[i].in);
     }
     {   /* SAVER_SCRIPT="<s>:<control>,..." presses controls at those times (for development);
-         * controls: U D L R OK BACK MENU SL SR (the spinner) S1 S2 */
+         * controls: U D L R OK BACK MENU SL SR (the spinner) S1 S2, K<code> (a button by its Linux key code) */
         static const char *script;
         static int checked;
         if (!checked) { script = getenv("SAVER_SCRIPT"); checked = 1; }
@@ -1564,7 +1782,8 @@ static void update(vp_game *g, float dt)
             const char *c = strchr(script, ':');
             if (!c) { script = NULL; break; }
             c++;
-            int v = !strncmp(c, "OK", 2) ? IN_OK : !strncmp(c, "BACK", 4) ? IN_BACK : !strncmp(c, "MENU", 4) ? IN_MENU : !strncmp(c, "SL", 2) ? IN_SPIN_L
+            int v = *c == 'K' ? input_key(atoi(c + 1), menu_is_open())   /* a button by its Linux key code */
+                  : !strncmp(c, "OK", 2) ? IN_OK : !strncmp(c, "BACK", 4) ? IN_BACK : !strncmp(c, "MENU", 4) ? IN_MENU : !strncmp(c, "SL", 2) ? IN_SPIN_L
                   : !strncmp(c, "SR", 2) ? IN_SPIN_R : !strncmp(c, "S1", 2) ? IN_START1
                   : !strncmp(c, "S2", 2) ? IN_START2 : *c == 'U' ? IN_UP : *c == 'D' ? IN_DOWN : *c == 'L' ? IN_LEFT
                   : *c == 'R' ? IN_RIGHT : IN_NONE;

@@ -1,13 +1,15 @@
 # Stand
 
-Stand 2026-11-08, Version 0.5.1: **Clock** (`saver_clock`).
+Stand 2026-11-08, Version 0.6.0: **Clock** (`saver_clock`).
 
 ## Was er kann
 
-- **Zehn Zifferblätter** (siehe README). Eines blendet in 1,4 s ins nächste über, der Name des neuen steht kurz unten.
-- **Das eigene Menü** (F2 oder Tab, ebenso zu) hat 18 Zeilen und blättert. Einstellbar sind:
+- **Fünfzehn Zifferblätter** (siehe README), davon sechs analoge mit je eigenen Zeigern. Eines blendet in 1,4 s ins nächste über, der Name des neuen steht kurz unten.
+- **Das eigene Menü** (F2 oder Tab, ebenso zu) hat 19 Zeilen und blättert. Einstellbar sind:
   - Zifferblatt und Zufall (aus, beim Start, immer)
   - Wechsel (aus, mit jedem Track, alle 1, 5, 15 oder 60 Minuten, nach jedem Wetterbericht)
+  - Umschalten mit Spinner, Joystick links/rechts, einer gelernten Taste oder gar nicht
+  - Sekundenzeiger aus, gleitend oder tickend
   - die Farben von Uhr, Datum und Wetter, jede für sich, auch RANDOM: mit jedem Zifferblatt eine neue der sieben einfachen Farben. Beim Überblenden behält das alte Zifferblatt seine Farbe.
   - Sekunden, Datum, Wetterzeile, 24 Stunden, Tracktitel
   - Wetterbericht (alle 1, 2, 3, 5, 10, 15, 30 oder 60 Minuten) und seine Dauer (10 bis 60 s)
@@ -37,6 +39,12 @@ Stand 2026-11-08, Version 0.5.1: **Clock** (`saver_clock`).
 - `curl` und `wget` sind vorhanden. Wetter und Ortssuche von Open-Meteo antworten.
 
 ## Geprüft (am PC)
+
+- 0.6.0:
+  - Fünf neue analoge Zifferblätter (MINIMAL, NUMERALS, ROMAN, SQUARE, FULL SCREEN) mit eigenen Zeigern angesehen. Am Automaten 40 Bilder pro Sekunde, etwa 440 bis 520 Linien.
+  - Das Datumsfenster von ANALOG ist größer (380 × 230 statt 220 × 160, Zahl 110 statt 90 hoch).
+  - Umschalten mit eigener Taste per `SAVER_SCRIPT` (`K57`): gelernt als „CUSTOM: BUTTON 3“, gespeichert, danach schaltet Button 3 weiter.
+  - Gespeicherte Zifferblätter: WEATHER war Nummer 9 und ist jetzt 14. Wer WEATHER gespeichert hatte, landet einmal auf MINIMAL.
 
 - 0.5.1: Der Spinner war zu empfindlich. Ein Schritt braucht jetzt 240 statt 60 Zählschritte, danach ruht er 0,35 s: ein Schwung, ein Schritt. Am Automaten noch von Hand zu beurteilen.
 

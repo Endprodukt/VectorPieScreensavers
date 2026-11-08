@@ -1,14 +1,60 @@
 /* input.c — see input.h. */
 #include "input.h"
 
+#include <stdio.h>
 #include <vectorpie/vp.h>
+
+#include "settings.h"
+
+static int learning, learned;
+
+void input_learn(int on) { learning = on; }
+int  input_learned(void) { return learned; }
+
+/* the Linux key codes named here (linux/input-event-codes.h), so a PC knows them too */
+enum { K_ESC = 1, K_1 = 2, K_2 = 3, K_5 = 6, K_6 = 7, K_TAB = 15, K_ENTER = 28, K_LEFTCTRL = 29, K_Z = 44,
+       K_X = 45, K_LEFTSHIFT = 42, K_LEFTALT = 56, K_SPACE = 57, K_F2 = 60, K_UP = 103, K_LEFT = 105,
+       K_RIGHT = 106, K_DOWN = 108, K_BTN_LEFT = 0x110, K_BTN_RIGHT = 0x111 };
+
+void input_key_name(int code, char *buf, int size)
+{
+    /* the cabinet's buttons as the SDK's standard keys have them */
+    static const struct { int code; const char *name; } NAME[] = {
+        { K_LEFTCTRL, "BUTTON 1" }, { K_LEFTALT, "BUTTON 2" }, { K_SPACE, "BUTTON 3" }, { K_LEFTSHIFT, "BUTTON 4" },
+        { K_Z, "BUTTON 5" }, { K_X, "BUTTON 6" }, { K_1, "START 1" }, { K_2, "START 2" }, { K_5, "COIN 1" },
+        { K_6, "COIN 2" }, { K_ESC, "EXIT" }, { K_ENTER, "ENTER" }, { K_UP, "UP" }, { K_DOWN, "DOWN" },
+        { K_LEFT, "LEFT" }, { K_RIGHT, "RIGHT" }, { K_BTN_LEFT, "MOUSE LEFT" }, { K_BTN_RIGHT, "MOUSE RIGHT" },
+    };
+    for (size_t i = 0; i < sizeof NAME / sizeof NAME[0]; i++)
+        if (NAME[i].code == code) { snprintf(buf, (size_t)size, "%s", NAME[i].name); return; }
+    snprintf(buf, (size_t)size, "KEY %d", code);
+}
+
+static int key_meaning(int code);
+
+int input_key(int code, int menu)
+{
+    if (learning) {
+        learning = 0;
+        if (code == K_F2 || code == K_TAB) return IN_MENU;     /* given up */
+        learned = code;
+        return IN_LEARNED;
+    }
+    if (!menu && SET.switch_by == SW_CUSTOM && SET.switch_key > 0 && code == SET.switch_key) return IN_SPIN_R;
+    int m = key_meaning(code);
+    if (!menu && SET.switch_by == SW_LEFTRIGHT && (m == IN_LEFT || m == IN_RIGHT))
+        return m == IN_LEFT ? IN_SPIN_L : IN_SPIN_R;
+    /* outside the menu only F2/Tab and START 2 are the clock's: the rest wakes */
+    if (!menu && m != IN_MENU && m != IN_START2) m = IN_WAKE;
+    if (menu && m == IN_WAKE) return IN_NONE;              /* in the menu nothing wakes */
+    return m;
+}
 
 #ifdef __linux__
 
 #include <dirent.h>
 #include <fcntl.h>
 #include <linux/input.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -124,14 +170,17 @@ int input_next(int menu)
             if (logging) fprintf(stderr, "clock input: dev %d type %d code %d value %d\n", i, ev.type, ev.code, ev.value);
             if (ev.type == EV_KEY) {
                 if (ev.value == 0) continue;                        /* let go */
-                int m = key_meaning(ev.code);
-                if (ev.value == 2 && !(menu && m >= IN_UP && m <= IN_RIGHT)) continue;   /* held: only to move */
-                /* outside the menu only F2/Tab and START 2 are the clock's: the rest wakes */
-                if (!menu && m != IN_MENU && m != IN_START2) m = IN_WAKE;
-                if (menu && m == IN_WAKE) continue;                 /* in the menu nothing wakes */
+                if (ev.value == 2) {                                /* held: only to move in the menu */
+                    int m = key_meaning(ev.code);
+                    if (menu && !learning && m >= IN_UP && m <= IN_RIGHT) return m;
+                    continue;
+                }
+                int m = input_key(ev.code, menu);
+                if (m == IN_NONE) continue;
                 return m;
             }
             if (ev.type == EV_REL && dev[i].spinner && (ev.code == REL_X || ev.code == REL_DIAL)) {
+                if (!menu && SET.switch_by != SW_SPINNER) continue; /* the menu says: not the spinner */
                 double t = ev.time.tv_sec + ev.time.tv_usec / 1e6;
                 if (t < dev[i].spin_rest) continue;
                 if ((ev.value > 0) != (dev[i].spin > 0)) dev[i].spin = 0;   /* turned back: start again */
@@ -154,7 +203,7 @@ int input_next(int menu)
                     float mid = (dev[i].lo[a] + dev[i].hi[a]) / 2.0f, half = (dev[i].hi[a] - dev[i].lo[a]) / 2.0f;
                     float f = (ev.value - mid) / half;
                     way = f < -0.75f ? -1 : f > 0.75f ? 1 : (f > -0.4f && f < 0.4f) ? 0 : dev[i].way[a];
-                    if (!menu) { dev[i].way[a] = way; continue; }
+                    if (!menu && !(a == ABS_X && SET.switch_by == SW_LEFTRIGHT)) { dev[i].way[a] = way; continue; }
                 } else {
                     continue;
                 }
@@ -163,6 +212,7 @@ int input_next(int menu)
                 if (way == 0) continue;
                 int x = a == ABS_HAT0X || a == ABS_X;
                 int m = x ? (way < 0 ? IN_LEFT : IN_RIGHT) : (way < 0 ? IN_UP : IN_DOWN);
+                if (!menu && x && SET.switch_by == SW_LEFTRIGHT) return way < 0 ? IN_SPIN_L : IN_SPIN_R;
                 return menu ? m : IN_WAKE;
             }
         }
@@ -171,6 +221,22 @@ int input_next(int menu)
 }
 
 #else   /* not Linux: a PC, nothing to take over */
+
+static int key_meaning(int code)
+{
+    switch (code) {
+    case K_UP: return IN_UP;
+    case K_DOWN: return IN_DOWN;
+    case K_LEFT: return IN_LEFT;
+    case K_RIGHT: return IN_RIGHT;
+    case K_1: return IN_START1;
+    case K_2: return IN_START2;
+    case K_F2: case K_TAB: return IN_MENU;
+    case K_ENTER: case K_LEFTCTRL: return IN_OK;
+    case K_ESC: case K_LEFTALT: return IN_BACK;
+    }
+    return IN_WAKE;
+}
 
 int  input_start(void) { return 0; }
 int  input_next(int menu) { (void)menu; return IN_NONE; }

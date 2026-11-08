@@ -13,7 +13,7 @@
 #endif
 
 settings_t SET = { .lang = 0, .face = 0, .change = 0, .theme = 0, .date_theme = 0, .wx_theme = 0, .random = 0,
-                   .report = 0, .report_len = 1, .wx_style = 0, .wx_colorful = 1,
+                   .report = 0, .report_len = 1, .wx_style = 0, .wx_colorful = 1, .switch_by = SW_SPINNER, .switch_key = 0,
                    .seconds = 1, .date = 1, .weather = 1, .h24 = 1, .title = 1, .has_place = 0 };
 
 static char dir[512];                   /* the program's folder, with its slash */
@@ -58,6 +58,8 @@ static int read_file(const char *path)
         else if (!strcmp(k, "report_length")) SET.report_len = i;
         else if (!strcmp(k, "weather_style")) SET.wx_style = i;
         else if (!strcmp(k, "weather_colorful")) SET.wx_colorful = i;
+        else if (!strcmp(k, "switch_with")) SET.switch_by = i;
+        else if (!strcmp(k, "switch_key")) SET.switch_key = i;
         else if (!strcmp(k, "seconds")) SET.seconds = i;
         else if (!strcmp(k, "date")) SET.date = i;
         else if (!strcmp(k, "weather")) SET.weather = i;
@@ -88,7 +90,7 @@ void settings_load(const char *exe_path)
     snprintf(path, sizeof path, "%ssave/clock.ini", dir);   /* the menu's */
     read_file(path);
     SET.lang = clampi(SET.lang, 0, 3);
-    SET.face = clampi(SET.face, 0, 9);
+    SET.face = clampi(SET.face, 0, 14);                 /* lang.h NFACES - 1 */
     SET.change = clampi(SET.change, 0, 6);
     SET.theme = clampi(SET.theme, 0, 9);
     SET.date_theme = clampi(SET.date_theme, 0, 9);
@@ -103,6 +105,9 @@ void settings_load(const char *exe_path)
     SET.report_len = clampi(SET.report_len, 0, 3);
     SET.wx_style = clampi(SET.wx_style, 0, 5);
     SET.wx_colorful = clampi(SET.wx_colorful, 0, 1);
+    SET.switch_by = clampi(SET.switch_by, 0, NSWITCH - 1);
+    SET.seconds = clampi(SET.seconds, SEC_OFF, SEC_TICK);
+    SET.switch_key = clampi(SET.switch_key, 0, 767);   /* KEY_MAX */
 }
 
 void settings_save(void)
@@ -116,6 +121,7 @@ void settings_save(void)
     fprintf(f, "; Clock: set in its menu (F2 or Tab while it runs)\n");
     fprintf(f, "language = %d\nface = %d\nchange = %d\ncolor = %d\n", SET.lang, SET.face, SET.change, SET.theme);
     fprintf(f, "date_color = %d\nweather_color = %d\nrandom = %d\n", SET.date_theme, SET.wx_theme, SET.random);
+    fprintf(f, "switch_with = %d\nswitch_key = %d\n", SET.switch_by, SET.switch_key);
     fprintf(f, "report_minutes = %d\nreport_length = %d\nweather_style = %d\nweather_colorful = %d\n", REPORT_MIN[SET.report],
             SET.report_len, SET.wx_style, SET.wx_colorful);
     fprintf(f, "seconds = %d\ndate = %d\nweather = %d\nhours24 = %d\ntitle = %d\n", SET.seconds, SET.date,

@@ -13,11 +13,18 @@ typedef struct {
     int random;                 /* the face: 0 as set, 1 a random one at start, 2 random at each change too */
     int report, report_len;     /* the weather report: REPORT_MIN (below), REPORT_LEN_S (lang.h) */
     int wx_style, wx_colorful;  /* how the weather is shown (WS_*); 1 in its own colors, else wx_theme */
-    int seconds, date, weather, h24, title;   /* 1: shown (24 hours: else 12) */
+    int switch_by, switch_key;  /* what steps to the next face (SW_*); the button for SW_CUSTOM (a Linux key code, 0 none) */
+    int seconds, date, weather, h24, title;   /* 1: shown (24 hours: else 12); seconds: SEC_* */
     int has_place;              /* 0: the cabinet's own time, no weather */
     char place[48];
     double lat, lon;
 } settings_t;
+
+/* the seconds: off, the hand gliding, or ticking */
+enum { SEC_OFF, SEC_SMOOTH, SEC_TICK };
+
+/* what steps to the next face */
+enum { SW_SPINNER, SW_LEFTRIGHT, SW_CUSTOM, SW_NONE, NSWITCH };
 
 /* the weather report's rhythm: off, or every so many minutes. Saved as
  * minutes (report_minutes), so the list can grow. */

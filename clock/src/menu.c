@@ -16,9 +16,9 @@
 #define CX    (W / 2.0f)
 #define IDLE_S 60.0f                    /* left alone this long, it closes */
 
-enum { M_FACE, M_RANDOM, M_CHANGE, M_COLOR, M_DATE_COLOR, M_WX_COLOR, M_SECONDS, M_DATE, M_WEATHER, M_H24,
+enum { M_FACE, M_RANDOM, M_CHANGE, M_SWITCH, M_COLOR, M_DATE_COLOR, M_WX_COLOR, M_SECONDS, M_DATE, M_WEATHER, M_H24,
        M_TITLE, M_REPORT, M_REPORT_LEN, M_WX_STYLE, M_WX_COLORS, M_PLACE, M_LANG, M_CLOSE, NROW };
-enum { SCR_MAIN, SCR_PLACE, SCR_KEYS, SCR_FOUND };
+enum { SCR_MAIN, SCR_PLACE, SCR_KEYS, SCR_FOUND, SCR_LEARN };
 
 static struct {
     int open, screen, row;
@@ -63,8 +63,9 @@ static int place_row_now(void)
 static void change(int dir)
 {
     switch (M.row) {
-    case M_FACE:    SET.face = wrap(SET.face + dir, 10); break;
+    case M_FACE:    SET.face = wrap(SET.face + dir, NFACES); break;
     case M_CHANGE:  SET.change = wrap(SET.change + dir, NCHANGE); break;
+    case M_SWITCH:  SET.switch_by = wrap(SET.switch_by + dir, NSWITCH); break;
     case M_COLOR:   SET.theme = wrap(SET.theme + dir, NTHEME); break;
     case M_RANDOM:  SET.random = wrap(SET.random + dir, 3); break;
     case M_DATE_COLOR: SET.date_theme = wrap(SET.date_theme + dir, NTHEME); break;
@@ -73,7 +74,7 @@ static void change(int dir)
     case M_REPORT_LEN: SET.report_len = wrap(SET.report_len + dir, NREPORT_LEN); break;
     case M_WX_STYLE: SET.wx_style = wrap(SET.wx_style + dir, NWSTYLE); break;
     case M_WX_COLORS: SET.wx_colorful ^= 1; break;
-    case M_SECONDS: SET.seconds ^= 1; break;
+    case M_SECONDS: SET.seconds = wrap(SET.seconds + dir, 3); break;   /* off, smooth, tick */
     case M_DATE:    SET.date ^= 1; break;
     case M_WEATHER: SET.weather ^= 1; break;
     case M_H24:     SET.h24 ^= 1; break;
@@ -95,6 +96,12 @@ int menu_input(int in)
     M.idle = 0;
     if (in == IN_START1) in = IN_OK;
     if (in == IN_START2) in = IN_BACK;
+    if (M.screen == SCR_LEARN) {                        /* the button for the next face */
+        if (in == IN_LEARNED) { SET.switch_key = input_learned(); SET.switch_by = SW_CUSTOM; }
+        input_learn(0);
+        M.screen = SCR_MAIN;                            /* F2/Tab: given up */
+        return 0;
+    }
     if (in == IN_MENU) { M.open = 0; return 1; }        /* F2/Tab again: closed, wherever it is */
     switch (M.screen) {
     case SCR_MAIN:
@@ -105,6 +112,7 @@ int menu_input(int in)
         else if (in == IN_OK) {
             if (M.row == M_CLOSE) { M.open = 0; return 1; }
             if (M.row == M_PLACE) { M.screen = SCR_PLACE; M.place_row = place_row_now(); }
+            else if (M.row == M_SWITCH && SET.switch_by == SW_CUSTOM) { M.screen = SCR_LEARN; input_learn(1); }
             else change(1);
         } else if (in == IN_BACK) { M.open = 0; return 1; }
         break;
@@ -199,6 +207,15 @@ static void value_of(int row, char *buf, size_t size)
         break;
     case M_COLOR:   snprintf(buf, size, "%s", L_THEME[SET.lang][SET.theme]); break;
     case M_RANDOM:  snprintf(buf, size, "%s", SET.random == 0 ? off : SET.random == 1 ? S(S_AT_START) : S(S_ALWAYS)); break;
+    case M_SWITCH:
+        if (SET.switch_by == SW_CUSTOM) {               /* with its button, or OK to set one */
+            char key[24] = "OK";
+            if (SET.switch_key > 0) input_key_name(SET.switch_key, key, sizeof key);
+            snprintf(buf, size, "%s: %s", L_SWITCH[SET.lang][SW_CUSTOM], key);
+        } else {
+            snprintf(buf, size, "%s", L_SWITCH[SET.lang][SET.switch_by]);
+        }
+        break;
     case M_DATE_COLOR: snprintf(buf, size, "%s", L_THEME[SET.lang][SET.date_theme]); break;
     case M_WX_COLOR: snprintf(buf, size, "%s", L_THEME[SET.lang][SET.wx_theme]); break;
     case M_REPORT:
@@ -208,7 +225,9 @@ static void value_of(int row, char *buf, size_t size)
     case M_REPORT_LEN: snprintf(buf, size, S(S_SEC), REPORT_LEN_S[SET.report_len]); break;
     case M_WX_STYLE: snprintf(buf, size, "%s", L_WSTYLE[SET.lang][SET.wx_style]); break;
     case M_WX_COLORS: snprintf(buf, size, "%s", SET.wx_colorful ? S(S_COLORFUL) : S(S_ONE_COLOR)); break;
-    case M_SECONDS: snprintf(buf, size, "%s", SET.seconds ? on : off); break;
+    case M_SECONDS:
+        snprintf(buf, size, "%s", SET.seconds == SEC_OFF ? off : SET.seconds == SEC_TICK ? S(S_TICK) : S(S_SMOOTH));
+        break;
     case M_DATE:    snprintf(buf, size, "%s", SET.date ? on : off); break;
     case M_WEATHER: snprintf(buf, size, "%s", SET.weather ? on : off); break;
     case M_H24:     snprintf(buf, size, "%s", SET.h24 ? on : off); break;
@@ -227,7 +246,7 @@ static void title(vp_dvg *d, const char *s)
 
 static void draw_main(vp_dvg *d)
 {
-    static const int LABEL[NROW] = { S_FACE, S_RANDOM, S_CHANGE, S_CLOCK_COLOR, S_DATE_COLOR, S_WX_COLOR, S_SECONDS,
+    static const int LABEL[NROW] = { S_FACE, S_RANDOM, S_CHANGE, S_SWITCH, S_CLOCK_COLOR, S_DATE_COLOR, S_WX_COLOR, S_SECONDS,
                                      S_DATE, S_WX_LINE, S_H24, S_TITLE, S_REPORT, S_REPORT_LEN, S_WX_STYLE,
                                      S_WX_COLORS, S_PLACE, S_LANGUAGE, S_CLOSE };
     title(d, S(S_SETTINGS));
@@ -249,13 +268,13 @@ static void draw_main(vp_dvg *d)
             continue;
         }
         col(d, 230, 235, 255);
-        vp_text_fit(d, S(LABEL[r]), 450, y, h, 1500, VP_TEXT_LEFT);
+        vp_text_fit(d, S(LABEL[r]), 450, y, h, 1400, VP_TEXT_LEFT);
         char buf[64];
         value_of(r, buf, sizeof buf);
         col(d, 80, 220, 255);
-        vp_text_fit(d, buf, W - 600, y, h, 1500, VP_TEXT_RIGHT);
+        vp_text_fit(d, buf, W - 600, y, h, 1250, VP_TEXT_RIGHT);
         if (r == M.row && r != M_PLACE) {           /* the arrows: left and right change it */
-            vp_text(d, "<", W - 600 - fminf(vp_text_width(buf, h), 1500) - 150, y, h, VP_TEXT_LEFT);
+            vp_text(d, "<", W - 600 - fminf(vp_text_width(buf, h), 1250) - 150, y, h, VP_TEXT_LEFT);
             vp_text(d, ">", W - 520, y, h, VP_TEXT_LEFT);
         } else if (r == M.row) {
             vp_text(d, ">", W - 520, y, h, VP_TEXT_LEFT);
@@ -344,5 +363,12 @@ void menu_draw(vp_dvg *d)
     case SCR_PLACE: draw_list(d, S(S_PLACE), NCITY + 2, M.place_row, place_name); break;
     case SCR_KEYS:  draw_keys(d); break;
     case SCR_FOUND: draw_found(d); break;
+    case SCR_LEARN:
+        title(d, S(S_SWITCH));
+        col(d, 80, 220, 255);
+        vp_text_fit(d, S(S_PRESS_BUTTON), CX, 2000, 150, W * 0.8f, VP_TEXT_CENTER);
+        col(d, 150, 160, 190);
+        vp_text(d, S(S_LEARN_HINT), CX, 120, 70, VP_TEXT_CENTER);
+        break;
     }
 }

@@ -1,8 +1,13 @@
 # Clock
 
-Die Uhrzeit auf zehn Zifferblättern:
+Die Uhrzeit auf fünfzehn Zifferblättern:
 
-- **ANALOG:** Uhr mit gleitendem Sekundenzeiger und Datumsfenster
+- **ANALOG:** Uhr mit Rand, Zahlen und Datumsfenster
+- **MINIMAL:** ohne Rand und ohne Zahlen, nur zwölf Striche, schmale Zeiger
+- **NUMERALS:** nur die zwölf Zahlen, Balkenzeiger
+- **ROMAN:** römische Zahlen, Breguet-Zeiger (mit Ring vor der Spitze)
+- **SQUARE:** quadratisches Zifferblatt, Pfeilzeiger
+- **FULL SCREEN:** ohne Rahmen, die Striche laufen an den Bildrändern entlang, lange spitze Zeiger reichen bis dorthin
 - **DIGITAL:** Siebensegment-Anzeige mit Datum
 - **FLIP:** Fallblattanzeige, deren Karten umklappen
 - **BINARY:** jede Ziffer als Bits
@@ -30,8 +35,14 @@ Einstellbar ist:
   - mit jedem Track
   - alle 1, 5, 15 oder 60 Minuten
   - nach jedem Wetterbericht
+- **SWITCH FACE WITH:** womit man zum nächsten Zifferblatt schaltet:
+  - SPINNER (Standard)
+  - LEFT / RIGHT: Joystick links und rechts
+  - CUSTOM: eine eigene Taste. Mit Button 1 auf der Zeile wird sie gelernt: „PRESS A BUTTON“, dann die gewünschte Taste drücken (F2 oder Tab bricht ab). Die Zeile zeigt sie dann, etwa „CUSTOM: BUTTON 3“.
+  - NONE
 - **CLOCK COLOR, DATE COLOR, WEATHER COLOR:** Farben für Uhr, Datum und Wetter, jede für sich. Zur Wahl stehen die eigenen Farben, eine von Cyan, Grün, Bernstein, Rot, Magenta, Blau, Weiß und Regenbogen, oder RANDOM: Mit jedem Zifferblatt kommt eine neue Farbe aus den sieben einfachen, nie zweimal dieselbe hintereinander.
-- **Was angezeigt wird:** SECONDS, DATE, WEATHER LINE (die Wetterzeile unter der Uhr), 24 HOURS (sonst 12) und TRACK TITLE, jeweils an oder aus
+- **SECONDS:** aus, SMOOTH (der Zeiger gleitet, Standard) oder TICK (er springt jede Sekunde)
+- **Was sonst angezeigt wird:** DATE, WEATHER LINE (die Wetterzeile unter der Uhr), 24 HOURS (sonst 12) und TRACK TITLE, jeweils an oder aus
 - **WEATHER REPORT:** der Wetterbericht als Vollbild, aus oder alle 1, 2, 3, 5, 10, 15, 30 oder 60 Minuten. Er blendet über die Uhr und danach wieder zurück.
 - **REPORT LENGTH:** wie lange er bleibt, 10, 20, 30 oder 60 s
 - **WEATHER STYLE:** wie das Wetter gezeigt wird, im Wetterbericht und auf dem Zifferblatt WEATHER:
@@ -47,7 +58,7 @@ Einstellbar ist:
 
 Die Einstellungen bleiben in `save/clock.ini` neben dem Programm erhalten.
 
-Der **Spinner** schaltet durch die Zifferblätter. Nach dem letzten (und vor dem ersten) kommt der Wetterbericht. Er bleibt so lange wie eingestellt (REPORT LENGTH), auch wenn der Wetterbericht im Takt aus ist. Im Menü bewegt der Spinner durch die Zeilen.
+Der **Spinner** (oder was unter SWITCH FACE WITH eingestellt ist) schaltet durch die Zifferblätter. Nach dem letzten (und vor dem ersten) kommt der Wetterbericht. Er bleibt so lange wie eingestellt (REPORT LENGTH), auch wenn der Wetterbericht im Takt aus ist. Im Menü bewegt der Spinner durch die Zeilen.
 
 Außerhalb des Menüs spielt **START 2** den nächsten Track. Jede andere Taste, auch START 1, weckt den Automaten wie bei jedem Screensaver.
 
