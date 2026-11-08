@@ -110,8 +110,6 @@ static const float THEME_RGB[NTHEME][3] = {
 static const int CHANGE_MIN[NCHANGE] = { 0, 0, 1, 5, 15, 60, 0 };
 
 /* the weather report: off or every so many minutes, for so many seconds */
-#define NREPORT 6
-static const int REPORT_MIN[NREPORT] = { 0, 5, 10, 15, 30, 60 };
 #define NREPORT_LEN 4
 static const int REPORT_LEN_S[NREPORT_LEN] = { 10, 20, 30, 60 };
 

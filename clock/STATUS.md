@@ -1,6 +1,6 @@
 # Stand
 
-Stand 2026-11-08, Version 0.4.1: **Clock** (`saver_clock`).
+Stand 2026-11-08, Version 0.4.2: **Clock** (`saver_clock`).
 
 ## Was er kann
 
@@ -10,7 +10,7 @@ Stand 2026-11-08, Version 0.4.1: **Clock** (`saver_clock`).
   - Wechsel (aus, mit jedem Track, alle 1, 5, 15 oder 60 Minuten, nach jedem Wetterbericht)
   - die Farben von Uhr, Datum und Wetter, jede für sich, auch RANDOM: mit jedem Zifferblatt eine neue der sieben einfachen Farben. Beim Überblenden behält das alte Zifferblatt seine Farbe.
   - Sekunden, Datum, Wetterzeile, 24 Stunden, Tracktitel
-  - Wetterbericht (alle 5 bis 60 Minuten) und seine Dauer (10 bis 60 s)
+  - Wetterbericht (alle 1, 2, 3, 5, 10, 15, 30 oder 60 Minuten) und seine Dauer (10 bis 60 s)
   - Wetter-Ansicht und Wetterfarben (bunt oder einfarbig)
   - Ort und Sprache
   - Eine Änderung wirkt sofort.
@@ -37,6 +37,8 @@ Stand 2026-11-08, Version 0.4.1: **Clock** (`saver_clock`).
 - `curl` und `wget` sind vorhanden. Wetter und Ortssuche von Open-Meteo antworten.
 
 ## Geprüft (am PC)
+
+- 0.4.2: Wetterbericht auch alle 1, 2 oder 3 Minuten. Gespeichert wird jetzt in Minuten (`report_minutes`), ein altes `report = <Platz>` wird umgerechnet. Am PC geprüft: altes „alle 5“ gelesen, im Menü auf 1 Minute gestellt, der Bericht kam eine Minute nach dem Schließen.
 
 - 0.4.1: ROCKS behoben. Die Felsen sprangen jedes Bild 300 Einheiten nach unten (Fehler beim Umlauf am Rand) und wirkten dadurch rasend schnell. Jetzt treiben sie langsam (14 bis 36 Einheiten pro Sekunde) und drehen sich gemächlich. Am PC über 8 s geprüft.
 

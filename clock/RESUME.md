@@ -15,7 +15,7 @@
   - das Zifferblatt selbst zusammenstellen: mit oder ohne Datum, Wetter usw.
 - **Wechsel mit dem Track ist nur eine Option, nicht der Standard.** Standard ist: kein Wechsel.
 - Unterschiedliche Farben für Uhr, Datum und Wetter (2026-11-07).
-- Der Wetterbericht als Vollbild in einem einstellbaren Takt.
+- Der Wetterbericht als Vollbild in einem einstellbaren Takt, auch kurz: nach 1, 2 Minuten usw. (2026-11-08).
 - Das Zifferblatt kann zufällig sein: beim Start, nach einem Song, nach einer Zeit oder nach dem Wetterbericht.
 - Den Wetterbericht gibt es in mehreren Ansichten: einfach, nur heute, mehrere Tage, über den Tag, einfarbig oder bunt.
 - Nichts darf blinken oder pulsieren. Musik ändert Dinge nur gleitend.

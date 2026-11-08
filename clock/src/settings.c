@@ -17,6 +17,7 @@ settings_t SET = { .lang = 0, .face = 0, .change = 0, .theme = 0, .date_theme = 
                    .seconds = 1, .date = 1, .weather = 1, .h24 = 1, .title = 1, .has_place = 0 };
 
 static char dir[512];                   /* the program's folder, with its slash */
+static int report_min = -1;             /* the weather report read: minutes, -1 none */
 
 static void trim(char *s)
 {
@@ -50,7 +51,10 @@ static int read_file(const char *path)
         else if (!strcmp(k, "date_color")) SET.date_theme = i;
         else if (!strcmp(k, "weather_color")) SET.wx_theme = i;
         else if (!strcmp(k, "random")) SET.random = i;
-        else if (!strcmp(k, "report")) SET.report = i;
+        else if (!strcmp(k, "report")) {                    /* before 0.4.2: a place in { 0, 5, 10, 15, 30, 60 } */
+            static const int OLD[6] = { 0, 5, 10, 15, 30, 60 };
+            report_min = OLD[i < 0 ? 0 : i > 5 ? 5 : i];
+        } else if (!strcmp(k, "report_minutes")) report_min = i;
         else if (!strcmp(k, "report_length")) SET.report_len = i;
         else if (!strcmp(k, "weather_style")) SET.wx_style = i;
         else if (!strcmp(k, "weather_colorful")) SET.wx_colorful = i;
@@ -90,7 +94,12 @@ void settings_load(const char *exe_path)
     SET.date_theme = clampi(SET.date_theme, 0, 9);
     SET.wx_theme = clampi(SET.wx_theme, 0, 9);
     SET.random = clampi(SET.random, 0, 2);
-    SET.report = clampi(SET.report, 0, 5);
+    if (report_min >= 0) {                              /* the nearest in the list */
+        SET.report = 0;
+        for (int r = 1; r < NREPORT; r++)
+            if (abs(REPORT_MIN[r] - report_min) < abs(REPORT_MIN[SET.report] - report_min)) SET.report = r;
+    }
+    SET.report = clampi(SET.report, 0, NREPORT - 1);
     SET.report_len = clampi(SET.report_len, 0, 3);
     SET.wx_style = clampi(SET.wx_style, 0, 5);
     SET.wx_colorful = clampi(SET.wx_colorful, 0, 1);
@@ -107,7 +116,7 @@ void settings_save(void)
     fprintf(f, "; Clock: set in its menu (F2 or Tab while it runs)\n");
     fprintf(f, "language = %d\nface = %d\nchange = %d\ncolor = %d\n", SET.lang, SET.face, SET.change, SET.theme);
     fprintf(f, "date_color = %d\nweather_color = %d\nrandom = %d\n", SET.date_theme, SET.wx_theme, SET.random);
-    fprintf(f, "report = %d\nreport_length = %d\nweather_style = %d\nweather_colorful = %d\n", SET.report,
+    fprintf(f, "report_minutes = %d\nreport_length = %d\nweather_style = %d\nweather_colorful = %d\n", REPORT_MIN[SET.report],
             SET.report_len, SET.wx_style, SET.wx_colorful);
     fprintf(f, "seconds = %d\ndate = %d\nweather = %d\nhours24 = %d\ntitle = %d\n", SET.seconds, SET.date,
             SET.weather, SET.h24, SET.title);

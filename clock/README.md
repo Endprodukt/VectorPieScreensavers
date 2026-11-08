@@ -32,7 +32,7 @@ Einstellbar ist:
   - nach jedem Wetterbericht
 - **CLOCK COLOR, DATE COLOR, WEATHER COLOR:** Farben für Uhr, Datum und Wetter, jede für sich. Zur Wahl stehen die eigenen Farben, eine von Cyan, Grün, Bernstein, Rot, Magenta, Blau, Weiß und Regenbogen, oder RANDOM: Mit jedem Zifferblatt kommt eine neue Farbe aus den sieben einfachen, nie zweimal dieselbe hintereinander.
 - **Was angezeigt wird:** SECONDS, DATE, WEATHER LINE (die Wetterzeile unter der Uhr), 24 HOURS (sonst 12) und TRACK TITLE, jeweils an oder aus
-- **WEATHER REPORT:** der Wetterbericht als Vollbild, aus oder alle 5, 10, 15, 30 oder 60 Minuten. Er blendet über die Uhr und danach wieder zurück.
+- **WEATHER REPORT:** der Wetterbericht als Vollbild, aus oder alle 1, 2, 3, 5, 10, 15, 30 oder 60 Minuten. Er blendet über die Uhr und danach wieder zurück.
 - **REPORT LENGTH:** wie lange er bleibt, 10, 20, 30 oder 60 s
 - **WEATHER STYLE:** wie das Wetter gezeigt wird, im Wetterbericht und auf dem Zifferblatt WEATHER:
   - OVERVIEW: jetzt und die nächsten 4 Tage
