@@ -1,6 +1,6 @@
 # Stand
 
-Stand 2026-11-08, Version 0.5.0: **Clock** (`saver_clock`).
+Stand 2026-11-08, Version 0.5.1: **Clock** (`saver_clock`).
 
 ## Was er kann
 
@@ -37,6 +37,8 @@ Stand 2026-11-08, Version 0.5.0: **Clock** (`saver_clock`).
 - `curl` und `wget` sind vorhanden. Wetter und Ortssuche von Open-Meteo antworten.
 
 ## Geprüft (am PC)
+
+- 0.5.1: Der Spinner war zu empfindlich. Ein Schritt braucht jetzt 240 statt 60 Zählschritte, danach ruht er 0,35 s: ein Schwung, ein Schritt. Am Automaten noch von Hand zu beurteilen.
 
 - 0.5.0: Spinner per `SAVER_SCRIPT` (`SL`, `SR`) geprüft: ROCKS, WEATHER, Wetterbericht, ANALOG und zurück. Das analoge Zifferblatt sitzt höher und ist etwas kleiner (Mitte 2150, Radius 1430), mit Abstand zur Zeile darunter. Am Automaten wird der SpinTrak als Spinner erkannt.
 

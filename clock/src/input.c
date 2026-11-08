@@ -21,8 +21,10 @@ static struct {
     int lo[ABS_CNT], hi[ABS_CNT];
     int way[ABS_CNT];               /* where each axis is: -1, 0, 1 */
     int spinner, spin;              /* a spinner (by its name); its turn so far toward a step */
+    double spin_rest;               /* till then (the event's time, s) its turning counts for nothing */
 } dev[MAXDEV];
-#define SPIN_STEP 60                /* a spinner's counts to one step */
+#define SPIN_STEP 240               /* a spinner's counts to one step */
+#define SPIN_REST 0.35              /* after a step the spinner rests a while (s): one flick, one step */
 static int ndev, grabbed, logging;
 
 #define TEST_BIT(b, a) ((a[(b) / (8 * sizeof(long))] >> ((b) % (8 * sizeof(long)))) & 1)
@@ -130,10 +132,16 @@ int input_next(int menu)
                 return m;
             }
             if (ev.type == EV_REL && dev[i].spinner && (ev.code == REL_X || ev.code == REL_DIAL)) {
+                double t = ev.time.tv_sec + ev.time.tv_usec / 1e6;
+                if (t < dev[i].spin_rest) continue;
                 if ((ev.value > 0) != (dev[i].spin > 0)) dev[i].spin = 0;   /* turned back: start again */
                 dev[i].spin += ev.value;
-                if (dev[i].spin >= SPIN_STEP)  { dev[i].spin -= SPIN_STEP; return menu ? IN_DOWN : IN_SPIN_R; }
-                if (dev[i].spin <= -SPIN_STEP) { dev[i].spin += SPIN_STEP; return menu ? IN_UP : IN_SPIN_L; }
+                if (dev[i].spin >= SPIN_STEP || dev[i].spin <= -SPIN_STEP) {
+                    int right = dev[i].spin > 0;
+                    dev[i].spin = 0;
+                    dev[i].spin_rest = t + SPIN_REST;
+                    return right ? (menu ? IN_DOWN : IN_SPIN_R) : (menu ? IN_UP : IN_SPIN_L);
+                }
                 continue;
             }
             if (ev.type == EV_ABS && ev.code < ABS_CNT && dev[i].has_abs[ev.code]) {
