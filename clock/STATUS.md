@@ -82,5 +82,5 @@ Stand 2026-11-08, Version 0.7.0: **Clock** (`saver_clock`).
   - ob F2 oder Tab das Menü öffnet und Joystick und Buttons darin wirken
   - ob das Menü des Automaten nach dem Wecken wieder erscheint und den Screensaver nicht sofort neu startet
   - Mit `CLOCK_INPUT_LOG=1` (und `VP_SAVER=1` beim Start von Hand) zeigt die Uhr jede Taste. Mit `CLOCK_NO_GRAB=1` lässt sich das Greifen abschalten.
-- **Der Automat steht auf der Zeitzone America/New_York.** Mit „Ortszeit des Automaten“ geht die Uhr in Deutschland sechs Stunden nach. Abhilfe: im Menü unter PLACE eine Stadt wählen, oder die Zeitzone des Pi umstellen.
+- **Zeitzone:** Ohne Ort oder solange kein Wetter aus dem Internet kam, zeigt die Uhr die Zeit des Pi. Dessen Zeitzone stand auf America/New_York und ist seit 2026-11-08 auf Europe/Berlin umgestellt (`timedatectl set-timezone`, dazu `/etc/timezone`). Mit einem Ort unter PLACE gilt nach dem ersten Wetter dessen Zeitzone. Fällt das Internet danach weg, bleibt dieser Versatz, bis zur nächsten Zeitumstellung stimmt er.
 - Am echten Monitor noch nicht beurteilt.
