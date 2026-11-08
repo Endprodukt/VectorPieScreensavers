@@ -23,4 +23,4 @@ Jeder Screensaver hat einen eigenen Ordner:
 
 ## Installieren
 
-Pi-Build bauen (siehe `BUILD.md`), dann `sh tools/make_vps.sh <ordner>`. Die `.vps` per USB in SETTINGS → SCREENSAVERS → INSTALL installieren und unter SELECT auswählen. Oder direkt per SSH: `sh tools/deploy.sh <ordner>`.
+Fertige Pakete aller Bildschirmschoner gibt es unter [Releases](https://github.com/Endprodukt/VectorPieScreensavers/releases). Selbst bauen: Pi-Build bauen (siehe `BUILD.md`), dann `sh tools/make_vps.sh <ordner>`. Die `.vps` per USB in SETTINGS → SCREENSAVERS → INSTALL installieren und unter SELECT auswählen. Oder direkt per SSH: `sh tools/deploy.sh <ordner>`.
