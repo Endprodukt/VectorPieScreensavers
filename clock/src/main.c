@@ -85,6 +85,7 @@ static struct {
     settings_t was;                     /* the settings last seen: what the menu changed */
     float report_t, report_k;           /* the weather report: its timer; how far it is shown, 0..1 */
     int report_on, report_turn;         /* shown now; how many so far (the styles in turn) */
+    int report_spun;                    /* the report now came from the spinner (not the rhythm) */
     int grabbed;                        /* the clock has the cabinet's controls */
     vp_game *game;
     vp_music_feed m;
@@ -291,7 +292,7 @@ static float accent(void) { return 0.72f + 0.28f * G.loud; }   /* the music, slo
 static void face_analog(vp_dvg *d, float k)
 {
     const now_t *n = &G.now;
-    float cx = CX, cy = 2030, R = 1520;
+    float cx = CX, cy = 2150, R = 1430;                 /* well clear of the line below */
     color(d, 120, 200, 255, k * accent());
     circle(d, cx, cy, R, 96);
     circle(d, cx, cy, R * 1.04f, 96);
@@ -1412,10 +1413,12 @@ static int next_face(void)
 static void report_update(float dt)
 {
     if (G.report_on) {
-        if ((G.report_t += dt) >= REPORT_LEN_S[SET.report_len] || SET.report == 0 || !G.wx.ok) {
+        if ((G.report_t += dt) >= REPORT_LEN_S[SET.report_len] || (SET.report == 0 && !G.report_spun) || !G.wx.ok) {
+            int spun = G.report_spun;
             G.report_on = 0;
+            G.report_spun = 0;
             G.report_t = 0;
-            if (SET.change == CHANGE_AFTER_REPORT) face_switch(next_face());
+            if (!spun && SET.change == CHANGE_AFTER_REPORT) face_switch(next_face());
         }
     } else if (SET.report > 0 && G.wx.ok && !menu_is_open() && G.face != FACE_WEATHER) {
         static float every = -1;                        /* SAVER_REPORT_EVERY=<s>: sooner (for development) */
@@ -1454,7 +1457,29 @@ static void wake(void)
     vp_game_quit(G.game);
 }
 
-/* a control: to the menu when it is open, else open it, next track, or wake */
+/* the spinner: a step through the faces; after the last (and before the
+ * first) the weather report, when there is weather */
+static void spin(int way)
+{
+    if (G.report_on) {                                  /* from the report: to the first face, or the last */
+        G.report_on = 0;
+        G.report_spun = 0;
+        G.report_t = 0;
+        face_switch(way > 0 ? 0 : NFACE - 1);
+        return;
+    }
+    int f = G.face + way;
+    if ((f < 0 || f >= NFACE) && G.wx.ok) {
+        G.report_on = 1;
+        G.report_spun = 1;
+        G.report_t = 0;
+        G.report_turn++;
+        return;
+    }
+    face_switch(f);
+}
+
+/* a control: to the menu when it is open, else open it, next track, step, or wake */
 static void control(int in)
 {
     if (in == IN_NONE) return;
@@ -1465,8 +1490,10 @@ static void control(int in)
     switch (in) {
     case IN_MENU: case IN_OK: menu_open(); break;      /* (IN_OK: Enter on a PC) */
     case IN_START2: vp_saver_skip(); break;
-    case IN_LEFT:  face_switch(G.face - 1); break;      /* (a PC: the arrow keys) */
-    case IN_RIGHT: face_switch(G.face + 1); break;
+    case IN_SPIN_L: spin(-1); break;
+    case IN_SPIN_R: spin(1); break;
+    case IN_LEFT:  spin(-1); break;                     /* (a PC: the arrow keys, as the spinner) */
+    case IN_RIGHT: spin(1); break;
     case IN_BACK: break;
     default: wake();
     }
@@ -1527,7 +1554,7 @@ static void update(vp_game *g, float dt)
             if (vp_input_pressed(in, KEY[i].key)) control(KEY[i].in);
     }
     {   /* SAVER_SCRIPT="<s>:<control>,..." presses controls at those times (for development);
-         * controls: U D L R OK BACK MENU S1 S2 */
+         * controls: U D L R OK BACK MENU SL SR (the spinner) S1 S2 */
         static const char *script;
         static int checked;
         if (!checked) { script = getenv("SAVER_SCRIPT"); checked = 1; }
@@ -1537,7 +1564,8 @@ static void update(vp_game *g, float dt)
             const char *c = strchr(script, ':');
             if (!c) { script = NULL; break; }
             c++;
-            int v = !strncmp(c, "OK", 2) ? IN_OK : !strncmp(c, "BACK", 4) ? IN_BACK : !strncmp(c, "MENU", 4) ? IN_MENU : !strncmp(c, "S1", 2) ? IN_START1
+            int v = !strncmp(c, "OK", 2) ? IN_OK : !strncmp(c, "BACK", 4) ? IN_BACK : !strncmp(c, "MENU", 4) ? IN_MENU : !strncmp(c, "SL", 2) ? IN_SPIN_L
+                  : !strncmp(c, "SR", 2) ? IN_SPIN_R : !strncmp(c, "S1", 2) ? IN_START1
                   : !strncmp(c, "S2", 2) ? IN_START2 : *c == 'U' ? IN_UP : *c == 'D' ? IN_DOWN : *c == 'L' ? IN_LEFT
                   : *c == 'R' ? IN_RIGHT : IN_NONE;
             control(v);

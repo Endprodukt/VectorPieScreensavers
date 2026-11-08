@@ -4,8 +4,9 @@
  * keeps it). For its own menu the clock takes the controls over while it
  * runs: it opens the input devices and grabs them (EVIOCGRAB), so the menu
  * sees nothing, and does itself what the menu would do. F2 or Tab opens (and
- * closes) the clock's menu, START 2 is NEXT TRACK, any other control (START 1
- * too) wakes the cabinet:
+ * closes) the clock's menu, START 2 is NEXT TRACK, the spinner steps through
+ * the faces (and the weather report), any other control (START 1 too) wakes
+ * the cabinet:
  * the clock lets the devices go (so the menu sees that control let go) and
  * ends.
  *
@@ -15,7 +16,9 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-enum { IN_NONE, IN_UP, IN_DOWN, IN_LEFT, IN_RIGHT, IN_OK, IN_BACK, IN_START1, IN_START2, IN_MENU, IN_WAKE };
+enum { IN_NONE, IN_UP, IN_DOWN, IN_LEFT, IN_RIGHT, IN_OK, IN_BACK, IN_START1, IN_START2, IN_MENU,
+       IN_SPIN_L, IN_SPIN_R,    /* the spinner turned a step (in the menu it comes as IN_UP / IN_DOWN) */
+       IN_WAKE };
 
 /* Grab the devices. 1: the clock has the controls. */
 int  input_start(void);

@@ -20,7 +20,9 @@ static struct {
     int has_abs[ABS_CNT];
     int lo[ABS_CNT], hi[ABS_CNT];
     int way[ABS_CNT];               /* where each axis is: -1, 0, 1 */
+    int spinner, spin;              /* a spinner (by its name); its turn so far toward a step */
 } dev[MAXDEV];
+#define SPIN_STEP 60                /* a spinner's counts to one step */
 static int ndev, grabbed, logging;
 
 #define TEST_BIT(b, a) ((a[(b) / (8 * sizeof(long))] >> ((b) % (8 * sizeof(long)))) & 1)
@@ -58,6 +60,8 @@ int input_start(void)
         if (ioctl(fd, EVIOCGRAB, 1) != 0) { close(fd); continue; }
         memset(&dev[ndev], 0, sizeof dev[ndev]);
         dev[ndev].fd = fd;
+        for (const char *c = name; *c && !dev[ndev].spinner; c++)    /* "SpinTrak", "spinner" ... */
+            dev[ndev].spinner = (c[0] | 32) == 's' && (c[1] | 32) == 'p' && (c[2] | 32) == 'i' && (c[3] | 32) == 'n';
         if (TEST_BIT(EV_ABS, evbits)) {
             unsigned long absbits[(ABS_MAX + 8 * sizeof(long)) / (8 * sizeof(long))] = {0};
             ioctl(fd, EVIOCGBIT(EV_ABS, sizeof absbits), absbits);
@@ -70,7 +74,7 @@ int input_start(void)
                 }
             }
         }
-        if (logging) fprintf(stderr, "clock input: grabbed %s (%s)\n", path, name);
+        if (logging) fprintf(stderr, "clock input: grabbed %s (%s)%s\n", path, name, dev[ndev].spinner ? " spinner" : "");
         ndev++;
     }
     closedir(dir);
@@ -124,6 +128,13 @@ int input_next(int menu)
                 if (!menu && m != IN_MENU && m != IN_START2) m = IN_WAKE;
                 if (menu && m == IN_WAKE) continue;                 /* in the menu nothing wakes */
                 return m;
+            }
+            if (ev.type == EV_REL && dev[i].spinner && (ev.code == REL_X || ev.code == REL_DIAL)) {
+                if ((ev.value > 0) != (dev[i].spin > 0)) dev[i].spin = 0;   /* turned back: start again */
+                dev[i].spin += ev.value;
+                if (dev[i].spin >= SPIN_STEP)  { dev[i].spin -= SPIN_STEP; return menu ? IN_DOWN : IN_SPIN_R; }
+                if (dev[i].spin <= -SPIN_STEP) { dev[i].spin += SPIN_STEP; return menu ? IN_UP : IN_SPIN_L; }
+                continue;
             }
             if (ev.type == EV_ABS && ev.code < ABS_CNT && dev[i].has_abs[ev.code]) {
                 int a = ev.code;
