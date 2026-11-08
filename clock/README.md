@@ -47,9 +47,11 @@ Einstellbar ist:
 
 Die Einstellungen bleiben in `save/clock.ini` neben dem Programm erhalten.
 
+Der **Spinner** schaltet durch die Zifferblätter. Nach dem letzten (und vor dem ersten) kommt der Wetterbericht. Er bleibt so lange wie eingestellt (REPORT LENGTH), auch wenn der Wetterbericht im Takt aus ist. Im Menü bewegt der Spinner durch die Zeilen.
+
 Außerhalb des Menüs spielt **START 2** den nächsten Track. Jede andere Taste, auch START 1, weckt den Automaten wie bei jedem Screensaver.
 
-- Starten am PC: `run_pc.bat` per Doppelklick. Tab, F2, Enter oder M öffnet das Menü, die Pfeiltasten bewegen darin (außerhalb wechseln sie das Zifferblatt), Backspace geht zurück, N spielt den nächsten Track.
+- Starten am PC: `run_pc.bat` per Doppelklick. Tab, F2, Enter oder M öffnet das Menü, die Pfeiltasten bewegen darin (außerhalb schalten links und rechts wie der Spinner), Backspace geht zurück, N spielt den nächsten Track.
 - Stand und offene Punkte: [STATUS.md](STATUS.md)
 - Für die Weiterarbeit: [RESUME.md](RESUME.md)
 - Bauen und Installieren: [../BUILD.md](../BUILD.md)

@@ -27,6 +27,7 @@ Laut SDK (`vendor/VectorPie/sdk/docs/09-screensavers.md`) liest das Menü des Au
 Die Uhr öffnet deshalb, wenn sie als Screensaver läuft (`vp_saver_active()`), die `/dev/input/event*` der Steuerung und greift sie mit `EVIOCGRAB`. Steuerung heißt: Tastatur (`KEY_1` oder `KEY_LEFTCTRL`), Maus und Spinner (`BTN_LEFT`), Joystick (`BTN_TRIGGER`, `BTN_SOUTH`) oder Achsen. Einschaltknopf, Lautstärketasten und HDMI (`vc4-hdmi`) bleiben dem System. Dann sieht das Menü des Automaten nichts mehr, und die Uhr macht selbst, was das Menü sonst tut:
 - **F2 oder Tab** (`KEY_F2`, `KEY_TAB`, im Code `IN_MENU`) öffnet das Uhr-Menü und schließt es wieder. START 1 weckt wie jede andere Taste (Wunsch 2026-11-08: START 1 taugt nicht fürs Menü).
 - **START 2** ruft `vp_saver_skip()` auf (NEXT TRACK).
+- **Der Spinner** (ein Gerät mit „spin“ im Namen, `REL_X` oder `REL_DIAL`, 60 Zählschritte je Schritt) schaltet durch die Zifferblätter. Nach dem letzten kommt der Wetterbericht als Halt (`spin()`, `G.report_spun`). Im Menü kommt er als hoch und runter (Wunsch 2026-11-08).
 - **Jede andere Taste** gibt die Geräte frei (`input_release`), damit das Menü des Automaten wenigstens das Loslassen sieht, und beendet die Uhr (`vp_game_quit`).
 - **Im Uhr-Menü** gehören alle Tasten dem Menü. Analoge Sticks zählen erst ab drei Vierteln Ausschlag, außerhalb des Menüs gar nicht (Joystick-Drift).
 

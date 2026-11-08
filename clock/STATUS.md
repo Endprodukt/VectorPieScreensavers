@@ -1,6 +1,6 @@
 # Stand
 
-Stand 2026-11-08, Version 0.4.2: **Clock** (`saver_clock`).
+Stand 2026-11-08, Version 0.5.0: **Clock** (`saver_clock`).
 
 ## Was er kann
 
@@ -37,6 +37,8 @@ Stand 2026-11-08, Version 0.4.2: **Clock** (`saver_clock`).
 - `curl` und `wget` sind vorhanden. Wetter und Ortssuche von Open-Meteo antworten.
 
 ## Geprüft (am PC)
+
+- 0.5.0: Spinner per `SAVER_SCRIPT` (`SL`, `SR`) geprüft: ROCKS, WEATHER, Wetterbericht, ANALOG und zurück. Das analoge Zifferblatt sitzt höher und ist etwas kleiner (Mitte 2150, Radius 1430), mit Abstand zur Zeile darunter. Am Automaten wird der SpinTrak als Spinner erkannt.
 
 - 0.4.2: Wetterbericht auch alle 1, 2 oder 3 Minuten. Gespeichert wird jetzt in Minuten (`report_minutes`), ein altes `report = <Platz>` wird umgerechnet. Am PC geprüft: altes „alle 5“ gelesen, im Menü auf 1 Minute gestellt, der Bericht kam eine Minute nach dem Schließen.
 
