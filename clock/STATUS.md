@@ -1,14 +1,14 @@
 # Stand
 
-Stand 2026-11-08, Version 0.3.1: **Clock** (`saver_clock`).
+Stand 2026-11-08, Version 0.4.0: **Clock** (`saver_clock`).
 
 ## Was er kann
 
 - **Zehn Zifferblätter** (siehe README). Eines blendet in 1,4 s ins nächste über, der Name des neuen steht kurz unten.
-- **Das eigene Menü** (START 1) hat 18 Zeilen und blättert. Einstellbar sind:
+- **Das eigene Menü** (F2 oder Tab, ebenso zu) hat 18 Zeilen und blättert. Einstellbar sind:
   - Zifferblatt und Zufall (aus, beim Start, immer)
   - Wechsel (aus, mit jedem Track, alle 1, 5, 15 oder 60 Minuten, nach jedem Wetterbericht)
-  - die Farben von Uhr, Datum und Wetter, jede für sich
+  - die Farben von Uhr, Datum und Wetter, jede für sich, auch RANDOM: mit jedem Zifferblatt eine neue der sieben einfachen Farben. Beim Überblenden behält das alte Zifferblatt seine Farbe.
   - Sekunden, Datum, Wetterzeile, 24 Stunden, Tracktitel
   - Wetterbericht (alle 5 bis 60 Minuten) und seine Dauer (10 bis 60 s)
   - Wetter-Ansicht und Wetterfarben (bunt oder einfarbig)
@@ -38,6 +38,8 @@ Stand 2026-11-08, Version 0.3.1: **Clock** (`saver_clock`).
 
 ## Geprüft (am PC)
 
+- 0.4.0: Menü mit F2/Tab per `SAVER_SCRIPT` (`MENU`) geöffnet und geschlossen, Einstellung dabei gespeichert. RANDOM für alle drei Farben: Jedes Zifferblatt kam in einer anderen Farbe, Datum und Wetter wechselten mit. Am Automaten 40 Bilder pro Sekunde, keine verworfenen Linien.
+
 - 0.3.0:
   - Alle Wetter-Ansichten mit echten Daten für Berlin angesehen, bunt und einfarbig.
   - Den Wetterbericht im schnellen Takt (`SAVER_REPORT_EVERY`) über 60 s geprüft: zufällige Zifferblätter, nach jedem Bericht ein neues, die Ansichten im Wechsel.
@@ -59,7 +61,7 @@ Stand 2026-11-08, Version 0.3.1: **Clock** (`saver_clock`).
 ## Offen
 
 - **Am Automaten noch von Hand zu prüfen:**
-  - ob START 1 das Menü öffnet und Joystick und Buttons darin wirken
+  - ob F2 oder Tab das Menü öffnet und Joystick und Buttons darin wirken
   - ob das Menü des Automaten nach dem Wecken wieder erscheint und den Screensaver nicht sofort neu startet
   - Mit `CLOCK_INPUT_LOG=1` (und `VP_SAVER=1` beim Start von Hand) zeigt die Uhr jede Taste. Mit `CLOCK_NO_GRAB=1` lässt sich das Greifen abschalten.
 - **Der Automat steht auf der Zeitzone America/New_York.** Mit „Ortszeit des Automaten“ geht die Uhr in Deutschland sechs Stunden nach. Abhilfe: im Menü unter PLACE eine Stadt wählen, oder die Zeitzone des Pi umstellen.

@@ -86,9 +86,9 @@ void settings_load(const char *exe_path)
     SET.lang = clampi(SET.lang, 0, 3);
     SET.face = clampi(SET.face, 0, 9);
     SET.change = clampi(SET.change, 0, 6);
-    SET.theme = clampi(SET.theme, 0, 8);
-    SET.date_theme = clampi(SET.date_theme, 0, 8);
-    SET.wx_theme = clampi(SET.wx_theme, 0, 8);
+    SET.theme = clampi(SET.theme, 0, 9);
+    SET.date_theme = clampi(SET.date_theme, 0, 9);
+    SET.wx_theme = clampi(SET.wx_theme, 0, 9);
     SET.random = clampi(SET.random, 0, 2);
     SET.report = clampi(SET.report, 0, 5);
     SET.report_len = clampi(SET.report_len, 0, 3);
@@ -104,7 +104,7 @@ void settings_save(void)
     snprintf(path, sizeof path, "%ssave/clock.ini", dir);
     FILE *f = fopen(path, "w");
     if (!f) return;
-    fprintf(f, "; Clock: set in its menu (START 1 while it runs)\n");
+    fprintf(f, "; Clock: set in its menu (F2 or Tab while it runs)\n");
     fprintf(f, "language = %d\nface = %d\nchange = %d\ncolor = %d\n", SET.lang, SET.face, SET.change, SET.theme);
     fprintf(f, "date_color = %d\nweather_color = %d\nrandom = %d\n", SET.date_theme, SET.wx_theme, SET.random);
     fprintf(f, "report = %d\nreport_length = %d\nweather_style = %d\nweather_colorful = %d\n", SET.report,

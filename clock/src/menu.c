@@ -95,6 +95,7 @@ int menu_input(int in)
     M.idle = 0;
     if (in == IN_START1) in = IN_OK;
     if (in == IN_START2) in = IN_BACK;
+    if (in == IN_MENU) { M.open = 0; return 1; }        /* F2/Tab again: closed, wherever it is */
     switch (M.screen) {
     case SCR_MAIN:
         if (in == IN_UP) M.row = wrap(M.row - 1, NROW);

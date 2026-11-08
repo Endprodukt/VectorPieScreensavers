@@ -25,7 +25,7 @@
 Laut SDK (`vendor/VectorPie/sdk/docs/09-screensavers.md`) liest das Menü des Automaten die Steuerung selbst. Bei jeder Taste außer NEXT TRACK beendet es den Screensaver.
 
 Die Uhr öffnet deshalb, wenn sie als Screensaver läuft (`vp_saver_active()`), die `/dev/input/event*` der Steuerung und greift sie mit `EVIOCGRAB`. Steuerung heißt: Tastatur (`KEY_1` oder `KEY_LEFTCTRL`), Maus und Spinner (`BTN_LEFT`), Joystick (`BTN_TRIGGER`, `BTN_SOUTH`) oder Achsen. Einschaltknopf, Lautstärketasten und HDMI (`vc4-hdmi`) bleiben dem System. Dann sieht das Menü des Automaten nichts mehr, und die Uhr macht selbst, was das Menü sonst tut:
-- **START 1** öffnet das Uhr-Menü.
+- **F2 oder Tab** (`KEY_F2`, `KEY_TAB`, im Code `IN_MENU`) öffnet das Uhr-Menü und schließt es wieder. START 1 weckt wie jede andere Taste (Wunsch 2026-11-08: START 1 taugt nicht fürs Menü).
 - **START 2** ruft `vp_saver_skip()` auf (NEXT TRACK).
 - **Jede andere Taste** gibt die Geräte frei (`input_release`), damit das Menü des Automaten wenigstens das Loslassen sieht, und beendet die Uhr (`vp_game_quit`).
 - **Im Uhr-Menü** gehören alle Tasten dem Menü. Analoge Sticks zählen erst ab drei Vierteln Ausschlag, außerhalb des Menüs gar nicht (Joystick-Drift).
@@ -52,7 +52,7 @@ Noch am Automaten zu prüfen, siehe STATUS „Offen“. Hilfen dabei:
 - `src/lang.h`: alle Wörter in den vier Sprachen. `src/cities.h`: die Städteliste.
 - Zum Testen am PC:
   - `SAVER_FACE=<0..9>` und `SAVER_CYCLE=<s>`
-  - `SAVER_SCRIPT="<s>:<Taste>,..."`: drückt zu diesen Zeiten Tasten (U D L R OK BACK S1 S2)
+  - `SAVER_SCRIPT="<s>:<Taste>,..."`: drückt zu diesen Zeiten Tasten (U D L R OK BACK MENU S1 S2)
   - `SAVER_REPORT_EVERY=<s>`: der Wetterbericht so oft statt im eingestellten Takt
   - `SAVER_SHOTS=<Ordner>`
 

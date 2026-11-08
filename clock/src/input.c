@@ -98,6 +98,7 @@ static int key_meaning(int code)
     case KEY_RIGHT: case KEY_KP6: case BTN_DPAD_RIGHT: return IN_RIGHT;
     case KEY_1: case BTN_START: return IN_START1;
     case KEY_2: case BTN_SELECT: return IN_START2;
+    case KEY_F2: case KEY_TAB: return IN_MENU;             /* the clock's menu */
     /* the first buttons (MAME's standard keys, joystick buttons): OK */
     case KEY_ENTER: case KEY_KPENTER: case KEY_LEFTCTRL: case BTN_SOUTH: case BTN_TRIGGER: case BTN_0:
         return IN_OK;
@@ -119,8 +120,8 @@ int input_next(int menu)
                 if (ev.value == 0) continue;                        /* let go */
                 int m = key_meaning(ev.code);
                 if (ev.value == 2 && !(menu && m >= IN_UP && m <= IN_RIGHT)) continue;   /* held: only to move */
-                /* outside the menu only START 1 and START 2 are the clock's: the rest wakes */
-                if (!menu && m != IN_START1 && m != IN_START2) m = IN_WAKE;
+                /* outside the menu only F2/Tab and START 2 are the clock's: the rest wakes */
+                if (!menu && m != IN_MENU && m != IN_START2) m = IN_WAKE;
                 if (menu && m == IN_WAKE) continue;                 /* in the menu nothing wakes */
                 return m;
             }

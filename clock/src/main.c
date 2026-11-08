@@ -11,7 +11,7 @@
  * rock shooters) and WEATHER (the weather now and the next days). Under each
  * of the others a line with the date and the weather.
  *
- * ITS MENU (menu.c), opened with START 1 while it runs: the face (or a
+ * ITS MENU (menu.c), opened with F2 or Tab while it runs: the face (or a
  * random one, at start or at each change), whether it changes by itself
  * (off, with each track, every so many minutes, after each weather report),
  * the colors of the clock, the date and the weather (their own or one each),
@@ -94,6 +94,23 @@ static struct {
     char title[VP_MUSIC_TEXT];
 } G;
 
+/* RANDOM colors (THEME_RANDOM): the colors picked for the clock, the date
+ * and the weather (THEME_*); [0] the face now, [1] the one it blends from */
+enum { PART_CLOCK, PART_DATE, PART_WX, NPART };
+static int PICK[2][NPART], PICK_SLOT;
+static int theme(int v, int part) { return v == THEME_RANDOM ? PICK[PICK_SLOT][part] : v; }
+
+/* new colors at random for the next face, each unlike the last */
+static void pick_colors(void)
+{
+    for (int p = 0; p < NPART; p++) {
+        PICK[1][p] = PICK[0][p];
+        int c;
+        do c = 1 + rand() % 7; while (c == PICK[1][p]);    /* one of the plain colors */
+        PICK[0][p] = c;
+    }
+}
+
 static float clampf(float v, float lo, float hi) { return v < lo ? lo : v > hi ? hi : v; }
 
 /* ROUND ON THE TUBE. The board's square of coordinates is stretched to the
@@ -119,7 +136,7 @@ static void color(vp_dvg *d, float r, float g, float b, float k)
     if (PAINT > 0) {
         /* one color for all: as bright as the face's own was */
         float lum = (0.3f * r + 0.59f * g + 0.11f * b) / 255, f = 0.45f + 0.55f * clampf(lum / 0.85f, 0, 1);
-        if (PAINT == NTHEME - 1) {                      /* the rainbow: the hue wanders, slowly */
+        if (PAINT == THEME_RAINBOW) {                      /* the rainbow: the hue wanders, slowly */
             float h = fmodf(G.time * 0.01f, 1) * 6, x = 1 - fabsf(fmodf(h, 2) - 1);
             float c[6][3] = { { 1, x, 0 }, { x, 1, 0 }, { 0, 1, x }, { 0, x, 1 }, { x, 0, 1 }, { 1, 0, x } };
             int i = (int)h % 6;
@@ -300,7 +317,7 @@ static void face_analog(vp_dvg *d, float k)
     color(d, 120, 200, 255, k * 0.8f);
     text(d, "VECTORPIE", cx, cy + R * 0.36f, 85, VP_TEXT_CENTER);
     if (SET.date) {                                     /* the date window at three */
-        PAINT = SET.date_theme;
+        PAINT = theme(SET.date_theme, PART_DATE);
         char buf[8];
         snprintf(buf, sizeof buf, "%02d", n->mday);
         float wx = cx + R * 0.42f, wy = cy;
@@ -309,7 +326,7 @@ static void face_analog(vp_dvg *d, float k)
         vp_lineto(d, (int)(wx - 110), (int)(wy + 80)); vp_lineto(d, (int)(wx - 110), (int)(wy - 80));
         color(d, 235, 240, 255, k);
         text(d, buf, SX(wx), wy - 45, 90, VP_TEXT_CENTER);
-        PAINT = SET.theme;
+        PAINT = theme(SET.theme, PART_CLOCK);
     }
     /* the hands, sweeping */
     float sec = n->s + n->frac, min = n->m + sec / 60, hour = (n->h % 12) + min / 60;
@@ -401,11 +418,11 @@ static void face_digital(vp_dvg *d, float k)
     if (SET.date) {
         char buf[64];
         date_text(buf, sizeof buf, n, 1);
-        PAINT = SET.date_theme;
+        PAINT = theme(SET.date_theme, PART_DATE);
         color(d, 60, 235, 255, k * 0.75f * accent());
         vp_text_font(VP_FONT_ASTEROIDS);
         vp_text_fit(d, buf, CX, 1300, 150, W * 0.8f, VP_TEXT_CENTER);
-        PAINT = SET.theme;
+        PAINT = theme(SET.theme, PART_CLOCK);
     }
 }
 
@@ -468,10 +485,10 @@ static void face_flip(vp_dvg *d, float k)
     if (SET.date) {
         char buf[64];
         date_text(buf, sizeof buf, &G.now, 0);
-        PAINT = SET.date_theme;
+        PAINT = theme(SET.date_theme, PART_DATE);
         color(d, 200, 205, 215, k * 0.6f * accent());
         text(d, buf, CX, 1250, 120, VP_TEXT_CENTER);
-        PAINT = SET.theme;
+        PAINT = theme(SET.theme, PART_CLOCK);
     }
 }
 
@@ -705,10 +722,10 @@ static void face_nixie(vp_dvg *d, float k)
     if (SET.date) {
         char buf[64];
         date_text(buf, sizeof buf, &G.now, 1);
-        PAINT = SET.date_theme;
+        PAINT = theme(SET.date_theme, PART_DATE);
         color(d, 255, 130, 40, k * 0.45f * accent());
         text(d, buf, CX, 1000, 120, VP_TEXT_CENTER);
-        PAINT = SET.theme;
+        PAINT = theme(SET.theme, PART_CLOCK);
     }
 }
 
@@ -1275,7 +1292,8 @@ static void wx_hours(vp_dvg *d, float k)
 static void weather_view(vp_dvg *d, float k, int style)
 {
     int was = PAINT;
-    PAINT = SET.wx_colorful ? 0 : SET.wx_theme ? SET.wx_theme : 7;
+    int wt = theme(SET.wx_theme, PART_WX);
+    PAINT = SET.wx_colorful ? 0 : wt ? wt : 7;
     const now_t *n = &G.now;
     if (!G.wx.ok) {
         char buf[96], date[64];
@@ -1327,12 +1345,12 @@ static void info_line(vp_dvg *d, float k)
     float x = CX - total / 2, y = 360;
     int was = PAINT;
     if (date[0]) {
-        PAINT = SET.date_theme;
+        PAINT = theme(SET.date_theme, PART_DATE);
         color(d, 200, 215, 240, k * 0.55f);
         vp_text(d, date, x, y, h, VP_TEXT_LEFT);
     }
     if (wx[0]) {
-        PAINT = SET.wx_theme;
+        PAINT = theme(SET.wx_theme, PART_WX);
         color(d, 200, 215, 240, k * 0.55f);
         text_deg(d, wx, x + wd + gap, y, h, VP_TEXT_LEFT, 1);
     }
@@ -1342,7 +1360,7 @@ static void info_line(vp_dvg *d, float k)
 static void face_draw(vp_dvg *d, int f, float k)
 {
     if (k <= 0.01f) return;
-    PAINT = SET.theme;
+    PAINT = theme(SET.theme, PART_CLOCK);
     switch (f) {
     case 0: face_analog(d, k); break;
     case 1: face_digital(d, k); break;
@@ -1368,6 +1386,7 @@ static void face_switch(int f)
     G.face = f;
     G.blend = 0;
     G.name_time = 3.5f;
+    pick_colors();
     SET.face = f;
     G.was.face = f;
 }
@@ -1444,7 +1463,7 @@ static void control(int in)
         return;
     }
     switch (in) {
-    case IN_START1: case IN_OK: menu_open(); break;
+    case IN_MENU: case IN_OK: menu_open(); break;      /* (IN_OK: Enter on a PC) */
     case IN_START2: vp_saver_skip(); break;
     case IN_LEFT:  face_switch(G.face - 1); break;      /* (a PC: the arrow keys) */
     case IN_RIGHT: face_switch(G.face + 1); break;
@@ -1461,6 +1480,7 @@ static int init(vp_game *g)
     const char *f = getenv("SAVER_FACE"), *c = getenv("SAVER_CYCLE");
     srand((unsigned)time(NULL));
     if (SET.random >= 1) SET.face = rand() % (SET.report > 0 ? NFACE - 1 : NFACE);   /* a random one at start */
+    pick_colors();
     if (f) SET.face = ((atoi(f) % NFACE) + NFACE) % NFACE;
     G.face = G.from = SET.face;
     G.was = SET;
@@ -1501,13 +1521,13 @@ static void update(vp_game *g, float dt)
     if (in && !G.grabbed) {
         static const struct { const char *key; int in; } KEY[] = {
             { "key_Up", IN_UP }, { "key_Down", IN_DOWN }, { "key_Left", IN_LEFT }, { "key_Right", IN_RIGHT },
-            { "key_Return", IN_OK }, { "key_M", IN_START1 }, { "key_Backspace", IN_BACK }, { "key_N", IN_START2 },
+            { "key_Return", IN_OK }, { "key_M", IN_MENU }, { "key_Tab", IN_MENU }, { "key_F2", IN_MENU }, { "key_Backspace", IN_BACK }, { "key_N", IN_START2 },
         };
         for (size_t i = 0; i < sizeof KEY / sizeof KEY[0]; i++)
             if (vp_input_pressed(in, KEY[i].key)) control(KEY[i].in);
     }
     {   /* SAVER_SCRIPT="<s>:<control>,..." presses controls at those times (for development);
-         * controls: U D L R OK BACK S1 S2 */
+         * controls: U D L R OK BACK MENU S1 S2 */
         static const char *script;
         static int checked;
         if (!checked) { script = getenv("SAVER_SCRIPT"); checked = 1; }
@@ -1517,7 +1537,7 @@ static void update(vp_game *g, float dt)
             const char *c = strchr(script, ':');
             if (!c) { script = NULL; break; }
             c++;
-            int v = !strncmp(c, "OK", 2) ? IN_OK : !strncmp(c, "BACK", 4) ? IN_BACK : !strncmp(c, "S1", 2) ? IN_START1
+            int v = !strncmp(c, "OK", 2) ? IN_OK : !strncmp(c, "BACK", 4) ? IN_BACK : !strncmp(c, "MENU", 4) ? IN_MENU : !strncmp(c, "S1", 2) ? IN_START1
                   : !strncmp(c, "S2", 2) ? IN_START2 : *c == 'U' ? IN_UP : *c == 'D' ? IN_DOWN : *c == 'L' ? IN_LEFT
                   : *c == 'R' ? IN_RIGHT : IN_NONE;
             control(v);
@@ -1595,7 +1615,7 @@ static void draw(vp_game *g, vp_dvg *d)
     float rk = smooth01(G.report_k);                    /* the weather report over it all */
     dim *= 1 - rk;
     if (rk > 0.01f) weather_view(d, rk * (menu_is_open() ? 0.22f : 1), wx_style_now(G.report_turn));
-    if (G.from != G.face) face_draw(d, G.from, (1 - t) * dim);
+    if (G.from != G.face) { PICK_SLOT = 1; face_draw(d, G.from, (1 - t) * dim); PICK_SLOT = 0; }
     face_draw(d, G.face, t * dim);
     if (G.name_time > 0 && !menu_is_open()) {        /* the face's name, a while */
         float k = smooth01(G.name_time / 1) * smooth01((3.5f - G.name_time) / 0.6f);
