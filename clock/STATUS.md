@@ -1,6 +1,6 @@
 # Stand
 
-Stand 2026-11-08, Version 0.4.0: **Clock** (`saver_clock`).
+Stand 2026-11-08, Version 0.4.1: **Clock** (`saver_clock`).
 
 ## Was er kann
 
@@ -37,6 +37,8 @@ Stand 2026-11-08, Version 0.4.0: **Clock** (`saver_clock`).
 - `curl` und `wget` sind vorhanden. Wetter und Ortssuche von Open-Meteo antworten.
 
 ## Geprüft (am PC)
+
+- 0.4.1: ROCKS behoben. Die Felsen sprangen jedes Bild 300 Einheiten nach unten (Fehler beim Umlauf am Rand) und wirkten dadurch rasend schnell. Jetzt treiben sie langsam (14 bis 36 Einheiten pro Sekunde) und drehen sich gemächlich. Am PC über 8 s geprüft.
 
 - 0.4.0: Menü mit F2/Tab per `SAVER_SCRIPT` (`MENU`) geöffnet und geschlossen, Einstellung dabei gespeichert. RANDOM für alle drei Farben: Jedes Zifferblatt kam in einer anderen Farbe, Datum und Wetter wechselten mit. Am Automaten 40 Bilder pro Sekunde, keine verworfenen Linien.
 

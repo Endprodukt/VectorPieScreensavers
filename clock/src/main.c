@@ -850,11 +850,11 @@ static void rocks_make(void)
     for (int i = 0; i < NROCK; i++) {
         ROCK[i].x = CX + (rock_rnd() - 0.5f) * W / ASPECT_X;
         ROCK[i].y = rock_rnd() * W;
-        float a = rock_rnd() * 2 * PI, v = 60 + 90 * rock_rnd();
+        float a = rock_rnd() * 2 * PI, v = 14 + 22 * rock_rnd();       /* slow: minutes to cross the screen */
         ROCK[i].vx = cosf(a) * v;
         ROCK[i].vy = sinf(a) * v;
         ROCK[i].a = rock_rnd() * 2 * PI;
-        ROCK[i].spin = (rock_rnd() - 0.5f) * 0.5f;
+        ROCK[i].spin = (rock_rnd() - 0.5f) * 0.16f;
         ROCK[i].size = i < 3 ? 260 : i < 6 ? 170 : 100;
         for (int j = 0; j < 10; j++) ROCK[i].rad[j] = 0.7f + 0.3f * rock_rnd();
     }
@@ -895,7 +895,7 @@ static void rocks_update(float dt)
     for (int i = 0; i < NROCK; i++) {
         float span = W / ASPECT_X + 600, left = CX - span / 2;                 /* round the edges */
         ROCK[i].x = fmodf(ROCK[i].x - left + ROCK[i].vx * dt + span, span) + left;
-        ROCK[i].y = fmodf(ROCK[i].y + ROCK[i].vy * dt + W + 600, W + 600) - 300;
+        ROCK[i].y = fmodf(ROCK[i].y + 300 + ROCK[i].vy * dt + W + 600, W + 600) - 300;   /* -300..W+300 */
         ROCK[i].a += ROCK[i].spin * dt;
     }
     for (int i = 0; i < NFRAG; i++) {
