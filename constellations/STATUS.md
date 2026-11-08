@@ -32,7 +32,7 @@ Status as of 2026-11-08, version 0.1.2: **Constellations** (`saver_constellation
 
 ## Open
 
-- 0.1.2 is built and packaged but not yet on the cabinet: on 2026-11-08 the cabinet could not be reached over SSH.
+- Installed on 2026-11-08 (0.1.2): 40 frames per second, about 200 lines, no dropped lines. The English names are not yet judged on the real monitor.
 
 - Installed on 2026-11-08 (0.1.1): 40 frames per second, 70 to 230 lines, no dropped lines. Not yet judged on the real monitor.
 - Not yet judged on the real monitor: whether the faint stars and the faint figures are visible enough.
