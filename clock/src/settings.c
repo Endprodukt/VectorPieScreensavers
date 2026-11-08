@@ -92,9 +92,9 @@ void settings_load(const char *exe_path)
     SET.lang = clampi(SET.lang, 0, 3);
     SET.face = clampi(SET.face, 0, 14);                 /* lang.h NFACES - 1 */
     SET.change = clampi(SET.change, 0, 6);
-    SET.theme = clampi(SET.theme, 0, 9);
-    SET.date_theme = clampi(SET.date_theme, 0, 9);
-    SET.wx_theme = clampi(SET.wx_theme, 0, 9);
+    SET.theme = clampi(SET.theme, 0, 10);              /* lang.h NTHEME - 1 */
+    SET.date_theme = clampi(SET.date_theme, 0, 10);
+    SET.wx_theme = clampi(SET.wx_theme, 0, 10);
     SET.random = clampi(SET.random, 0, 2);
     if (report_min >= 0) {                              /* the nearest in the list */
         SET.report = 0;

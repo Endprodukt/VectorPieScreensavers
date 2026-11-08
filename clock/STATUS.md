@@ -1,6 +1,6 @@
 # Stand
 
-Stand 2026-11-08, Version 0.6.0: **Clock** (`saver_clock`).
+Stand 2026-11-08, Version 0.7.0: **Clock** (`saver_clock`).
 
 ## Was er kann
 
@@ -39,6 +39,8 @@ Stand 2026-11-08, Version 0.6.0: **Clock** (`saver_clock`).
 - `curl` und `wget` sind vorhanden. Wetter und Ortssuche von Open-Meteo antworten.
 
 ## Geprüft (am PC)
+
+- 0.7.0: Alle Zifferblätter in eigenen, passenden Farben (ORBIT, TUNNEL und WEATHER waren es schon). Neue Farbwahl RANDOM MULTI, RANDOM heißt jetzt RANDOM SINGLE. Alle Zifferblätter am PC angesehen, dazu vier mit RANDOM MULTI. Am Automaten 40 Bilder pro Sekunde.
 
 - 0.6.0:
   - Fünf neue analoge Zifferblätter (MINIMAL, NUMERALS, ROMAN, SQUARE, FULL SCREEN) mit eigenen Zeigern angesehen. Am Automaten 40 Bilder pro Sekunde, etwa 440 bis 520 Linien.

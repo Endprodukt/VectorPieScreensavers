@@ -106,18 +106,19 @@ static const char *const L_SWITCH[NLANG][4] = {
 };
 
 /* the colors: the faces' own, or all in one */
-#define NTHEME 10
+#define NTHEME 11
 #define THEME_RAINBOW 8
 #define THEME_RANDOM 9          /* a plain color at random, a new one with each face */
+#define THEME_RANDOM_MULTI 10   /* the face's own colors turned round the color wheel at random, anew with each face */
 static const char *const L_THEME[NLANG][NTHEME] = {
-    { "ORIGINAL", "CYAN", "GREEN", "AMBER", "RED", "MAGENTA", "BLUE", "WHITE", "RAINBOW", "RANDOM" },
-    { "ORIGINAL", "CYAN", "GRUEN", "BERNSTEIN", "ROT", "MAGENTA", "BLAU", "WEISS", "REGENBOGEN", "ZUFALL" },
-    { "ORIGINAL", "CYAN", "VERT", "AMBRE", "ROUGE", "MAGENTA", "BLEU", "BLANC", "ARC-EN-CIEL", "ALEATOIRE" },
-    { "ORIGINAL", "CIAN", "VERDE", "AMBAR", "ROJO", "MAGENTA", "AZUL", "BLANCO", "ARCOIRIS", "ALEATORIO" },
+    { "ORIGINAL", "CYAN", "GREEN", "AMBER", "RED", "MAGENTA", "BLUE", "WHITE", "RAINBOW", "RANDOM SINGLE", "RANDOM MULTI" },
+    { "ORIGINAL", "CYAN", "GRUEN", "BERNSTEIN", "ROT", "MAGENTA", "BLAU", "WEISS", "REGENBOGEN", "ZUFALL EINFARBIG", "ZUFALL BUNT" },
+    { "ORIGINAL", "CYAN", "VERT", "AMBRE", "ROUGE", "MAGENTA", "BLEU", "BLANC", "ARC-EN-CIEL", "HASARD UNIE", "HASARD MULTI" },
+    { "ORIGINAL", "CIAN", "VERDE", "AMBAR", "ROJO", "MAGENTA", "AZUL", "BLANCO", "ARCOIRIS", "AZAR UNICO", "AZAR MULTI" },
 };
 static const float THEME_RGB[NTHEME][3] = {
     { 0, 0, 0 }, { 60, 235, 255 }, { 80, 255, 120 }, { 255, 175, 50 }, { 255, 70, 60 },
-    { 255, 80, 220 }, { 90, 130, 255 }, { 235, 240, 255 }, { 0, 0, 0 }, { 0, 0, 0 },
+    { 255, 80, 220 }, { 90, 130, 255 }, { 235, 240, 255 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 },
 };
 
 /* changing faces by itself: off, with each track, every so many minutes,

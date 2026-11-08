@@ -18,7 +18,7 @@ Die Uhrzeit auf fünfzehn Zifferblättern:
 - **ROCKS:** treibende Felsen und ein kleines Schiff wie bei den alten Vektor-Felsenshootern
 - **WEATHER:** das Wetter jetzt und die nächsten Tage
 
-Unter jedem Zifferblatt steht eine Zeile mit Datum und Wetter.
+Jedes Zifferblatt hat eigene, aufeinander abgestimmte Farben, etwa bei DIGITAL Stunden cyan, Minuten magenta, Sekunden gelb. Unter jedem Zifferblatt steht eine Zeile mit Datum und Wetter.
 
 ## Das Menü der Uhr
 
@@ -40,7 +40,11 @@ Einstellbar ist:
   - LEFT / RIGHT: Joystick links und rechts
   - CUSTOM: eine eigene Taste. Mit Button 1 auf der Zeile wird sie gelernt: „PRESS A BUTTON“, dann die gewünschte Taste drücken (F2 oder Tab bricht ab). Die Zeile zeigt sie dann, etwa „CUSTOM: BUTTON 3“.
   - NONE
-- **CLOCK COLOR, DATE COLOR, WEATHER COLOR:** Farben für Uhr, Datum und Wetter, jede für sich. Zur Wahl stehen die eigenen Farben, eine von Cyan, Grün, Bernstein, Rot, Magenta, Blau, Weiß und Regenbogen, oder RANDOM: Mit jedem Zifferblatt kommt eine neue Farbe aus den sieben einfachen, nie zweimal dieselbe hintereinander.
+- **CLOCK COLOR, DATE COLOR, WEATHER COLOR:** Farben für Uhr, Datum und Wetter, jede für sich. Zur Wahl stehen:
+  - ORIGINAL: die eigenen, bunten Farben des Zifferblatts
+  - eine Farbe für alles: Cyan, Grün, Bernstein, Rot, Magenta, Blau, Weiß oder Regenbogen
+  - RANDOM SINGLE: mit jedem Zifferblatt eine neue Farbe aus den sieben einfachen, nie zweimal dieselbe hintereinander
+  - RANDOM MULTI: mit jedem Zifferblatt neue bunte Farben. Alle eigenen Farben werden gemeinsam ein zufälliges Stück um den Farbkreis gedreht, so passen sie weiter zueinander.
 - **SECONDS:** aus, SMOOTH (der Zeiger gleitet, Standard) oder TICK (er springt jede Sekunde)
 - **Was sonst angezeigt wird:** DATE, WEATHER LINE (die Wetterzeile unter der Uhr), 24 HOURS (sonst 12) und TRACK TITLE, jeweils an oder aus
 - **WEATHER REPORT:** der Wetterbericht als Vollbild, aus oder alle 1, 2, 3, 5, 10, 15, 30 oder 60 Minuten. Er blendet über die Uhr und danach wieder zurück.

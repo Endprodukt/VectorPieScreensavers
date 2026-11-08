@@ -43,6 +43,8 @@ Noch am Automaten zu prüfen, siehe STATUS „Offen“. Hilfen dabei:
   - die Zifferblätter (`face_*`), das Überblenden, `info_line`, die Wortuhr (`WC_*`, `words_target` je Sprache)
   - die Steuerung: `control` reicht an das Menü weiter oder öffnet es, `wake` beendet die Uhr
   - `follow_settings`: Was das Menü in `SET` ändert, wird übernommen, etwa ein neuer Ort für das Wetter oder neue Wörter für die Wortuhr.
+  - Jedes Zifferblatt hat eigene bunte Farben (Wunsch 2026-11-08). Die analogen aus `dial_*` nehmen sie aus einer `dial_pal` (`DP`), die anderen stehen direkt im Code.
+  - RANDOM MULTI (`THEME_RANDOM_MULTI`): `color()` dreht jede Farbe mit `hue_turn()` um `PAINT_TURN` (zufällig je Zifferblatt und Teil, `TURN` in `pick_colors()`). Weiß und Grau bleiben.
   - Die Farbe kommt aus `color()`: Bei einem Farbthema (`PAINT`) wird jede Farbe durch die des Themas ersetzt, mit der Helligkeit der ursprünglichen. `PAINT` steht beim Zeichnen auf der Uhrfarbe, für Datum und Wetter auf deren Farbe.
   - Das Wetter: `weather_view(style)` mit `wx_overview`, `wx_simple`, `wx_today`, `wx_days`, `wx_hours`. Dazu `text_deg`: Text mit `^` an der Stelle eines Gradzeichens, das gezeichnet wird.
   - Der Wetterbericht: `report_update`. Den nächsten Wechsel bestimmt `next_face`, dort steckt auch der Zufall.

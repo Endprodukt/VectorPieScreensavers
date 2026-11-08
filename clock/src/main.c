@@ -99,7 +99,13 @@ static struct {
  * and the weather (THEME_*); [0] the face now, [1] the one it blends from */
 enum { PART_CLOCK, PART_DATE, PART_WX, NPART };
 static int PICK[2][NPART], PICK_SLOT;
-static int theme(int v, int part) { return v == THEME_RANDOM ? PICK[PICK_SLOT][part] : v; }
+static float TURN[2][NPART];            /* RANDOM MULTI: how far round the color wheel (0..1) */
+static float PAINT_TURN;                /* the turn now drawing */
+static int theme(int v, int part)
+{
+    if (v == THEME_RANDOM_MULTI) PAINT_TURN = TURN[PICK_SLOT][part];
+    return v == THEME_RANDOM ? PICK[PICK_SLOT][part] : v;
+}
 
 /* new colors at random for the next face, each unlike the last */
 static void pick_colors(void)
@@ -109,6 +115,8 @@ static void pick_colors(void)
         int c;
         do c = 1 + rand() % 7; while (c == PICK[1][p]);    /* one of the plain colors */
         PICK[0][p] = c;
+        TURN[1][p] = TURN[0][p];
+        TURN[0][p] = 0.12f + 0.76f * (float)rand() / (float)RAND_MAX;   /* never near the own colors */
     }
 }
 
@@ -131,10 +139,36 @@ static void ln(vp_dvg *d, float x, float y) { vp_lineto(d, (int)SX(x), (int)SY(y
 #define vp_lineto(d, x, y) ln(d, (float)(x), (float)(y))
 static float smooth01(float t) { t = clampf(t, 0, 1); return t * t * (3 - 2 * t); }
 
+/* a color turned round the color wheel by `turn` (0..1): its brightness
+ * and how colorful it is stay */
+static void hue_turn(float *r, float *g, float *b, float turn)
+{
+    float mx = fmaxf(*r, fmaxf(*g, *b)), mn = fminf(*r, fminf(*g, *b)), c = mx - mn;
+    if (c < 1) return;                                  /* white, grey: no hue to turn */
+    float h;
+    if (mx == *r)      h = fmodf((*g - *b) / c + 6, 6);
+    else if (mx == *g) h = (*b - *r) / c + 2;
+    else               h = (*r - *g) / c + 4;
+    h = fmodf(h + turn * 6, 6);
+    float x = c * (1 - fabsf(fmodf(h, 2) - 1));
+    float rr = 0, gg = 0, bb = 0;
+    switch ((int)h) {
+    case 0: rr = c; gg = x; break;
+    case 1: rr = x; gg = c; break;
+    case 2: gg = c; bb = x; break;
+    case 3: gg = x; bb = c; break;
+    case 4: rr = x; bb = c; break;
+    default: rr = c; bb = x; break;
+    }
+    *r = rr + mn; *g = gg + mn; *b = bb + mn;
+}
+
 static void color(vp_dvg *d, float r, float g, float b, float k)
 {
     k = clampf(k, 0, 1);
-    if (PAINT > 0) {
+    if (PAINT == THEME_RANDOM_MULTI) {
+        hue_turn(&r, &g, &b, PAINT_TURN);               /* the own colors, all turned alike */
+    } else if (PAINT > 0) {
         /* one color for all: as bright as the face's own was */
         float lum = (0.3f * r + 0.59f * g + 0.11f * b) / 255, f = 0.45f + 0.55f * clampf(lum / 0.85f, 0, 1);
         if (PAINT == THEME_RAINBOW) {                      /* the rainbow: the hue wanders, slowly */
@@ -312,7 +346,7 @@ static void face_analog(vp_dvg *d, float k)
         else            color(d, 120, 200, 255, k * 0.6f * accent());
         line(d, cx + c * in, cy + s * in, cx + c * R * 0.985f, cy + s * R * 0.985f);
     }
-    color(d, 235, 240, 255, k);
+    color(d, 255, 200, 110, k);                         /* the numbers: amber */
     const int NUM[4] = { 12, 3, 6, 9 };
     for (int i = 0; i < 4; i++) {
         float a = PI / 2 - i * PI / 2, r = R * 0.7f, h = 210;
@@ -335,7 +369,7 @@ static void face_analog(vp_dvg *d, float k)
         const float bw = 190, bh = 115;                 /* the window: room round the number */
         line(d, wx - bw, wy - bh, wx + bw, wy - bh); vp_lineto(d, (int)(wx + bw), (int)(wy + bh));
         vp_lineto(d, (int)(wx - bw), (int)(wy + bh)); vp_lineto(d, (int)(wx - bw), (int)(wy - bh));
-        color(d, 235, 240, 255, k);
+        color(d, 255, 200, 110, k);
         text(d, buf, SX(wx), wy - 55, 110, VP_TEXT_CENTER);
         PAINT = theme(SET.theme, PART_CLOCK);
     }
@@ -343,7 +377,7 @@ static void face_analog(vp_dvg *d, float k)
     float sec = sec_hand(n), min = n->m + sec / 60, hour = (n->h % 12) + min / 60;
     struct { float a, len, wid, r, g, b; } hand[2] = {
         { hour / 12 * 2 * PI, R * 0.55f, 70, 235, 240, 255 },
-        { min / 60 * 2 * PI, R * 0.84f, 46, 235, 240, 255 },
+        { min / 60 * 2 * PI, R * 0.84f, 46, 110, 230, 255 },
     };
     for (int i = 0; i < 2; i++) {
         float a = PI / 2 - hand[i].a, c = cosf(a), s = sinf(a), px = -s, py = c, w = hand[i].wid;
@@ -368,6 +402,22 @@ static void face_analog(vp_dvg *d, float k)
  * and FULL SCREEN (the marks along the screen's edges). A dial is a circle
  * (radius r) or a rectangle (half sizes rw, rh); the hands reach as far as
  * its edge lets them. */
+
+/* a dial's colors: rim, hour and minute marks, numbers, the name, hour,
+ * minute and second hands */
+typedef struct { float rim[3], mh[3], mm[3], num[3], brand[3], hh[3], hm[3], sec[3]; } dial_pal;
+static const dial_pal PAL_MINIMAL = { { 0 }, { 255, 150, 60 }, { 255, 225, 190 }, { 0 }, { 0 },
+                                      { 255, 235, 215 }, { 255, 160, 70 }, { 255, 70, 90 } };
+static const dial_pal PAL_NUMERALS = { { 0 }, { 0 }, { 0 }, { 90, 255, 190 }, { 60, 235, 255 },
+                                       { 235, 240, 255 }, { 90, 255, 190 }, { 255, 90, 200 } };
+static const dial_pal PAL_ROMAN = { { 255, 200, 90 }, { 255, 220, 150 }, { 200, 160, 80 }, { 255, 240, 210 },
+                                    { 255, 200, 90 }, { 255, 240, 210 }, { 255, 200, 90 }, { 100, 160, 255 } };
+static const dial_pal PAL_SQUARE = { { 255, 90, 220 }, { 235, 240, 255 }, { 255, 90, 220 }, { 190, 150, 255 },
+                                     { 255, 90, 220 }, { 235, 240, 255 }, { 190, 150, 255 }, { 255, 230, 60 } };
+static const dial_pal PAL_FULL = { { 0 }, { 60, 235, 255 }, { 90, 130, 255 }, { 235, 240, 255 },
+                                   { 60, 235, 255 }, { 235, 240, 255 }, { 60, 235, 255 }, { 255, 140, 40 } };
+static const dial_pal *DP = &PAL_FULL;  /* the dial drawing now */
+static void pc(vp_dvg *d, const float c[3], float k) { color(d, c[0], c[1], c[2], k); }
 
 static const char *const ROMAN[13] = { "", "I", "II", "III", "IIII", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII" };
 
@@ -451,11 +501,11 @@ static void dial_hands(vp_dvg *d, float cx, float cy, float r, float rw, float r
     for (int i = 0; i < 2; i++) {
         float a = hand[i].a;
         float len = (i == 0 ? fminf(dial_reach(a, r, rw, rh), base * 1.15f) : dial_reach(a, r, rw, rh)) * hand[i].len;
-        color(d, 235, 240, 255, k);
+        pc(d, i == 0 ? DP->hh : DP->hm, k);
         hand_shape(d, cx, cy, a, len, hand[i].wid, style);
     }
     float a = PI / 2 - sec / 60 * 2 * PI, c = cosf(a), s = sinf(a), len = dial_reach(a, r, rw, rh) * 0.92f;
-    color(d, 255, 90, 150, k);
+    pc(d, DP->sec, k);
     if (SET.seconds) {
         line(d, cx - c * base * 0.18f, cy - s * base * 0.18f, cx + c * len, cy + s * len);
         if (style == HAND_BREGUET || style == HAND_ARROW)   /* a counterweight */
@@ -470,8 +520,8 @@ static void dial_marks(vp_dvg *d, float cx, float cy, float r, float rw, float r
     for (int i = 0; i < 60; i++) {
         float a = PI / 2 - i * 2 * PI / 60, c = cosf(a), s = sinf(a), e = dial_reach(a, r, rw, rh) * 0.985f;
         float in = e - (i % 5 == 0 ? hour_len : min_len);
-        if (i % 5 == 0) color(d, 235, 240, 255, k);
-        else            color(d, 120, 200, 255, k * 0.6f * accent());
+        if (i % 5 == 0) pc(d, DP->mh, k);
+        else            pc(d, DP->mm, k * 0.6f * accent());
         line(d, cx + c * in, cy + s * in, cx + c * e, cy + s * e);
     }
 }
@@ -479,7 +529,7 @@ static void dial_marks(vp_dvg *d, float cx, float cy, float r, float rw, float r
 /* the twelve numbers, `inset` in from the dial's edge; roman or not */
 static void dial_numbers(vp_dvg *d, float cx, float cy, float r, float rw, float rh, float inset, float h, int roman, float k)
 {
-    color(d, 235, 240, 255, k);
+    pc(d, DP->num, k);
     for (int i = 1; i <= 12; i++) {
         float a = PI / 2 - i * 2 * PI / 12, e = rw > 0 ? dial_reach(a, r, rw - inset, rh - inset) : r - inset;   /* square in from the edge */
         float x = cx + cosf(a) * e, y = cy + sinf(a) * e;
@@ -490,7 +540,7 @@ static void dial_numbers(vp_dvg *d, float cx, float cy, float r, float rw, float
 
 static void dial_brand(vp_dvg *d, float cx, float cy, float off, float k)
 {
-    color(d, 120, 200, 255, k * 0.8f);
+    pc(d, DP->brand, k * 0.8f);
     text(d, "VECTORPIE", SX(cx), cy + off, 85, VP_TEXT_CENTER);
 }
 
@@ -498,10 +548,12 @@ static void dial_brand(vp_dvg *d, float cx, float cy, float off, float k)
 static void face_minimal(vp_dvg *d, float k)
 {
     const float cx = CX, cy = 2150, r = 1430;
+    DP = &PAL_MINIMAL;
     for (int i = 0; i < 12; i++) {
         float a = PI / 2 - i * 2 * PI / 12, c = cosf(a), s = sinf(a), px = -s * 22, py = c * 22;
         float in = r * (i % 3 == 0 ? 0.74f : 0.84f), out = r;
-        color(d, 235, 240, 255, k * (i % 3 == 0 ? 1 : 0.8f));
+        if (i % 3 == 0) pc(d, DP->mh, k);                /* 12, 3, 6, 9 */
+        else            pc(d, DP->mm, k * 0.8f);
         vp_moveto(d, (int)(cx + c * in + px), (int)(cy + s * in + py));     /* a bar: a thin outline */
         vp_lineto(d, (int)(cx + c * out + px), (int)(cy + s * out + py));
         vp_lineto(d, (int)(cx + c * out - px), (int)(cy + s * out - py));
@@ -515,6 +567,7 @@ static void face_minimal(vp_dvg *d, float k)
 static void face_numerals(vp_dvg *d, float k)
 {
     const float cx = CX, cy = 2150, r = 1430;
+    DP = &PAL_NUMERALS;
     dial_numbers(d, cx, cy, r, 0, 0, 170, 240, 0, k);
     dial_brand(d, cx, cy, r * 0.36f, k);
     dial_hands(d, cx, cy, r, 0, 0, HAND_BATON, k);
@@ -524,7 +577,8 @@ static void face_numerals(vp_dvg *d, float k)
 static void face_roman(vp_dvg *d, float k)
 {
     const float cx = CX, cy = 2150, r = 1430;
-    color(d, 120, 200, 255, k * accent());
+    DP = &PAL_ROMAN;
+    pc(d, DP->rim, k * accent());
     circle(d, cx, cy, r, 96);
     circle(d, cx, cy, r * 0.97f, 96);
     dial_marks(d, cx, cy, r * 0.97f, 0, 0, 60, 35, k * 0.8f);
@@ -537,7 +591,8 @@ static void face_roman(vp_dvg *d, float k)
 static void face_square(vp_dvg *d, float k)
 {
     const float cx = CX, cy = 2150, s = 1400;
-    color(d, 120, 200, 255, k * accent());
+    DP = &PAL_SQUARE;
+    pc(d, DP->rim, k * accent());
     for (int j = 0; j < 2; j++) {
         float e = j == 0 ? s * 1.04f : s;
         vp_moveto(d, (int)(cx - e), (int)(cy - e));
@@ -560,6 +615,7 @@ static void face_full(vp_dvg *d, float k)
     float left = CX - CX / ASPECT_X + 130, right = CX + CX / ASPECT_X - 130;
     float bottom = W / 2.0f + (620 - W / 2.0f) / ASPECT_Y, top = W / 2.0f + (3975 - W / 2.0f) / ASPECT_Y;
     float cx = (left + right) / 2, cy = (bottom + top) / 2, rw = (right - left) / 2, rh = (top - bottom) / 2;
+    DP = &PAL_FULL;
     dial_marks(d, cx, cy, 0, rw, rh, 260, 110, k);
     dial_numbers(d, cx, cy, 0, rw, rh, 470, 250, 0, k);
     dial_brand(d, cx, cy, rh * 0.4f, k);
@@ -611,12 +667,12 @@ static void face_digital(vp_dvg *d, float k)
     digits6(n, dg);
     const float h = 1200, w = 500, y = 1900, sp = 200;
     float x = CX - (4 * w + 3 * sp + 260 + (SET.seconds ? 60 + 2 * w * 0.38f + 90 : -sp)) / 2;
-    const float R = 60, G2 = 235, B = 255;
     for (int i = 0; i < 4; i++) {
-        seg7(d, dg[i], x, y, w, h, k, R, G2, B);
+        if (i < 2) seg7(d, dg[i], x, y, w, h, k, 60, 235, 255);     /* hours: cyan */
+        else       seg7(d, dg[i], x, y, w, h, k, 255, 80, 220);     /* minutes: magenta */
         x += w + sp;
         if (i == 1) {                                /* the colon, standing still */
-            color(d, R, G2, B, k);
+            color(d, 220, 230, 255, k);
             for (int j = 0; j < 2; j++) {
                 float cy = y + h * (j ? 0.68f : 0.32f), cx = x + 40 + (cy - y) * 0.1f;
                 circle(d, cx, cy, 38, 10);
@@ -626,8 +682,8 @@ static void face_digital(vp_dvg *d, float k)
         }
     }
     if (SET.seconds) {
-        seg7(d, dg[4], x - 40, y, w * 0.38f, h * 0.38f, k * 0.85f, R, G2, B);
-        seg7(d, dg[5], x - 40 + w * 0.38f + 90, y, w * 0.38f, h * 0.38f, k * 0.85f, R, G2, B);
+        seg7(d, dg[4], x - 40, y, w * 0.38f, h * 0.38f, k * 0.85f, 255, 220, 60);            /* seconds: yellow */
+        seg7(d, dg[5], x - 40 + w * 0.38f + 90, y, w * 0.38f, h * 0.38f, k * 0.85f, 255, 220, 60);
     }
     if (SET.date) {
         char buf[64];
@@ -661,7 +717,8 @@ static void flip_card(vp_dvg *d, int i, float x, float y, float cw, float ch, fl
     arc(d, x + r, y + r, r, r, 180, 270, 4);
     color(d, 200, 205, 215, k * 0.3f);
     line(d, x + 6, hinge, x + cw - 6, hinge);
-    color(d, 245, 245, 250, k);
+    static const float DIGIT[3][3] = { { 255, 190, 90 }, { 245, 245, 250 }, { 60, 235, 255 } };
+    color(d, DIGIT[i / 2][0], DIGIT[i / 2][1], DIGIT[i / 2][2], k);   /* hours, minutes, seconds */
     if (t >= 1) {
         glyph(d, cur, gx, gy, gw, gh);
         return;
@@ -717,13 +774,15 @@ static void face_binary(vp_dvg *d, float k)
     const char *VAL[4] = { "1", "2", "4", "8" };
     for (int b = 0; b < 4; b++) text(d, VAL[b], SX(x0 - 380), y0 + b * step - 45, 90, VP_TEXT_CENTER);
     float x = x0;
+    static const float COL[3][3] = { { 80, 255, 140 }, { 60, 220, 255 }, { 255, 220, 60 } };   /* h, m, s */
     for (int c = 0; c < cols; c++) {
+        const float *cc = COL[c / 2];
         for (int b = 0; b < NB[c]; b++) {
             float y = y0 + b * step, on = G.bits[c][b];
-            color(d, 80, 255, 140, k * (0.25f + 0.2f * accent()));
+            color(d, cc[0], cc[1], cc[2], k * (0.25f + 0.2f * accent()));
             circle(d, x, y, r, 24);
             if (on > 0.02f) {                       /* lit: filled with rings */
-                color(d, 80, 255, 140, k * on);
+                color(d, cc[0], cc[1], cc[2], k * on);
                 circle(d, x, y, r * 0.75f, 20);
                 circle(d, x, y, r * 0.5f, 16);
                 circle(d, x, y, r * 0.25f, 10);
@@ -735,7 +794,7 @@ static void face_binary(vp_dvg *d, float k)
     char buf[16];
     if (SET.seconds) snprintf(buf, sizeof buf, "%02d:%02d:%02d", G.now.hd, G.now.m, G.now.s);
     else             snprintf(buf, sizeof buf, "%02d:%02d", G.now.hd, G.now.m);
-    color(d, 80, 255, 140, k * 0.55f);
+    color(d, 200, 215, 240, k * 0.55f);
     text(d, buf, CX, 760, 130, VP_TEXT_CENTER);
 }
 
@@ -879,7 +938,9 @@ static void face_words(vp_dvg *d, float k)
             if (!first && !WD[i].glue) x += sp;
             first = 0;
             float on = G.words[i];
-            color(d, 255, 190, 90, k * (0.1f + 0.9f * on));
+            static const float ROW[8][3] = { { 255, 190, 90 }, { 255, 160, 80 }, { 255, 130, 110 }, { 255, 110, 160 },
+                                             { 240, 110, 220 }, { 190, 120, 255 }, { 130, 150, 255 }, { 90, 200, 255 } };
+            color(d, ROW[row][0], ROW[row][1], ROW[row][2], k * (0.1f + 0.9f * on));
             vp_text(d, WD[i].s, x, y, h, VP_TEXT_LEFT);
             x += vp_text_width(WD[i].s, h);
         }
@@ -888,7 +949,7 @@ static void face_words(vp_dvg *d, float k)
     int extra = G.now.m % 5;
     for (int i = 0; i < 4; i++) {
         float x = CX + (i - 1.5f) * 260, y = top - 8 * row_h + 260;
-        color(d, 255, 190, 90, k * (i < extra ? 1 : 0.12f));
+        color(d, 90, 220, 255, k * (i < extra ? 1 : 0.12f));
         circle(d, x, y, 45, 12);
         if (i < extra) circle(d, x, y, 20, 8);
     }
@@ -903,7 +964,7 @@ static void face_nixie(vp_dvg *d, float k)
     for (int i = 0; i < tubes; i++) {
         /* the glass: round at the top, the sockets' pins under it */
         float r = tw / 2;
-        color(d, 180, 120, 80, k * 0.4f * accent());
+        color(d, 140, 165, 200, k * 0.4f * accent());   /* the glass: cool */
         vp_moveto(d, (int)x, (int)y);
         vp_lineto(d, (int)x, (int)(y + th - r));
         arc(d, x + r, y + th - r, r, r, 180, 0, 16);
@@ -911,7 +972,7 @@ static void face_nixie(vp_dvg *d, float k)
         vp_lineto(d, (int)x, (int)y);
         for (int p = 0; p < 4; p++) line(d, x + tw * (0.2f + p * 0.2f), y - 10, x + tw * (0.2f + p * 0.2f), y - 90);
         /* the mesh in front, faint */
-        color(d, 180, 120, 80, k * 0.15f);
+        color(d, 140, 165, 200, k * 0.15f);
         for (int m = 1; m < 6; m++) line(d, x + tw * 0.12f, y + th * 0.13f * m, x + tw * 0.88f, y + th * 0.13f * m);
         /* the digit, glowing; the old one fades as the new one lights */
         float gh = th * 0.62f, gw = gh * 0.6f, gx = x + (tw - gw) / 2, gy = y + th * 0.12f;
@@ -1125,7 +1186,7 @@ static void face_rocks(vp_dvg *d, float k)
     const now_t *n = &G.now;
     /* the rocks, faint behind the time */
     for (int i = 0; i < NROCK; i++) {
-        color(d, 200, 200, 210, k * 0.45f * accent());
+        color(d, 200, 165, 130, k * 0.45f * accent());  /* the rocks: brown */
         for (int j = 0; j <= 10; j++) {
             float a = ROCK[i].a + j * 2 * PI / 10, rr = ROCK[i].size * ROCK[i].rad[j % 10];
             int x = (int)(ROCK[i].x + cosf(a) * rr), y = (int)(ROCK[i].y + sinf(a) * rr);
@@ -1136,7 +1197,7 @@ static void face_rocks(vp_dvg *d, float k)
     }
     /* the time */
     const float h = 900, w = h * 0.6f, y = 1600;
-    color(d, 240, 240, 250, k);
+    color(d, 90, 230, 255, k);                          /* the time: cyan */
     glyph(d, n->hd / 10, CX - 140 - 2 * w - 170, y, w, h);
     glyph(d, n->hd % 10, CX - 140 - w, y, w, h);
     circle(d, CX, y + h * 0.3f, 22, 8);
@@ -1146,7 +1207,7 @@ static void face_rocks(vp_dvg *d, float k)
     /* the pieces of the last minute */
     for (int i = 0; i < NFRAG; i++) {
         if (FRAG[i].life <= 0) continue;
-        color(d, 240, 240, 250, k * smooth01(FRAG[i].life));
+        color(d, 90, 230, 255, k * smooth01(FRAG[i].life));
         line(d, FRAG[i].x0, FRAG[i].y0, FRAG[i].x1, FRAG[i].y1);
     }
     /* the ship, gliding round the time, nose ahead (the seconds: once a minute) */
@@ -1155,7 +1216,7 @@ static void face_rocks(vp_dvg *d, float k)
     float hx = sinf(a) * 1750, hy = -cosf(a) * 1250, hl = sqrtf(hx * hx + hy * hy);
     hx /= hl; hy /= hl;                                          /* its heading: along the path */
     float px = -hy, py = hx, s = 70;
-    color(d, 240, 240, 250, k);
+    color(d, 255, 230, 90, k);                          /* the ship: yellow */
     vp_moveto(d, (int)(sx + hx * s * 1.6f), (int)(sy + hy * s * 1.6f));
     vp_lineto(d, (int)(sx - hx * s + px * s), (int)(sy - hy * s + py * s));
     vp_lineto(d, (int)(sx - hx * s * 0.4f), (int)(sy - hy * s * 0.4f));
